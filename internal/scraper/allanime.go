@@ -43,8 +43,8 @@ func NewAllAnimeClient() *AllAnimeClient {
 	allAnimeClientOnce.Do(func() {
 		allAnimeClientInstance = &AllAnimeClient{
 			client:    util.GetFastClient(), // Use shared fast client for API requests
-			referer:   AllAnimeReferer,
-			apiBase:   AllAnimeAPI,
+			referer:   util.ConfiguredURL(util.GlobalAllAnimeReferer, AllAnimeReferer),
+			apiBase:   util.ConfiguredURL(util.GlobalAllAnimeAPI, AllAnimeAPI),
 			userAgent: UserAgent,
 		}
 	})

@@ -30,7 +30,7 @@ type AnimefireClient struct {
 func NewAnimefireClient() *AnimefireClient {
 	return &AnimefireClient{
 		client:     util.GetFastClient(), // Use shared fast client
-		baseURL:    AnimefireBase,
+		baseURL:    util.ConfiguredURL(util.GlobalAnimeFireURL, AnimefireBase),
 		userAgent:  UserAgent,
 		maxRetries: 2,
 		retryDelay: 250 * time.Millisecond, // Reduced from 350ms

@@ -110,6 +110,12 @@ func ShowBeautifulHelp() {
 	addOption(&helpContent, "--type", "Specify media type (anime, movie, tv). Default: anime.")
 	addOption(&helpContent, "--subs", "Specify subtitle language for movies/TV shows (FlixHQ only: english, spanish, portuguese, etc.).")
 	addOption(&helpContent, "--audio", "Specify preferred audio language for movies/TV (FlixHQ only: pt-BR,english,spanish).")
+	addOption(&helpContent, "--animefire-url", "Override AnimeFire base URL (for mirrors or domain changes).")
+	addOption(&helpContent, "--animedrive-url", "Override AnimeDrive base URL (for mirrors or domain changes).")
+	addOption(&helpContent, "--allanime-api", "Override AllAnime API URL.")
+	addOption(&helpContent, "--allanime-referer", "Override AllAnime referer URL.")
+	addOption(&helpContent, "--flixhq-url", "Override FlixHQ base URL.")
+	addOption(&helpContent, "--flixhq-api", "Override FlixHQ decoder API URL.")
 	helpContent.WriteString("\n")
 
 	// Features section

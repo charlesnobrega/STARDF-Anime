@@ -20,6 +20,12 @@ var (
 	GlobalMediaType     string                         // Global variable to store media type (anime, movie, tv)
 	GlobalSubsLanguage  string                         // Global variable to store subtitle language
 	GlobalAudioLanguage string                         // Global variable to store preferred audio language
+	GlobalAnimeFireURL  string                         // Base URL override for AnimeFire
+	GlobalAnimeDriveURL string                         // Base URL override for AnimeDrive
+	GlobalAllAnimeAPI   string                         // API URL override for AllAnime
+	GlobalAllAnimeReferer string                       // Referer URL override for AllAnime
+	GlobalFlixHQURL     string                         // Base URL override for FlixHQ
+	GlobalFlixHQAPIURL  string                         // API URL override for FlixHQ
 )
 
 // Cleanup function to be called on program exit
@@ -93,6 +99,12 @@ func FlagParser() (string, error) {
 	mediaTypeFlag := flag.String("type", "", "specify media type (anime, movie, tv)")
 	subsLanguageFlag := flag.String("subs", "english", "specify subtitle language for movies/TV (FlixHQ only)")
 	audioLanguageFlag := flag.String("audio", "pt-BR,pt,english", "specify preferred audio language for movies/TV (FlixHQ only)")
+	animefireURLFlag := flag.String("animefire-url", "", "override AnimeFire base URL (e.g., https://animefire.to)")
+	animedriveURLFlag := flag.String("animedrive-url", "", "override AnimeDrive base URL (e.g., https://animesdrive.site)")
+	allanimeAPIFlag := flag.String("allanime-api", "", "override AllAnime API URL (e.g., https://api.allanime.day/api)")
+	allanimeRefererFlag := flag.String("allanime-referer", "", "override AllAnime referer URL (e.g., https://allanime.to)")
+	flixhqURLFlag := flag.String("flixhq-url", "", "override FlixHQ base URL (e.g., https://flixhq.to)")
+	flixhqAPIFlag := flag.String("flixhq-api", "", "override FlixHQ decoder API URL (e.g., https://dec.eatmynerds.live)")
 
 	// Parse the flags early before any manipulation of os.Args
 	flag.Parse()
@@ -114,6 +126,12 @@ func FlagParser() (string, error) {
 	GlobalMediaType = *mediaTypeFlag
 	GlobalSubsLanguage = *subsLanguageFlag
 	GlobalAudioLanguage = *audioLanguageFlag
+	GlobalAnimeFireURL = normalizeURLFlag(*animefireURLFlag)
+	GlobalAnimeDriveURL = normalizeURLFlag(*animedriveURLFlag)
+	GlobalAllAnimeAPI = normalizeURLFlag(*allanimeAPIFlag)
+	GlobalAllAnimeReferer = normalizeURLFlag(*allanimeRefererFlag)
+	GlobalFlixHQURL = normalizeURLFlag(*flixhqURLFlag)
+	GlobalFlixHQAPIURL = normalizeURLFlag(*flixhqAPIFlag)
 
 	if *versionFlag || version.HasVersionArg() {
 		version.ShowVersion()
@@ -185,6 +203,21 @@ func getUserInput(label string) (string, error) {
 func TreatingAnimeName(animeName string) string {
 	loweredName := strings.ToLower(animeName)
 	return strings.ReplaceAll(loweredName, " ", "-")
+}
+
+
+// ConfiguredURL returns an override URL when provided, otherwise returns fallback.
+func ConfiguredURL(override, fallback string) string {
+	if strings.TrimSpace(override) == "" {
+		return fallback
+	}
+	return normalizeURLFlag(override)
+}
+
+func normalizeURLFlag(raw string) string {
+	clean := strings.TrimSpace(raw)
+	clean = strings.TrimSuffix(clean, "/")
+	return clean
 }
 
 // handleDownloadModeWithSmart processes download args with AllAnime Smart option

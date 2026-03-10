@@ -93,8 +93,8 @@ func NewFlixHQClient() *FlixHQClient {
 		client: &http.Client{
 			Timeout: 30 * time.Second,
 		},
-		baseURL:    FlixHQBase,
-		apiURL:     FlixHQAPI,
+		baseURL:    util.ConfiguredURL(util.GlobalFlixHQURL, FlixHQBase),
+		apiURL:     util.ConfiguredURL(util.GlobalFlixHQAPIURL, FlixHQAPI),
 		userAgent:  FlixHQUserAgent,
 		maxRetries: 2,
 		retryDelay: 500 * time.Millisecond,

@@ -224,7 +224,7 @@ func NewAnimeDriveClient() *AnimeDriveClient {
 		client: &http.Client{
 			Timeout: 30 * time.Second,
 		},
-		baseURL:    AnimeDriveBase,
+		baseURL:    util.ConfiguredURL(util.GlobalAnimeDriveURL, AnimeDriveBase),
 		userAgent:  UserAgent,
 		maxRetries: 2,
 		retryDelay: 350 * time.Millisecond,

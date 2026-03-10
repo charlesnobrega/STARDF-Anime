@@ -91,8 +91,8 @@ type FlixHQSubtitle struct {
 func NewFlixHQClient() *FlixHQClient {
 	return &FlixHQClient{
 		client:     util.GetFastClient(), // Use shared fast client
-		baseURL:    FlixHQBase,
-		apiURL:     FlixHQAPI,
+		baseURL:    util.ConfiguredURL(util.GlobalFlixHQURL, FlixHQBase),
+		apiURL:     util.ConfiguredURL(util.GlobalFlixHQAPIURL, FlixHQAPI),
 		userAgent:  FlixHQUserAgent,
 		maxRetries: 2,
 		retryDelay: 300 * time.Millisecond, // Reduced from 500ms
