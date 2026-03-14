@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"net"
 	"net/http"
+	"net/http/cookiejar"
 	"sync"
 	"time"
 )
@@ -84,6 +85,47 @@ func createTransport(cfg httpClientConfig) *http.Transport {
 	}
 }
 
+// GetScraperClient returns an HTTP client tailored for web scraping
+// with realistic headers and cookie persistence
+func GetScraperClient() *http.Client {
+	cfg := fastConfig()
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Transport: &headerTransport{
+			base: createTransport(cfg),
+			headers: map[string]string{
+				"Accept":           "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+				"Accept-Language":  "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+				"Accept-Encoding":  "gzip, deflate, br",
+				"DNT":              "1",
+				"Connection":       "keep-alive",
+				"Upgrade-Insecure-Requests": "1",
+				"Sec-Fetch-Dest":  "document",
+				"Sec-Fetch-Mode":  "navigate",
+				"Sec-Fetch-Site":  "same-origin",
+				"Sec-Fetch-User":  "?1",
+				"Cache-Control":   "max-age=0",
+			},
+		},
+		Timeout: cfg.timeout,
+		Jar:     jar,
+	}
+	return client
+}
+
+// headerTransport wraps an http.RoundTripper to inject custom headers
+type headerTransport struct {
+	base    http.RoundTripper
+	headers map[string]string
+}
+
+func (t *headerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	for k, v := range t.headers {
+		req.Header.Set(k, v)
+	}
+	return t.base.RoundTrip(req)
+}
+
 // GetSharedClient returns the shared HTTP client with connection pooling.
 // This client is optimized for general use with reasonable timeouts.
 func GetSharedClient() *http.Client {
@@ -102,9 +144,12 @@ func GetSharedClient() *http.Client {
 func GetFastClient() *http.Client {
 	fastClientOnce.Do(func() {
 		cfg := fastConfig()
+		// Cookie jar for session persistence
+		jar, _ := cookiejar.New(nil)
 		fastClient = &http.Client{
 			Transport: createTransport(cfg),
 			Timeout:   cfg.timeout,
+			Jar:       jar,
 		}
 	})
 	return fastClient

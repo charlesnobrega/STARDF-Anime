@@ -37,6 +37,17 @@ func (c *GoyabuClient) SearchAnime(query string) ([]*models.Anime, error) {
 		return nil, err
 	}
 	req.Header.Set("User-Agent", GoyabuAgent)
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
+	req.Header.Set("Sec-Fetch-Dest", "document")
+	req.Header.Set("Sec-Fetch-Mode", "navigate")
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Sec-Fetch-User", "?1")
+	req.Header.Set("Cache-Control", "max-age=0")
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -88,6 +99,12 @@ func (c *GoyabuClient) GetEpisodes(animeURL string) ([]models.Episode, error) {
 		return nil, err
 	}
 	req.Header.Set("User-Agent", GoyabuAgent)
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -134,6 +151,13 @@ func (c *GoyabuClient) GetStreamURL(episodeURL string) (string, map[string]strin
 		return "", nil, err
 	}
 	req.Header.Set("User-Agent", GoyabuAgent)
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
+	req.Header.Set("Referer", c.baseURL)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
