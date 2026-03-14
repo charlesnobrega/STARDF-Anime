@@ -34,10 +34,6 @@ const (
 	AnimefireType
 	AnimeDriveType
 	FlixHQType // Movies and TV Shows source
-	CinebyType // Movies source
-	AnimesOnlineCCTYPE
-	GoyabuType
-	SuperAnimesType
 )
 
 // UnifiedScraper provides a common interface for all scrapers
@@ -63,10 +59,11 @@ func NewScraperManager() *ScraperManager {
 	manager.scrapers[AllAnimeType] = &AllAnimeAdapter{client: NewAllAnimeClient()}
 	manager.scrapers[AnimefireType] = &AnimefireAdapter{client: NewAnimefireClient()}
 	manager.scrapers[FlixHQType] = &FlixHQAdapter{client: NewFlixHQClient()}
-	manager.scrapers[CinebyType] = &CinebyAdapter{client: NewCinebyClient()}
-	manager.scrapers[AnimesOnlineCCTYPE] = &AnimesOnlineCCAdapter{client: NewAnimesOnlineCCClient()}
-	manager.scrapers[GoyabuType] = &GoyabuAdapter{client: NewGoyabuClient()}
-	manager.scrapers[SuperAnimesType] = &SuperAnimesAdapter{client: NewSuperAnimesClient()}
+
+	// AnimeDrive - Currently on standby
+	// Reason: Site is protected by Cloudflare, no bypass solution found yet
+	// TODO: Revisit when Cloudflare protection is removed or bypass method is discovered
+	// manager.scrapers[AnimeDriveType] = &AnimeDriveAdapter{client: NewAnimeDriveClient()}
 
 	// AnimeDrive - Currently on standby
 	// Reason: Site is protected by Cloudflare, no bypass solution found yet
@@ -592,72 +589,4 @@ func (a *FlixHQAdapter) GetType() ScraperType {
 // GetClient returns the underlying FlixHQ client for direct access
 func (a *FlixHQAdapter) GetClient() *FlixHQClient {
 	return a.client
-}
-
-// CinebyAdapter adapts Cineby client to UnifiedScraper interface
-type CinebyAdapter struct {
-	client *CinebyClient
-}
-
-// NewCinebyAdapter creates a new Cineby adapter
-func NewCinebyAdapter(client *CinebyClient) *CinebyAdapter {
-	return &CinebyAdapter{client: client}
-}
-
-// SearchAnime searches for movies on Cineby
-func (a *CinebyAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
-	// Cineby é apenas para filmes, então busca direta
-	movies, err := a.client.SearchMovies(query)
-	if err != nil {
-		return nil, err
-	}
-
-	var results []*models.Anime
-	for _, movie := range movies {
-		anime := &models.Anime{
-			ID:    movie.ID,
-			Title: movie.Title,
-			Type:  models.TypeMovie,
-			ImageURL: movie.ImageURL,
-			Year:  movie.Year,
-			URL:   movie.URL,
-			Source: "Cineby",
-		}
-		results = append(results, anime)
-	}
-
-	return results, nil
-}
-
-// GetAnimeEpisodes returns empty for Cineby (films don't have episodes)
-func (a *CinebyAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
-	// Movies não têm episódios
-	return nil, nil
-}
-
-// GetStreamURL returns streaming URLs for a movie
-func (a *CinebyAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
-	// Em Cineby, o episodeURL é na verdade a URL do filme
-	streams, err := a.client.GetStreamURLs(episodeURL)
-	if err != nil {
-		return "", nil, err
-	}
-
-	if len(streams) == 0 {
-		return "", nil, errors.New("no streams found")
-	}
-
-	// Retorna o primeiro stream (pode ser expandido para escolha)
-	stream := streams[0]
-	metadata := map[string]string{
-		"source":    "cineby",
-		"quality":   stream.Quality,
-		"subtitles": "", // TODO: extrair legendas se disponíveis
-	}
-
-	return stream.VideoURL, metadata, nil
-}
-
-func (a *CinebyAdapter) GetType() ScraperType {
-	return CinebyType
 }
