@@ -1,0 +1,55 @@
+name: Bug Report
+description: Reporte um comportamento incorreto ou erro
+title: "[BUG] "
+labels: ["bug", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Contexto
+        Descreva o contexto do bug (versão, fonte, comando executado)
+
+        ## Comportamento Esperado
+        O que deveria acontecer?
+
+        ## Comportamento Atual
+        O que aconteceu de fato? Inclua logs/prints.
+
+        ## Passos para Reproduzir
+        1. ...
+        2. ...
+        3. ...
+
+        ## Informações do Ambiente
+        - OS: [ex: Linux, Windows, macOS]
+        - Go version: `go version`
+        - Branch/commit: 
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs relevantes
+      description: Cole logs completos (sem truncar)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: acceptance
+    attributes:
+      label: Critérios de Aceite
+      description: Este bug será considerado resolvido quando:
+      options:
+        - label: O comportamento esperado é alcançado
+        - label: Testes adicionais passam
+        - label: Nenhum novo bug introduzido
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Informações adicionais
+    validations:
+      required: false

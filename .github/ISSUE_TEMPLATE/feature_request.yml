@@ -1,0 +1,48 @@
+name: Feature Request
+description: Sugestão de nova funcionalidade ou melhoria
+title: "[FEATURE] "
+labels: ["enhancement", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Contexto
+        Descreva o problema ou necessidade que esta feature resolve.
+
+        ## Proposta
+        Detalhe a solução proposta. Se aplicável, inclua mockups/exemplos.
+
+        ## Alternativas consideradas
+        Outras abordagens possíveis.
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de Aceite
+      description: Liste critérios mensuráveis para considerar a feature completa
+      placeholder: |
+        - [ ] Critério 1
+        - [ ] Critério 2
+    validations:
+      required: true
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Complexidade estimada
+      options:
+        - low
+        - medium
+        - high
+        - unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Observações
+    validations:
+      required: false
