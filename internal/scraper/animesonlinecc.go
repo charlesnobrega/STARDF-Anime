@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/alvarorichard/Goanime/internal/models"
@@ -14,7 +15,6 @@ import (
 
 const (
 	AnimesOnlineCCBase      = "https://animesonlinecc.to"
-	AnimesOnlineCCAgent     = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 	AnimesOnlineCCSearchURL = "https://animesonlinecc.to/?s=%s"
 )
 
@@ -25,18 +25,48 @@ type AnimesOnlineCCClient struct {
 
 func NewAnimesOnlineCCClient() *AnimesOnlineCCClient {
 	return &AnimesOnlineCCClient{
-		client:  util.GetFastClient(),
+		client:  util.GetScraperClient(),
 		baseURL: AnimesOnlineCCBase,
 	}
 }
 
+func (c *AnimesOnlineCCClient) visitHome() {
+	req, _ := http.NewRequest("GET", c.baseURL, nil)
+	ua := util.UserAgentList()
+	req.Header.Set("User-Agent", ua)
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
+	req.Header.Set("Cache-Control", "max-age=0")
+	resp, err := c.client.Do(req)
+	if err == nil {
+		resp.Body.Close()
+	}
+	time.Sleep(time.Duration(1+rand.Intn(2)) * time.Second)
+}
+
 func (c *AnimesOnlineCCClient) SearchAnime(query string) ([]*models.Anime, error) {
+	util.RandomDelay(1, 3)
+	c.visitHome()
+
 	searchURL := fmt.Sprintf(AnimesOnlineCCSearchURL, url.QueryEscape(query))
 	req, err := http.NewRequest("GET", searchURL, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", AnimesOnlineCCAgent)
+	ua := util.UserAgentList()
+	req.Header.Set("User-Agent", ua)
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
+	req.Header.Set("Cache-Control", "max-age=0")
+	req.Header.Set("Referer", c.baseURL)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -83,11 +113,21 @@ func (c *AnimesOnlineCCClient) SearchAnime(query string) ([]*models.Anime, error
 }
 
 func (c *AnimesOnlineCCClient) GetEpisodes(animeURL string) ([]models.Episode, error) {
+	util.RandomDelay(1, 3)
+
 	req, err := http.NewRequest("GET", animeURL, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", AnimesOnlineCCAgent)
+	ua := util.UserAgentList()
+	req.Header.Set("User-Agent", ua)
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
+	req.Header.Set("Referer", c.baseURL)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -129,11 +169,21 @@ func (c *AnimesOnlineCCClient) GetEpisodes(animeURL string) ([]models.Episode, e
 }
 
 func (c *AnimesOnlineCCClient) GetStreamURL(episodeURL string) (string, map[string]string, error) {
+	util.RandomDelay(1, 3)
+
 	req, err := http.NewRequest("GET", episodeURL, nil)
 	if err != nil {
 		return "", nil, err
 	}
-	req.Header.Set("User-Agent", AnimesOnlineCCAgent)
+	ua := util.UserAgentList()
+	req.Header.Set("User-Agent", ua)
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
+	req.Header.Set("Referer", c.baseURL)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -147,7 +197,7 @@ func (c *AnimesOnlineCCClient) GetStreamURL(episodeURL string) (string, map[stri
 	}
 
 	var videoURL string
-	doc.Find("iframe, video, .player, .video-container").Each(func(i int, s *goquery.Selection) {
+	doc.Find("iframe, video, .player, .video-container, .embed").Each(func(i int, s *goquery.Selection) {
 		if src, ok := s.Attr("src"); ok && strings.HasPrefix(src, "http") {
 			videoURL = src
 		}

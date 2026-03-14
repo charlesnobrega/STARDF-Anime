@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/alvarorichard/Goanime/internal/models"
@@ -13,8 +14,7 @@ import (
 )
 
 const (
-	GoyabuBase  = "https://goyabu.io"
-	GoyabuAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+	GoyabuBase      = "https://goyabu.io"
 	GoyabuSearchURL = "https://goyabu.io/?s=%s"
 )
 
@@ -25,29 +25,49 @@ type GoyabuClient struct {
 
 func NewGoyabuClient() *GoyabuClient {
 	return &GoyabuClient{
-		client:  util.GetFastClient(),
+		client:  util.GetScraperClient(),
 		baseURL: GoyabuBase,
 	}
 }
 
-func (c *GoyabuClient) SearchAnime(query string) ([]*models.Anime, error) {
-	searchURL := fmt.Sprintf(GoyabuSearchURL, url.QueryEscape(query))
-	req, err := http.NewRequest("GET", searchURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("User-Agent", GoyabuAgent)
+func (c *GoyabuClient) visitHome() {
+	req, _ := http.NewRequest("GET", c.baseURL, nil)
+	ua := util.UserAgentList()
+	req.Header.Set("User-Agent", ua)
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
 	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 	req.Header.Set("DNT", "1")
 	req.Header.Set("Connection", "keep-alive")
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
-	req.Header.Set("Sec-Fetch-Dest", "document")
-	req.Header.Set("Sec-Fetch-Mode", "navigate")
-	req.Header.Set("Sec-Fetch-Site", "same-origin")
-	req.Header.Set("Sec-Fetch-User", "?1")
 	req.Header.Set("Cache-Control", "max-age=0")
+	req.Header.Set("Referer", c.baseURL)
+	resp, err := c.client.Do(req)
+	if err == nil {
+		resp.Body.Close()
+	}
+	time.Sleep(time.Duration(1+rand.Intn(2)) * time.Second)
+}
+
+func (c *GoyabuClient) SearchAnime(query string) ([]*models.Anime, error) {
+	util.RandomDelay(1, 3)
+	c.visitHome()
+
+	searchURL := fmt.Sprintf(GoyabuSearchURL, url.QueryEscape(query))
+	req, err := http.NewRequest("GET", searchURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	ua := util.UserAgentList()
+	req.Header.Set("User-Agent", ua)
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	req.Header.Set("DNT", "1")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Upgrade-Insecure-Requests", "1")
+	req.Header.Set("Cache-Control", "max-age=0")
+	req.Header.Set("Referer", c.baseURL)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -94,17 +114,21 @@ func (c *GoyabuClient) SearchAnime(query string) ([]*models.Anime, error) {
 }
 
 func (c *GoyabuClient) GetEpisodes(animeURL string) ([]models.Episode, error) {
+	util.RandomDelay(1, 3)
+
 	req, err := http.NewRequest("GET", animeURL, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", GoyabuAgent)
+	ua := util.UserAgentList()
+	req.Header.Set("User-Agent", ua)
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
 	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 	req.Header.Set("DNT", "1")
 	req.Header.Set("Connection", "keep-alive")
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
+	req.Header.Set("Referer", c.baseURL)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -146,11 +170,14 @@ func (c *GoyabuClient) GetEpisodes(animeURL string) ([]models.Episode, error) {
 }
 
 func (c *GoyabuClient) GetStreamURL(episodeURL string) (string, map[string]string, error) {
+	util.RandomDelay(1, 3)
+
 	req, err := http.NewRequest("GET", episodeURL, nil)
 	if err != nil {
 		return "", nil, err
 	}
-	req.Header.Set("User-Agent", GoyabuAgent)
+	ua := util.UserAgentList()
+	req.Header.Set("User-Agent", ua)
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
 	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
