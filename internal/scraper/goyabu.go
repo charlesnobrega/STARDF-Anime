@@ -58,7 +58,7 @@ func (c *GoyabuClient) SearchAnime(query string) ([]*models.Anime, error) {
 			if !strings.HasPrefix(href, "http") {
 				href = c.baseURL + href
 			}
-			results = append(results, &models.Anime{
+			results = append(results, &models.Anime{Name: title, 
 				ID:       generateGoyabuID(title),
 				Title:    title,
 				URL:      href,

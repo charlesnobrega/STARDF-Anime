@@ -63,7 +63,7 @@ func (c *CinebyClient) SearchMovies(query string) ([]*models.Anime, error) {
 				Title:    title,
 				URL:      href,
 				ImageURL: img,
-				Type:     models.TypeMovie,
+				Type:     models.MediaTypeMovie,
 				Source:   "Cineby",
 			})
 		}

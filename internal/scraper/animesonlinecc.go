@@ -3,8 +3,6 @@ package scraper
 import (
 	"fmt"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -30,7 +28,7 @@ func NewAnimesOnlineCCClient() *AnimesOnlineCCClient {
 }
 
 func (c *AnimesOnlineCCClient) SearchAnime(query string) ([]*models.Anime, error) {
-	// Implementação simplificada - placeholder
+	// TODO: implementar scraping real
 	return nil, fmt.Errorf("not implemented")
 }
 
