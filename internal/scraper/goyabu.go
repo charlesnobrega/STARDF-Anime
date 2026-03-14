@@ -127,7 +127,7 @@ func (c *GoyabuClient) GetEpisodes(animeURL string) ([]models.Episode, error) {
 			if !strings.HasPrefix(href, "http") {
 				href = c.baseURL + href
 			}
-			episodes = append(episodes, models.Episode{
+			episodes = append(episodes, models.Episode{Title: models.TitleDetails{English: title},
 				Number: fmt.Sprintf("%d", num),
 				Num:    num,
 				Title:  title,
