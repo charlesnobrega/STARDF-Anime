@@ -108,10 +108,11 @@ func (c *SuperAnimesClient) GetEpisodes(animeURL string) ([]models.Episode, erro
 			if !strings.HasPrefix(href, "http") {
 				href = c.baseURL + href
 			}
+			td := models.TitleDetails{English: title}
 			episodes = append(episodes, models.Episode{
 				Number: fmt.Sprintf("%d", num),
 				Num:    num,
-				Title:  title,
+				Title:  td,
 				URL:    href,
 			})
 		}
