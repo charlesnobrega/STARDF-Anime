@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/alvarorichard/Goanime/internal/models"
@@ -14,32 +12,29 @@ import (
 )
 
 const (
-	GoyabuBase      = "https://goyabu.io"
-	GoyabuUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+	GoyabuBase  = "https://goyabu.io"
+	GoyabuAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
 
 type GoyabuClient struct {
-	client    *http.Client
-	baseURL   string
-	userAgent string
+	client  *http.Client
+	baseURL string
 }
 
 func NewGoyabuClient() *GoyabuClient {
 	return &GoyabuClient{
-		client:    util.GetFastClient(),
-		baseURL:   GoyabuBase,
-		userAgent: GoyabuUserAgent,
+		client:  util.GetFastClient(),
+		baseURL: GoyabuBase,
 	}
 }
 
-// SearchAnime busca animes no Goyabu
 func (c *GoyabuClient) SearchAnime(query string) ([]*models.Anime, error) {
 	searchURL := fmt.Sprintf("%s/search?q=%s", c.baseURL, url.QueryEscape(query))
 	req, err := http.NewRequest("GET", searchURL, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", c.userAgent)
+	req.Header.Set("User-Agent", GoyabuAgent)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -57,8 +52,7 @@ func (c *GoyabuClient) SearchAnime(query string) ([]*models.Anime, error) {
 	}
 
 	var results []*models.Anime
-	// Tentar múltiplos seletores
-	doc.Find(".anime-card, .anime-item, .card, .poster, .item").Each(func(i int, s *goquery.Selection) {
+	doc.Find(".anime-card, .anime-item, .card").Each(func(i int, s *goquery.Selection) {
 		title := strings.TrimSpace(s.Find("h3, .title, .name, a > img").AttrOr("alt", ""))
 		if title == "" {
 			title = strings.TrimSpace(s.Text())
@@ -86,13 +80,12 @@ func (c *GoyabuClient) SearchAnime(query string) ([]*models.Anime, error) {
 	return results, nil
 }
 
-// GetEpisodes retorna lista de episódios
 func (c *GoyabuClient) GetEpisodes(animeURL string) ([]models.Episode, error) {
 	req, err := http.NewRequest("GET", animeURL, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", c.userAgent)
+	req.Header.Set("User-Agent", GoyabuAgent)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -106,19 +99,10 @@ func (c *GoyabuClient) GetEpisodes(animeURL string) ([]models.Episode, error) {
 	}
 
 	var episodes []models.Episode
-	doc.Find(".episodes-list a, .episode-list a, .episodios a, .list-episodes a, .episode-item a, .ep-link").Each(func(i int, s *goquery.Selection) {
+	doc.Find(".episodes-list a, .episode-list a").Each(func(i int, s *goquery.Selection) {
 		href, _ := s.Attr("href")
 		title := strings.TrimSpace(s.Text())
 		num := i + 1
-
-		// Extrair número do episódio do texto ou URL
-		if title != "" {
-			if re := regexp.MustCompile(`[^\d]*(\d+)[^\d]*`); re.MatchString(title) {
-				if match := re.FindStringSubmatch(title); len(match) > 1 {
-					fmt.Sscanf(match[1], "%d", &num)
-				}
-			}
-		}
 
 		if href != "" {
 			if !strings.HasPrefix(href, "http") {
@@ -136,13 +120,12 @@ func (c *GoyabuClient) GetEpisodes(animeURL string) ([]models.Episode, error) {
 	return episodes, nil
 }
 
-// GetStreamURL retorna URL de streaming para um episódio
 func (c *GoyabuClient) GetStreamURL(episodeURL string) (string, map[string]string, error) {
 	req, err := http.NewRequest("GET", episodeURL, nil)
 	if err != nil {
 		return "", nil, err
 	}
-	req.Header.Set("User-Agent", c.userAgent)
+	req.Header.Set("User-Agent", GoyabuAgent)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -156,35 +139,14 @@ func (c *GoyabuClient) GetStreamURL(episodeURL string) (string, map[string]strin
 	}
 
 	var videoURL string
-	quality := "default"
-
-	// Procurar players comuns
-	doc.Find("iframe, video, .player, .video-container, .embed, .stream, .watch-button").Each(func(i int, s *goquery.Selection) {
-		if videoURL != "" {
-			return
-		}
+	doc.Find("iframe, video, .player, .video-container, .embed").Each(func(i int, s *goquery.Selection) {
 		if src, ok := s.Attr("src"); ok && strings.HasPrefix(src, "http") {
 			videoURL = src
 		}
 		if dataSrc, ok := s.Attr("data-src"); ok && strings.HasPrefix(dataSrc, "http") {
 			videoURL = dataSrc
 		}
-		if dataVideo, ok := s.Attr("data-video"); ok && strings.HasPrefix(dataVideo, "http") {
-			videoURL = dataVideo
-		}
 	})
-
-	// Se não encontrou, buscar em scripts
-	if videoURL == "" {
-		doc.Find("script").Each(func(i int, s *goquery.Selection) {
-			scriptText := s.Text()
-			// Procurar URLs .mp4 ou .m3u8
-			re := regexp.MustCompile(`https?://[^\s"']+\.(mp4|m3u8)[^\s"']*`)
-			if match := re.FindString(scriptText); match != "" {
-				videoURL = match
-			}
-		})
-	}
 
 	if videoURL == "" {
 		return "", nil, fmt.Errorf("no stream found")
@@ -192,18 +154,11 @@ func (c *GoyabuClient) GetStreamURL(episodeURL string) (string, map[string]strin
 
 	metadata := map[string]string{
 		"source":  "goyabu",
-		"quality": quality,
+		"quality": "default",
 	}
 	return videoURL, metadata, nil
 }
 
-// generateID cria ID único
-func generateGoyabuID(title string) string {
-	clean := regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(strings.ToLower(title), "")
-	return clean
-}
-
-// Adapter
 type GoyabuAdapter struct {
 	client *GoyabuClient
 }

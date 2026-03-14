@@ -1,12 +1,10 @@
 package scraper
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/alvarorichard/Goanime/internal/models"
@@ -30,7 +28,6 @@ func NewAnimesOnlineCCClient() *AnimesOnlineCCClient {
 	}
 }
 
-// SearchAnime busca animes no AnimesOnlineCC
 func (c *AnimesOnlineCCClient) SearchAnime(query string) ([]*models.Anime, error) {
 	searchURL := fmt.Sprintf("%s/search?q=%s", c.baseURL, url.QueryEscape(query))
 	req, err := http.NewRequest("GET", searchURL, nil)
@@ -55,11 +52,8 @@ func (c *AnimesOnlineCCClient) SearchAnime(query string) ([]*models.Anime, error
 	}
 
 	var results []*models.Anime
-	doc.Find(".anime-card, .anime-item, .card, .poster, .item").Each(func(i int, s *goquery.Selection) {
-		title := strings.TrimSpace(s.Find("h3, .title, .name, a > img").AttrOr("alt", ""))
-		if title == "" {
-			title = strings.TrimSpace(s.Text())
-		}
+	doc.Find(".anime-card, .anime-item, .card").Each(func(i int, s *goquery.Selection) {
+		title := strings.TrimSpace(s.Find("h3, .title, .name").Text())
 		href, _ := s.Find("a").First().Attr("href")
 		img, _ := s.Find("img").First().Attr("src")
 
@@ -83,7 +77,6 @@ func (c *AnimesOnlineCCClient) SearchAnime(query string) ([]*models.Anime, error
 	return results, nil
 }
 
-// GetEpisodes retorna lista de episódios
 func (c *AnimesOnlineCCClient) GetEpisodes(animeURL string) ([]models.Episode, error) {
 	req, err := http.NewRequest("GET", animeURL, nil)
 	if err != nil {
@@ -103,7 +96,7 @@ func (c *AnimesOnlineCCClient) GetEpisodes(animeURL string) ([]models.Episode, e
 	}
 
 	var episodes []models.Episode
-	doc.Find(".episodes-list a, .episode-list a, .episodios a, .list-episodes a, .episode-item a").Each(func(i int, s *goquery.Selection) {
+	doc.Find(".episodes-list a, .episode-list a").Each(func(i int, s *goquery.Selection) {
 		href, _ := s.Attr("href")
 		title := strings.TrimSpace(s.Text())
 		num := i + 1
@@ -124,7 +117,6 @@ func (c *AnimesOnlineCCClient) GetEpisodes(animeURL string) ([]models.Episode, e
 	return episodes, nil
 }
 
-// GetStreamURL retorna URL de streaming
 func (c *AnimesOnlineCCClient) GetStreamURL(episodeURL string) (string, map[string]string, error) {
 	req, err := http.NewRequest("GET", episodeURL, nil)
 	if err != nil {
@@ -144,7 +136,7 @@ func (c *AnimesOnlineCCClient) GetStreamURL(episodeURL string) (string, map[stri
 	}
 
 	var videoURL string
-	doc.Find("iframe, video, .player, .video-container").Each(func(i int, s *goquery.Selection) {
+	doc.Find("iframe, video, .player").Each(func(i int, s *goquery.Selection) {
 		if src, ok := s.Attr("src"); ok && strings.HasPrefix(src, "http") {
 			videoURL = src
 		}
@@ -152,18 +144,6 @@ func (c *AnimesOnlineCCClient) GetStreamURL(episodeURL string) (string, map[stri
 			videoURL = dataSrc
 		}
 	})
-
-	if videoURL == "" {
-		// Buscar em scripts
-		doc.Find("script").Each(func(i int, s *goquery.Selection) {
-			scriptText := s.Text()
-			// Procurar URLs de vídeo
-			re := regexp.MustCompile(`https?://[^\s"']+\.(mp4|m3u8)[^\s"']*`)
-			if match := re.FindString(scriptText); match != "" {
-				videoURL = match
-			}
-		})
-	}
 
 	if videoURL == "" {
 		return "", nil, fmt.Errorf("no stream found")
@@ -176,7 +156,6 @@ func (c *AnimesOnlineCCClient) GetStreamURL(episodeURL string) (string, map[stri
 	return videoURL, metadata, nil
 }
 
-// Adapter
 type AnimesOnlineCCAdapter struct {
 	client *AnimesOnlineCCClient
 }

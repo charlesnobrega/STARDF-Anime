@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/alvarorichard/Goanime/internal/models"
@@ -14,32 +12,29 @@ import (
 )
 
 const (
-	SuperAnimesBase      = "https://superanimes.in"
-	SuperAnimesUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+	SuperAnimesBase  = "https://superanimes.in"
+	SuperAnimesAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
 
 type SuperAnimesClient struct {
-	client    *http.Client
-	baseURL   string
-	userAgent string
+	client  *http.Client
+	baseURL string
 }
 
 func NewSuperAnimesClient() *SuperAnimesClient {
 	return &SuperAnimesClient{
-		client:    util.GetFastClient(),
-		baseURL:   SuperAnimesBase,
-		userAgent: SuperAnimesUserAgent,
+		client:  util.GetFastClient(),
+		baseURL: SuperAnimesBase,
 	}
 }
 
-// SearchAnime busca animes no SuperAnimes
 func (c *SuperAnimesClient) SearchAnime(query string) ([]*models.Anime, error) {
 	searchURL := fmt.Sprintf("%s/search?q=%s", c.baseURL, url.QueryEscape(query))
 	req, err := http.NewRequest("GET", searchURL, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", c.userAgent)
+	req.Header.Set("User-Agent", SuperAnimesAgent)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -57,7 +52,7 @@ func (c *SuperAnimesClient) SearchAnime(query string) ([]*models.Anime, error) {
 	}
 
 	var results []*models.Anime
-	doc.Find(".anime-card, .anime-item, .card, .poster, .item").Each(func(i int, s *goquery.Selection) {
+	doc.Find(".anime-card, .anime-item, .card").Each(func(i int, s *goquery.Selection) {
 		title := strings.TrimSpace(s.Find("h3, .title, .name, a > img").AttrOr("alt", ""))
 		if title == "" {
 			title = strings.TrimSpace(s.Text())
@@ -85,13 +80,12 @@ func (c *SuperAnimesClient) SearchAnime(query string) ([]*models.Anime, error) {
 	return results, nil
 }
 
-// GetEpisodes retorna lista de episódios
 func (c *SuperAnimesClient) GetEpisodes(animeURL string) ([]models.Episode, error) {
 	req, err := http.NewRequest("GET", animeURL, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", c.userAgent)
+	req.Header.Set("User-Agent", SuperAnimesAgent)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -105,18 +99,10 @@ func (c *SuperAnimesClient) GetEpisodes(animeURL string) ([]models.Episode, erro
 	}
 
 	var episodes []models.Episode
-	doc.Find(".episodes-list a, .episode-list a, .episodios a, .list-episodes a, .episode-item a").Each(func(i int, s *goquery.Selection) {
+	doc.Find(".episodes-list a, .episode-list a").Each(func(i int, s *goquery.Selection) {
 		href, _ := s.Attr("href")
 		title := strings.TrimSpace(s.Text())
 		num := i + 1
-
-		if title != "" {
-			if re := regexp.MustCompile(`[^\d]*(\d+)[^\d]*`); re.MatchString(title) {
-				if match := re.FindStringSubmatch(title); len(match) > 1 {
-					fmt.Sscanf(match[1], "%d", &num)
-				}
-			}
-		}
 
 		if href != "" {
 			if !strings.HasPrefix(href, "http") {
@@ -134,13 +120,12 @@ func (c *SuperAnimesClient) GetEpisodes(animeURL string) ([]models.Episode, erro
 	return episodes, nil
 }
 
-// GetStreamURL retorna URL de streaming
 func (c *SuperAnimesClient) GetStreamURL(episodeURL string) (string, map[string]string, error) {
 	req, err := http.NewRequest("GET", episodeURL, nil)
 	if err != nil {
 		return "", nil, err
 	}
-	req.Header.Set("User-Agent", c.userAgent)
+	req.Header.Set("User-Agent", SuperAnimesAgent)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -164,17 +149,6 @@ func (c *SuperAnimesClient) GetStreamURL(episodeURL string) (string, map[string]
 	})
 
 	if videoURL == "" {
-		// Buscar em scripts
-		doc.Find("script").Each(func(i int, s *goquery.Selection) {
-			scriptText := s.Text()
-			re := regexp.MustCompile(`https?://[^\s"']+\.(mp4|m3u8)[^\s"']*`)
-			if match := re.FindString(scriptText); match != "" {
-				videoURL = match
-			}
-		})
-	}
-
-	if videoURL == "" {
 		return "", nil, fmt.Errorf("no stream found")
 	}
 
@@ -185,12 +159,6 @@ func (c *SuperAnimesClient) GetStreamURL(episodeURL string) (string, map[string]
 	return videoURL, metadata, nil
 }
 
-func generateSuperAnimesID(title string) string {
-	clean := regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(strings.ToLower(title), "")
-	return clean
-}
-
-// Adapter
 type SuperAnimesAdapter struct {
 	client *SuperAnimesClient
 }
