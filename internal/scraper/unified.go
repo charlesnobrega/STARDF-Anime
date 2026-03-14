@@ -33,7 +33,11 @@ const (
 	AllAnimeType ScraperType = iota
 	AnimefireType
 	AnimeDriveType
-	FlixHQType // Movies and TV Shows source
+	FlixHQType
+	CinebyType
+	AnimesOnlineCCTYPE
+	GoyabuType
+	SuperAnimesType
 )
 
 // UnifiedScraper provides a common interface for all scrapers
@@ -59,6 +63,10 @@ func NewScraperManager() *ScraperManager {
 	manager.scrapers[AllAnimeType] = &AllAnimeAdapter{client: NewAllAnimeClient()}
 	manager.scrapers[AnimefireType] = &AnimefireAdapter{client: NewAnimefireClient()}
 	manager.scrapers[FlixHQType] = &FlixHQAdapter{client: NewFlixHQClient()}
+	manager.scrapers[CinebyType] = &CinebyAdapter{client: NewCinebyClient()}
+	manager.scrapers[AnimesOnlineCCTYPE] = &AnimesOnlineCCAdapter{client: NewAnimesOnlineCCClient()}
+	manager.scrapers[GoyabuType] = &GoyabuAdapter{client: NewGoyabuClient()}
+	manager.scrapers[SuperAnimesType] = &SuperAnimesAdapter{client: NewSuperAnimesClient()}
 
 	// AnimeDrive - Currently on standby
 	// Reason: Site is protected by Cloudflare, no bypass solution found yet
