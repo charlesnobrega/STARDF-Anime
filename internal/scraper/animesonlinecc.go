@@ -101,7 +101,7 @@ func (c *AnimesOnlineCCClient) GetEpisodes(animeURL string) ([]models.Episode, e
 	}
 
 	var episodes []models.Episode
-	doc.Find(".episodios-list a, .episode-list a, .list-episodes a, .episode-item a, .ep-link").Each(func(i int, s *goquery.Selection) {
+	doc.Find(".episodios-list a, .episode-list a").Each(func(i int, s *goquery.Selection) {
 		href, _ := s.Attr("href")
 		title := strings.TrimSpace(s.Text())
 		num := i + 1
@@ -116,10 +116,10 @@ func (c *AnimesOnlineCCClient) GetEpisodes(animeURL string) ([]models.Episode, e
 			if !strings.HasPrefix(href, "http") {
 				href = c.baseURL + href
 			}
-			episodes = append(episodes, models.Episode{Title: models.TitleDetails{English: title},
+			episodes = append(episodes, models.Episode{
 				Number: fmt.Sprintf("%d", num),
 				Num:    num,
-				Title:  title,
+				Title:  models.TitleDetails{English: title},
 				URL:    href,
 			})
 		}
@@ -147,7 +147,7 @@ func (c *AnimesOnlineCCClient) GetStreamURL(episodeURL string) (string, map[stri
 	}
 
 	var videoURL string
-	doc.Find("iframe, video, .player, .video-container, .embed").Each(func(i int, s *goquery.Selection) {
+	doc.Find("iframe, video, .player, .video-container").Each(func(i int, s *goquery.Selection) {
 		if src, ok := s.Attr("src"); ok && strings.HasPrefix(src, "http") {
 			videoURL = src
 		}
@@ -157,21 +157,11 @@ func (c *AnimesOnlineCCClient) GetStreamURL(episodeURL string) (string, map[stri
 	})
 
 	if videoURL == "" {
-		doc.Find("script").Each(func(i int, s *goquery.Selection) {
-			scriptText := s.Text()
-			re := regexp.MustCompile(`https?://[^\s"']+\.(mp4|m3u8)[^\s"']*`)
-			if match := re.FindString(scriptText); match != "" {
-				videoURL = match
-			}
-		})
-	}
-
-	if videoURL == "" {
 		return "", nil, fmt.Errorf("no stream found")
 	}
 
 	metadata := map[string]string{
-		"source": "animesonlinecc",
+		"source":  "animesonlinecc",
 		"quality": "default",
 	}
 	return videoURL, metadata, nil

@@ -30,7 +30,6 @@ func NewSuperAnimesClient() *SuperAnimesClient {
 	}
 }
 
-// SearchAnime busca animes no SuperAnimes
 func (c *SuperAnimesClient) SearchAnime(query string) ([]*models.Anime, error) {
 	searchURL := fmt.Sprintf(SuperAnimesSearchURL, url.QueryEscape(query))
 	req, err := http.NewRequest("GET", searchURL, nil)
@@ -55,18 +54,12 @@ func (c *SuperAnimesClient) SearchAnime(query string) ([]*models.Anime, error) {
 	}
 
 	var results []*models.Anime
-	// WordPress pattern
 	doc.Find("article, .post, .entry, .post-item, .anime-card").Each(func(i int, s *goquery.Selection) {
 		title := strings.TrimSpace(s.Find("h2.entry-title, h3.title, .post-title, a").Text())
 		href, _ := s.Find("a").First().Attr("href")
 		img, _ := s.Find("img").First().Attr("src")
 
 		if title == "" || href == "" {
-			return
-		}
-
-		// Validar que é anime
-		if !strings.Contains(href, "/anime/") && !strings.Contains(href, "/20") {
 			return
 		}
 
@@ -89,7 +82,6 @@ func (c *SuperAnimesClient) SearchAnime(query string) ([]*models.Anime, error) {
 	return results, nil
 }
 
-// GetEpisodes retorna episódios
 func (c *SuperAnimesClient) GetEpisodes(animeURL string) ([]models.Episode, error) {
 	req, err := http.NewRequest("GET", animeURL, nil)
 	if err != nil {
@@ -109,7 +101,7 @@ func (c *SuperAnimesClient) GetEpisodes(animeURL string) ([]models.Episode, erro
 	}
 
 	var episodes []models.Episode
-	doc.Find(".episodios-list a, .episode-list a, .list-episodes a, .episode-item a, .ep-link").Each(func(i int, s *goquery.Selection) {
+	doc.Find(".episodios-list a, .episode-list a").Each(func(i int, s *goquery.Selection) {
 		href, _ := s.Attr("href")
 		title := strings.TrimSpace(s.Text())
 		num := i + 1
@@ -124,10 +116,10 @@ func (c *SuperAnimesClient) GetEpisodes(animeURL string) ([]models.Episode, erro
 			if !strings.HasPrefix(href, "http") {
 				href = c.baseURL + href
 			}
-			episodes = append(episodes, models.Episode{Title: models.TitleDetails{English: title},
+			episodes = append(episodes, models.Episode{
 				Number: fmt.Sprintf("%d", num),
 				Num:    num,
-				Title:  title,
+				Title:  models.TitleDetails{English: title},
 				URL:    href,
 			})
 		}
@@ -136,7 +128,6 @@ func (c *SuperAnimesClient) GetEpisodes(animeURL string) ([]models.Episode, erro
 	return episodes, nil
 }
 
-// GetStreamURL retorna URL de streaming
 func (c *SuperAnimesClient) GetStreamURL(episodeURL string) (string, map[string]string, error) {
 	req, err := http.NewRequest("GET", episodeURL, nil)
 	if err != nil {
@@ -156,27 +147,14 @@ func (c *SuperAnimesClient) GetStreamURL(episodeURL string) (string, map[string]
 	}
 
 	var videoURL string
-	doc.Find("iframe, video, .player, .video-container, .embed, .stream, .watch-button").Each(func(i int, s *goquery.Selection) {
+	doc.Find("iframe, video, .player, .video-container, .embed").Each(func(i int, s *goquery.Selection) {
 		if src, ok := s.Attr("src"); ok && strings.HasPrefix(src, "http") {
 			videoURL = src
 		}
 		if dataSrc, ok := s.Attr("data-src"); ok && strings.HasPrefix(dataSrc, "http") {
 			videoURL = dataSrc
 		}
-		if dataVideo, ok := s.Attr("data-video"); ok && strings.HasPrefix(dataVideo, "http") {
-			videoURL = dataVideo
-		}
 	})
-
-	if videoURL == "" {
-		doc.Find("script").Each(func(i int, s *goquery.Selection) {
-			scriptText := s.Text()
-			re := regexp.MustCompile(`https?://[^\s"']+\.(mp4|m3u8)[^\s"']*`)
-			if match := re.FindString(scriptText); match != "" {
-				videoURL = match
-			}
-		})
-	}
 
 	if videoURL == "" {
 		return "", nil, fmt.Errorf("no stream found")
