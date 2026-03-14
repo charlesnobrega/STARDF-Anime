@@ -2,33 +2,16 @@ package scraper
 
 import (
 	"fmt"
-	"net/http"
-	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/alvarorichard/Goanime/internal/models"
-	"github.com/alvarorichard/Goanime/internal/util"
 )
 
-const (
-	AnimesOnlineCCBase  = "https://animesonlinecc.to"
-	AnimesOnlineCCAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-)
+// AnimesOnlineCCClient placeholder
+type AnimesOnlineCCClient struct{}
 
-type AnimesOnlineCCClient struct {
-	client  *http.Client
-	baseURL string
-}
-
-func NewAnimesOnlineCCClient() *AnimesOnlineCCClient {
-	return &AnimesOnlineCCClient{
-		client:  util.GetFastClient(),
-		baseURL: AnimesOnlineCCBase,
-	}
-}
+func NewAnimesOnlineCCClient() *AnimesOnlineCCClient { return &AnimesOnlineCCClient{} }
 
 func (c *AnimesOnlineCCClient) SearchAnime(query string) ([]*models.Anime, error) {
-	// TODO: implementar scraping real
 	return nil, fmt.Errorf("not implemented")
 }
 
