@@ -115,7 +115,7 @@ func (c *CinebyClient) SearchMovies(query string) ([]*CinebyMovie, error) {
 				URL:     c.baseURL + href,
 				ImageURL: img,
 				Year:    year,
-				ID:      generateID(title, year),
+				ID:      generateCinebyID(title, year),
 			}
 			movies = append(movies, movie)
 		}
@@ -163,7 +163,7 @@ func (c *CinebyClient) GetMovieDetails(movieURL string) (*CinebyMovie, error) {
 		movie.ImageURL = img
 	}
 
-	movie.ID = generateID(movie.Title, movie.Year)
+	movie.ID = generateCinebyID(movie.Title, movie.Year)
 	return movie, nil
 }
 
@@ -210,8 +210,8 @@ func (c *CinebyClient) GetStreamURLs(movieURL string) ([]CinebyStreamInfo, error
 	return streams, nil
 }
 
-// generateID creates a unique ID for a movie
-func generateID(title, year string) string {
+// generateCinebyID creates a unique ID for a movie
+func generateCinebyID(title, year string) string {
 	cleanTitle := regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(strings.ToLower(title), "")
 	return fmt.Sprintf("%s_%s", cleanTitle, year)
 }

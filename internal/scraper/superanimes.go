@@ -76,7 +76,7 @@ func (c *SuperAnimesClient) SearchAnime(query string) ([]*models.Anime, error) {
 				href = c.baseURL + href
 			}
 			anime := &models.Anime{
-				ID:       generateID(title),
+				ID:       generateSuperAnimesID(title),
 				Title:    title,
 				URL:      href,
 				ImageURL: img,
@@ -145,7 +145,7 @@ func (c *SuperAnimesClient) GetEpisodes(animeURL string) ([]models.Episode, erro
 				href = c.baseURL + href
 			}
 			episodes = append(episodes, models.Episode{
-				ID:    fmt.Sprintf("%s_ep%d", generateID(""), num),
+				ID:    fmt.Sprintf("%s_ep%d", generateSuperAnimesID(""), num),
 				Number: num,
 				Title:  title,
 				URL:    href,
@@ -197,7 +197,6 @@ func (c *SuperAnimesClient) GetStreamURL(episodeURL string) (string, map[string]
 }
 
 // generateID creates a unique ID
-func generateID(title string) string {
 	clean := regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(strings.ToLower(title), "")
 	return clean
 }

@@ -244,7 +244,6 @@ func (c *AnimesOnlineCCClient) GetEpisodesList(animeID string, mode string) ([]s
 }
 
 // extractEpisodes extracts the episodes list from the availableEpisodesDetail field (from Curd)
-func extractEpisodes(availableEpisodesDetail map[string]interface{}, mode string) []string {
 	var episodes []float64
 
 	// Check if the mode (e.g., "sub") exists in the map
@@ -398,7 +397,6 @@ func (c *AnimesOnlineCCClient) SendSkipTimesToMPV(episode *models.Episode, socke
 }
 
 // parseEpisodeNum converts episode string to integer
-func parseEpisodeNum(epStr string) int {
 	// Try to extract number from string
 	var num int
 	_, err := fmt.Sscanf(epStr, "%d", &num)
@@ -414,7 +412,6 @@ func (c *AnimesOnlineCCClient) GetAnimeDetails(animeURL string) (*models.Anime, 
 }
 
 // LinkPriorities defines the order of priority for link domains (from Curd project)
-var LinkPriorities = []string{
 	"sharepoint.com",
 	"wixmp.com",
 	"dropbox.com",

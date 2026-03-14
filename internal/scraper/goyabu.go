@@ -112,7 +112,7 @@ func (c *GoyabuClient) SearchAnime(query string) ([]*GoyabuAnime, error) {
 				URL:      href,
 				ImageURL: img,
 				Year:    year,
-				ID:      generateID(title),
+				ID:      generateGoyabuID(title),
 			}
 			results = append(results, anime)
 		}
@@ -153,7 +153,7 @@ func (c *GoyabuClient) GetAnimeDetails(animeURL string) (*GoyabuAnime, error) {
 		anime.ImageURL = img
 	}
 
-	anime.ID = generateID(anime.Title)
+	anime.ID = generateGoyabuID(anime.Title)
 	return anime, nil
 }
 
@@ -190,7 +190,7 @@ func (c *GoyabuClient) GetEpisodes(animeURL string) ([]GoyabuEpisode, error) {
 				Number: num,
 				Title:  title,
 				URL:    href,
-				ID:     fmt.Sprintf("%s_ep%d", generateID(""), num),
+				ID:     fmt.Sprintf("%s_ep%d", generateGoyabuID(""), num),
 			})
 		}
 	})
@@ -234,7 +234,6 @@ func (c *GoyabuClient) GetStreamURL(episodeURL string) (GoyabuStreamInfo, error)
 }
 
 // generateID creates a unique ID
-func generateID(title string) string {
 	clean := regexp.MustCompile(`[^a-zA-Z0-9]`).ReplaceAllString(strings.ToLower(title), "")
 	return clean
 }
