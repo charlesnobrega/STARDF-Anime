@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -12,8 +13,9 @@ import (
 )
 
 const (
-	GoyabuBase  = "https://goyabu.io"
-	GoyabuAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+	GoyabuBase      = "https://goyabu.io"
+	GoyabuAgent     = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+	GoyabuSearchURL = "https://goyabu.io/?s=%s"
 )
 
 type GoyabuClient struct {
@@ -28,8 +30,9 @@ func NewGoyabuClient() *GoyabuClient {
 	}
 }
 
+// SearchAnime busca animes no Goyabu via WordPress search
 func (c *GoyabuClient) SearchAnime(query string) ([]*models.Anime, error) {
-	searchURL := fmt.Sprintf("%s/search?q=%s", c.baseURL, url.QueryEscape(query))
+	searchURL := fmt.Sprintf(GoyabuSearchURL, url.QueryEscape(query))
 	req, err := http.NewRequest("GET", searchURL, nil)
 	if err != nil {
 		return nil, err
@@ -52,34 +55,42 @@ func (c *GoyabuClient) SearchAnime(query string) ([]*models.Anime, error) {
 	}
 
 	var results []*models.Anime
-	doc.Find(".anime-card, .anime-item, .card").Each(func(i int, s *goquery.Selection) {
-		title := strings.TrimSpace(s.Find("h3, .title, .name, a > img").AttrOr("alt", ""))
-		if title == "" {
-			title = strings.TrimSpace(s.Text())
-		}
+	// WordPress: posts em article, .post, .entry
+	doc.Find("article, .post, .entry, .post-item").Each(func(i int, s *goquery.Selection) {
+		// Título do link dentro do post
+		title := strings.TrimSpace(s.Find("h2.entry-title, h3.title, .post-title, a").Text())
 		href, _ := s.Find("a").First().Attr("href")
 		img, _ := s.Find("img").First().Attr("src")
 
-		if title != "" && href != "" {
-			if !strings.HasPrefix(href, "http") {
-				href = c.baseURL + href
-			}
-			if img != "" && !strings.HasPrefix(img, "http") {
-				img = c.baseURL + img
-			}
-			results = append(results, &models.Anime{
-				Name:      title,
-				URL:       href,
-				ImageURL:  img,
-				Source:    "Goyabu",
-				MediaType: models.MediaTypeAnime,
-			})
+		if title == "" || href == "" {
+			return
 		}
+
+		// Filtrar links que não são animes
+		if !strings.Contains(href, "/anime/") && !strings.Contains(href, "/20") {
+			return
+		}
+
+		if !strings.HasPrefix(href, "http") {
+			href = c.baseURL + href
+		}
+		if img != "" && !strings.HasPrefix(img, "http") {
+			img = c.baseURL + img
+		}
+
+		results = append(results, &models.Anime{
+			Name:      title,
+			URL:       href,
+			ImageURL:  img,
+			Source:    "Goyabu",
+			MediaType: models.MediaTypeAnime,
+		})
 	})
 
 	return results, nil
 }
 
+// GetEpisodes retorna episódios de um anime
 func (c *GoyabuClient) GetEpisodes(animeURL string) ([]models.Episode, error) {
 	req, err := http.NewRequest("GET", animeURL, nil)
 	if err != nil {
@@ -99,20 +110,27 @@ func (c *GoyabuClient) GetEpisodes(animeURL string) ([]models.Episode, error) {
 	}
 
 	var episodes []models.Episode
-	doc.Find(".episodes-list a, .episode-list a").Each(func(i int, s *goquery.Selection) {
+	// WordPress: lista de episódios em .episodios-list, .episode-list, .list-episodes
+	doc.Find(".episodios-list a, .episode-list a, .list-episodes a, .episode-item a, .ep-link").Each(func(i int, s *goquery.Selection) {
 		href, _ := s.Attr("href")
 		title := strings.TrimSpace(s.Text())
 		num := i + 1
+
+		// Extrair número do episódio do texto
+		if re := regexp.MustCompile(`[^\d]*(\d+)[^\d]*`); re.MatchString(title) {
+			if match := re.FindStringSubmatch(title); len(match) > 1 {
+				fmt.Sscanf(match[1], "%d", &num)
+			}
+		}
 
 		if href != "" {
 			if !strings.HasPrefix(href, "http") {
 				href = c.baseURL + href
 			}
-			td := models.TitleDetails{English: title}
 			episodes = append(episodes, models.Episode{
 				Number: fmt.Sprintf("%d", num),
 				Num:    num,
-				Title:  td,
+				Title:  title,
 				URL:    href,
 			})
 		}
@@ -121,6 +139,7 @@ func (c *GoyabuClient) GetEpisodes(animeURL string) ([]models.Episode, error) {
 	return episodes, nil
 }
 
+// GetStreamURL retorna URL de streaming (iframe, player)
 func (c *GoyabuClient) GetStreamURL(episodeURL string) (string, map[string]string, error) {
 	req, err := http.NewRequest("GET", episodeURL, nil)
 	if err != nil {
@@ -140,22 +159,42 @@ func (c *GoyabuClient) GetStreamURL(episodeURL string) (string, map[string]strin
 	}
 
 	var videoURL string
-	doc.Find("iframe, video, .player, .video-container, .embed").Each(func(i int, s *goquery.Selection) {
+	quality := "default"
+
+	// Procurar players comuns: iframe, video, .player, .video-container
+	doc.Find("iframe, video, .player, .video-container, .embed, .stream, .watch-button").Each(func(i int, s *goquery.Selection) {
+		if videoURL != "" {
+			return
+		}
 		if src, ok := s.Attr("src"); ok && strings.HasPrefix(src, "http") {
 			videoURL = src
 		}
 		if dataSrc, ok := s.Attr("data-src"); ok && strings.HasPrefix(dataSrc, "http") {
 			videoURL = dataSrc
 		}
+		if dataVideo, ok := s.Attr("data-video"); ok && strings.HasPrefix(dataVideo, "http") {
+			videoURL = dataVideo
+		}
 	})
+
+	// Se não achou, buscar em scripts (mp4, m3u8)
+	if videoURL == "" {
+		doc.Find("script").Each(func(i int, s *goquery.Selection) {
+			scriptText := s.Text()
+			re := regexp.MustCompile(`https?://[^\s"']+\.(mp4|m3u8)[^\s"']*`)
+			if match := re.FindString(scriptText); match != "" {
+				videoURL = match
+			}
+		})
+	}
 
 	if videoURL == "" {
 		return "", nil, fmt.Errorf("no stream found")
 	}
 
 	metadata := map[string]string{
-		"source":  "goyabu",
-		"quality": "default",
+		"source": "goyabu",
+		"quality": quality,
 	}
 	return videoURL, metadata, nil
 }
