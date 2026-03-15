@@ -492,11 +492,11 @@ type CinebyAdapter struct {
 }
 
 func (a *CinebyAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
-	return a.client.SearchMovies(query)
+	return a.client.SearchMedia(query)
 }
 
 func (a *CinebyAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
-	return nil, nil
+	return a.client.GetEpisodes(animeURL)
 }
 
 func (a *CinebyAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {

@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	GoyabuBase      = "https://goyabu.io"
-	GoyabuSearchURL = "https://goyabu.io/?s=%s"
+	GoyabuBase      = "https://goyabu.io/inicio-2"
+	GoyabuSearchURL = "https://goyabu.io/inicio-2/?s=%s"
 )
 
 type GoyabuClient struct {
