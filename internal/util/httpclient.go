@@ -3,6 +3,7 @@ package util
 
 import (
 	"crypto/tls"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -366,4 +367,25 @@ func ParallelExecute(maxWorkers int, tasks ...func()) {
 	}
 
 	wg.Wait()
+}
+// UserAgentList returns a random realistic user agent string
+func UserAgentList() string {
+	uants := []string{
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+		"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+		"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
+		"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.1 Safari/605.1.15",
+	}
+	return uants[rand.Intn(len(uants))]
+}
+
+// RandomDelay sleeps for a random duration between min and max seconds
+func RandomDelay(min, max int) {
+	if max <= min {
+		time.Sleep(time.Duration(min) * time.Second)
+		return
+	}
+	delay := min + rand.Intn(max-min+1)
+	time.Sleep(time.Duration(delay) * time.Second)
 }

@@ -23,10 +23,9 @@ const (
 	// perScraperTimeout is the timeout for individual scrapers
 	perScraperTimeout = 10 * time.Second
 	// earlyReturnDelay is the time to wait after first results before returning
-	// Reduced from 3s since sources typically respond within 1s
-	earlyReturnDelay = 1500 * time.Millisecond
+	earlyReturnDelay = 3000 * time.Millisecond
 	// minResultsForEarlyReturn is the minimum results needed to trigger early return
-	minResultsForEarlyReturn = 5
+	minResultsForEarlyReturn = 10
 )
 
 // ErrBackRequested is returned when the user requests to go back to the previous menu
@@ -144,16 +143,29 @@ func (sm *ScraperManager) searchAllScrapersConcurrent(query string) ([]*models.A
 	resultChan := make(chan searchResult, len(sm.scrapers))
 	var wg sync.WaitGroup
 
-	// Launch all scrapers concurrently
-	for sType, scraper := range sm.scrapers {
+	// Launch relevant scrapers concurrently based on category
+	for sType, s := range sm.scrapers {
+		// Filter by category if GlobalMediaType is set
+		if util.GlobalMediaType == "anime" {
+			if sType == CinebyType || sType == FlixHQType || sType == CineGratisType {
+				atomic.AddInt32(&completedCount, 1) // Count as done skip
+				continue
+			}
+		} else if util.GlobalMediaType == "movie" {
+			if sType == AnimefireType || sType == AnimesOnlineCCTYPE || sType == GoyabuType || sType == SuperAnimesType {
+				atomic.AddInt32(&completedCount, 1) // Count as done skip
+				continue
+			}
+		}
+
 		wg.Add(1)
-		go func(st ScraperType, s UnifiedScraper) {
+		go func(st ScraperType, scr UnifiedScraper) {
 			defer wg.Done()
 			defer atomic.AddInt32(&completedCount, 1)
 
-			result := sm.searchWithTimeout(ctx, st, s, query)
+			result := sm.searchWithTimeout(ctx, st, scr, query)
 			resultChan <- result
-		}(sType, scraper)
+		}(sType, s)
 	}
 
 	// Close channel when all goroutines complete

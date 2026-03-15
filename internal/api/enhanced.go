@@ -55,9 +55,16 @@ func SearchAnimeEnhanced(name string, source string) (*models.Anime, error) {
 		scraperType = &t
 		util.Debug("Searching specific source", "source", "CineGratis")
 	} else {
-		// Default behavior: search all sources simultaneously (including FlixHQ and Cineby)
+		// Filter sources based on GlobalMediaType from the initial selector
+		if util.GlobalMediaType == "anime" {
+			util.Debug("Category filtered: Searching only Anime sources")
+			// We can pass a hint to scraperManager or just search normally if it's already filtered in unified.go
+		} else if util.GlobalMediaType == "movie" {
+			util.Debug("Category filtered: Searching only Movie/TV sources")
+		}
+		
 		scraperType = nil
-		util.Debug("Searching all sources", "query", name)
+		util.Debug("Searching relevant sources", "query", name)
 	}
 
 	// Perform the search - this will search all sources if scraperType is nil
@@ -134,12 +141,12 @@ func SearchAnimeEnhanced(name string, source string) (*models.Anime, error) {
 	animesWithBack := append([]*models.Anime{backOption}, animes...)
 
 	// Concurrent episode count fetching for top results (optimization)
-	util.Debug("Fetching episode counts for results...")
+	util.Debug("Fetching episode counts for top results...")
 	var wg sync.WaitGroup
-	// Limit to top 15 results to prevent massive delays
+	// Limit to top 20 results to prevent massive delays but cover most visible items
 	limit := len(animesWithBack)
-	if limit > 15 {
-		limit = 15
+	if limit > 20 {
+		limit = 20
 	}
 
 	for i := 1; i < limit; i++ {
@@ -147,19 +154,19 @@ func SearchAnimeEnhanced(name string, source string) (*models.Anime, error) {
 		go func(anime *models.Anime) {
 			defer wg.Done()
 			
-			// Use a shorter timeout per fetch to keep search snappy
-			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			// Use a reasonably long timeout (5s) to be reliable but not hang the search
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 			
 			done := make(chan bool, 1)
 			go func() {
+				// We don't want to fail the whole search if one fetch fails
 				eps, err := GetAnimeEpisodesEnhanced(anime)
 				if err == nil && len(eps) > 0 {
 					anime.TotalEpisodes = len(eps)
 					
-					// Basic season detection for movie/TV sources
+					// Improved season detection for movie/TV sources
 					if anime.Source == "Cineby" || anime.Source == "FlixHQ" || anime.Source == "CineGratis" {
-						// For series, we might have Season IDs or common patterns
 						seasons := make(map[string]bool)
 						for _, ep := range eps {
 							if ep.SeasonID != "" {
@@ -169,7 +176,6 @@ func SearchAnimeEnhanced(name string, source string) (*models.Anime, error) {
 						if len(seasons) > 0 {
 							anime.SeasonCount = len(seasons)
 						} else if strings.Contains(strings.ToLower(anime.URL), "/tv/") || strings.Contains(strings.ToLower(anime.URL), "/series/") {
-							// Default to at least 1 season if it's TV/Series type
 							anime.SeasonCount = 1
 						}
 					}
@@ -184,6 +190,7 @@ func SearchAnimeEnhanced(name string, source string) (*models.Anime, error) {
 			}
 		}(animesWithBack[i])
 	}
+	// We proceed even if wg isn't complete yet? No, fuzzy finder needs the data for its display func.
 	wg.Wait()
 
 	// Use fuzzy finder to let user select

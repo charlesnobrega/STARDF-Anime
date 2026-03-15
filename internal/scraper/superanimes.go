@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -45,11 +46,11 @@ func (c *SuperAnimesClient) visitHome() {
 	if err == nil {
 		resp.Body.Close()
 	}
-	time.Sleep(time.Duration(1+rand.Intn(2)) * time.Second)
+	time.Sleep(time.Duration(rand.Intn(500)) * time.Millisecond)
 }
 
 func (c *SuperAnimesClient) SearchAnime(query string) ([]*models.Anime, error) {
-	util.RandomDelay(1, 3)
+	util.RandomDelay(0, 1)
 	c.visitHome()
 
 	searchURL := fmt.Sprintf(SuperAnimesSearchURL, url.QueryEscape(query))

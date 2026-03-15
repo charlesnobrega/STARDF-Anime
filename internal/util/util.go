@@ -152,8 +152,38 @@ func FlagParser() (string, error) {
 		}
 		return TreatingAnimeName(animeName), nil
 	}
-	animeName, err := getUserInput("Enter anime name")
+	var mediaTypeChoice string
+	var err error
+	mediaTypeChoice, err = selectMediaType()
+	if err != nil {
+		return "", err
+	}
+	GlobalMediaType = mediaTypeChoice
+
+	animeName, err = getUserInput("Enter name")
 	return TreatingAnimeName(animeName), err
+}
+
+// selectMediaType asks the user what type of content they want
+func selectMediaType() (string, error) {
+	var choice string
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("O que vamos assistir hoje?").
+				Options(
+					huh.NewOption("Animes (PT-BR)", "anime"),
+					huh.NewOption("Filmes e Séries (PT-BR/Multi)", "movie"),
+					// huh.NewOption("Canais de TV (Em breve)", "tv"),
+				).
+				Value(&choice),
+		),
+	)
+
+	if err := form.Run(); err != nil {
+		return "", err
+	}
+	return choice, nil
 }
 
 // getUserInput prompts the user for input the anime name and returns it

@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -46,11 +47,11 @@ func (c *GoyabuClient) visitHome() {
 	if err == nil {
 		resp.Body.Close()
 	}
-	time.Sleep(time.Duration(1+rand.Intn(2)) * time.Second)
+	time.Sleep(time.Duration(rand.Intn(500)) * time.Millisecond)
 }
 
 func (c *GoyabuClient) SearchAnime(query string) ([]*models.Anime, error) {
-	util.RandomDelay(1, 3)
+	util.RandomDelay(0, 1)
 	c.visitHome()
 
 	searchURL := fmt.Sprintf(GoyabuSearchURL, url.QueryEscape(query))
@@ -85,10 +86,17 @@ func (c *GoyabuClient) SearchAnime(query string) ([]*models.Anime, error) {
 	}
 
 	var results []*models.Anime
-	doc.Find("article, .post, .entry, .post-item, .anime-card").Each(func(i int, s *goquery.Selection) {
-		title := strings.TrimSpace(s.Find("h2.entry-title, h3.title, .post-title, a").Text())
-		href, _ := s.Find("a").First().Attr("href")
+	doc.Find("article, .post, .entry, .post-item, .anime-card, .common-item, .item").Each(func(i int, s *goquery.Selection) {
+		titleLink := s.Find("a").First()
+		title := strings.TrimSpace(titleLink.Text())
+		if title == "" {
+			title = strings.TrimSpace(s.Find("h3, h2, .title").Text())
+		}
+		href, _ := titleLink.Attr("href")
 		img, _ := s.Find("img").First().Attr("src")
+		if img == "" {
+			img, _ = s.Find("img").First().Attr("data-src")
+		}
 
 		if title == "" || href == "" {
 			return
