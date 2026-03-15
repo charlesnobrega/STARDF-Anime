@@ -51,10 +51,10 @@ func (c *Client) GetAnimeEpisodes(animeURL string, source types.Source) ([]*type
 		return nil, err
 	}
 
-	// For AllAnime, we need to store the anime ID in episodes for later stream URL retrieval
-	if source == types.SourceAllAnime {
+	// For AnimeFire, it's just the anime URL
+	if source == types.SourceAnimeFire {
 		for i := range episodes {
-			episodes[i].URL = animeURL // Store anime ID in URL field
+			episodes[i].URL = animeURL 
 		}
 	}
 
@@ -123,19 +123,17 @@ func (c *Client) GetEpisodeStreamURL(anime *types.Anime, episode *types.Episode,
 		}
 	}
 
-	// For AllAnime, we need to pass: animeID (URL), episodeNumber, quality, mode
-	if source == types.SourceAllAnime {
-		return scr.GetStreamURL(anime.URL, episode.Number, opts.Quality, opts.Mode)
+	if source == types.SourceAnimeFire {
+		return scr.GetStreamURL(episode.URL)
 	}
 
-	// For AnimeFire, the episode URL is the direct episode page
-	return scr.GetStreamURL(episode.URL)
+	return scr.GetStreamURL(anime.URL, episode.Number, opts.Quality, opts.Mode)
 }
 
 // GetAvailableSources returns a list of all available scraper sources.
 func (c *Client) GetAvailableSources() []types.Source {
 	return []types.Source{
-		types.SourceAllAnime,
 		types.SourceAnimeFire,
+		types.SourceSuperAnimes,
 	}
 }

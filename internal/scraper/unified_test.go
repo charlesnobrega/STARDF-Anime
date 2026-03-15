@@ -52,13 +52,13 @@ func (m *MockScraper) GetType() ScraperType {
 }
 
 // createTestManager creates a ScraperManager with mock scrapers
-func createTestManager(allAnimeMock, animefireMock *MockScraper) *ScraperManager {
+func createTestManager(cinebyMock, animefireMock *MockScraper) *ScraperManager {
 	manager := &ScraperManager{
 		scrapers: make(map[ScraperType]UnifiedScraper),
 	}
-	if allAnimeMock != nil {
-		allAnimeMock.scraperType = AllAnimeType
-		manager.scrapers[AllAnimeType] = allAnimeMock
+	if cinebyMock != nil {
+		cinebyMock.scraperType = CinebyType
+		manager.scrapers[CinebyType] = cinebyMock
 	}
 	if animefireMock != nil {
 		animefireMock.scraperType = AnimefireType
@@ -74,11 +74,11 @@ func createTestManager(allAnimeMock, animefireMock *MockScraper) *ScraperManager
 func TestSearchAnime_BothSourcesSucceed(t *testing.T) {
 	t.Parallel()
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
 			return []*models.Anime{
-				{Name: "Naruto", URL: "allanime-naruto-id"},
-				{Name: "Naruto Shippuden", URL: "allanime-shippuden-id"},
+				{Name: "Naruto", URL: "cineby-naruto-id"},
+				{Name: "Naruto Shippuden", URL: "cineby-shippuden-id"},
 			}, nil
 		},
 	}
@@ -92,31 +92,31 @@ func TestSearchAnime_BothSourcesSucceed(t *testing.T) {
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 	results, err := manager.SearchAnime("naruto", nil)
 
 	require.NoError(t, err)
 	assert.Len(t, results, 4, "Should have results from both sources")
 
 	// Verify both scrapers were called
-	assert.Equal(t, int32(1), allAnimeMock.searchCallCount.Load())
+	assert.Equal(t, int32(1), cinebyMock.searchCallCount.Load())
 	assert.Equal(t, int32(1), animefireMock.searchCallCount.Load())
 
-	// Verify language tags are added (not source tags)
-	// AllAnime uses [English], AnimeFire uses [Portuguese]
-	allAnimeCount := 0
+	// Verify language tags are added
+	// Cineby uses [Movies/TV], AnimeFire uses [Portuguese]
+	cinebyCount := 0
 	animefireCount := 0
 	for _, anime := range results {
 		switch anime.Source {
-		case "AllAnime":
-			allAnimeCount++
-			assert.Contains(t, anime.Name, "[English]")
+		case "Cineby":
+			cinebyCount++
+			assert.Contains(t, anime.Name, "[Movies/TV]")
 		case "Animefire.io":
 			animefireCount++
 			assert.Contains(t, anime.Name, "[Portuguese]")
 		}
 	}
-	assert.Equal(t, 2, allAnimeCount)
+	assert.Equal(t, 2, cinebyCount)
 	assert.Equal(t, 2, animefireCount)
 }
 
@@ -124,13 +124,13 @@ func TestSearchAnime_BothSourcesSucceed(t *testing.T) {
 // Test: AnimeFire fails, AllAnime succeeds (Portuguese results missing)
 // =============================================================================
 
-func TestSearchAnime_AnimefireFails_AllAnimeSucceeds(t *testing.T) {
+func TestSearchAnime_AnimefireFails_CinebySucceeds(t *testing.T) {
 	t.Parallel()
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
 			return []*models.Anime{
-				{Name: "Naruto", URL: "allanime-naruto-id"},
+				{Name: "Naruto", URL: "cineby-naruto-id"},
 			}, nil
 		},
 	}
@@ -141,16 +141,16 @@ func TestSearchAnime_AnimefireFails_AllAnimeSucceeds(t *testing.T) {
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 	results, err := manager.SearchAnime("naruto", nil)
 
-	// Should still return results from AllAnime
+	// Should still return results from Cineby
 	require.NoError(t, err)
 	assert.Len(t, results, 1)
-	assert.Equal(t, "AllAnime", results[0].Source)
+	assert.Equal(t, "Cineby", results[0].Source)
 
 	// Both scrapers should have been called
-	assert.Equal(t, int32(1), allAnimeMock.searchCallCount.Load())
+	assert.Equal(t, int32(1), cinebyMock.searchCallCount.Load())
 	assert.Equal(t, int32(1), animefireMock.searchCallCount.Load())
 }
 
@@ -158,10 +158,10 @@ func TestSearchAnime_AnimefireFails_AllAnimeSucceeds(t *testing.T) {
 // Test: AllAnime fails, AnimeFire succeeds
 // =============================================================================
 
-func TestSearchAnime_AllAnimeFails_AnimefireSucceeds(t *testing.T) {
+func TestSearchAnime_CinebyFails_AnimefireSucceeds(t *testing.T) {
 	t.Parallel()
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
 			return nil, errors.New("connection timeout")
 		},
@@ -175,7 +175,7 @@ func TestSearchAnime_AllAnimeFails_AnimefireSucceeds(t *testing.T) {
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 	results, err := manager.SearchAnime("naruto", nil)
 
 	require.NoError(t, err)
@@ -184,13 +184,10 @@ func TestSearchAnime_AllAnimeFails_AnimefireSucceeds(t *testing.T) {
 }
 
 // =============================================================================
-// Test: Both sources fail
-// =============================================================================
-
 func TestSearchAnime_BothSourcesFail(t *testing.T) {
 	t.Parallel()
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
 			return nil, errors.New("API rate limited")
 		},
@@ -202,7 +199,7 @@ func TestSearchAnime_BothSourcesFail(t *testing.T) {
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 	results, err := manager.SearchAnime("naruto", nil)
 
 	require.Error(t, err)
@@ -218,7 +215,7 @@ func TestSearchAnime_BothSourcesFail(t *testing.T) {
 func TestSearchAnime_BothSourcesReturnEmpty(t *testing.T) {
 	t.Parallel()
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
 			return []*models.Anime{}, nil
 		},
@@ -230,7 +227,7 @@ func TestSearchAnime_BothSourcesReturnEmpty(t *testing.T) {
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 	_, err := manager.SearchAnime("xyznonexistent", nil)
 
 	require.Error(t, err)
@@ -246,9 +243,9 @@ func TestSearchAnime_BothSourcesReturnEmpty(t *testing.T) {
 func TestSearchAnime_OneSourceEmpty_OtherHasResults(t *testing.T) {
 	t.Parallel()
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
-			return []*models.Anime{}, nil // Empty but no error
+			return []*models.Anime{}, nil // Vazio mas sem erro
 		},
 	}
 
@@ -260,7 +257,7 @@ func TestSearchAnime_OneSourceEmpty_OtherHasResults(t *testing.T) {
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 	results, err := manager.SearchAnime("brasileiro", nil)
 
 	require.NoError(t, err)
@@ -275,18 +272,18 @@ func TestSearchAnime_OneSourceEmpty_OtherHasResults(t *testing.T) {
 func TestSearchAnime_ConcurrentExecution(t *testing.T) {
 	t.Parallel()
 
-	var allAnimeStart, animefireStart time.Time
+	var cinebyStart, animefireStart time.Time
 	var mu sync.Mutex
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
 			mu.Lock()
-			allAnimeStart = time.Now()
+			cinebyStart = time.Now()
 			mu.Unlock()
 
 			time.Sleep(100 * time.Millisecond)
 
-			return []*models.Anime{{Name: "AllAnime Result", URL: "id1"}}, nil
+			return []*models.Anime{{Name: "Cineby Result", URL: "id1"}}, nil
 		},
 	}
 
@@ -302,7 +299,7 @@ func TestSearchAnime_ConcurrentExecution(t *testing.T) {
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 
 	start := time.Now()
 	results, err := manager.SearchAnime("test", nil)
@@ -311,21 +308,20 @@ func TestSearchAnime_ConcurrentExecution(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, results, 2)
 
-	// If running concurrently, total time should be ~100ms, not ~200ms
-	// Allow some buffer for test environment variations
+	// Se estiver rodando concorrentemente, o tempo total deve ser ~100ms, não ~200ms
 	assert.Less(t, totalDuration, 180*time.Millisecond,
-		"Searches should run concurrently, not sequentially")
+		"As buscas devem rodar concorrentemente, não sequencialmente")
 
-	// Verify both started around the same time (within 50ms of each other)
+	// Verifica se ambos começaram por volta do mesmo tempo
 	mu.Lock()
-	startDiff := allAnimeStart.Sub(animefireStart)
+	startDiff := cinebyStart.Sub(animefireStart)
 	if startDiff < 0 {
 		startDiff = -startDiff
 	}
 	mu.Unlock()
 
 	assert.Less(t, startDiff, 50*time.Millisecond,
-		"Both searches should start nearly simultaneously")
+		"Ambas as buscas devem começar quase simultaneamente")
 }
 
 // =============================================================================
@@ -335,25 +331,25 @@ func TestSearchAnime_ConcurrentExecution(t *testing.T) {
 func TestSearchAnime_SlowSourceDoesNotBlockFastSource(t *testing.T) {
 	t.Parallel()
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
-			time.Sleep(200 * time.Millisecond) // Slow
+			time.Sleep(200 * time.Millisecond) // Lento
 			return []*models.Anime{{Name: "Slow Result", URL: "id1"}}, nil
 		},
 	}
 
 	animefireMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
-			time.Sleep(10 * time.Millisecond) // Fast
+			time.Sleep(10 * time.Millisecond) // Rápido
 			return []*models.Anime{{Name: "Fast Result", URL: "https://animefire.io/1"}}, nil
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 	results, err := manager.SearchAnime("test", nil)
 
 	require.NoError(t, err)
-	// Both results should be present
+	// Ambos os resultados devem estar presentes
 	assert.Len(t, results, 2)
 }
 
@@ -364,9 +360,9 @@ func TestSearchAnime_SlowSourceDoesNotBlockFastSource(t *testing.T) {
 func TestSearchAnime_SpecificScraper_AnimefireOnly(t *testing.T) {
 	t.Parallel()
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
-			return []*models.Anime{{Name: "AllAnime Result", URL: "id1"}}, nil
+			return []*models.Anime{{Name: "Cineby Result", URL: "id1"}}, nil
 		},
 	}
 
@@ -376,7 +372,7 @@ func TestSearchAnime_SpecificScraper_AnimefireOnly(t *testing.T) {
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 
 	scraperType := AnimefireType
 	results, err := manager.SearchAnime("test", &scraperType)
@@ -385,8 +381,8 @@ func TestSearchAnime_SpecificScraper_AnimefireOnly(t *testing.T) {
 	assert.Len(t, results, 1)
 	assert.Equal(t, "Animefire.io", results[0].Source)
 
-	// Only AnimeFire should be called
-	assert.Equal(t, int32(0), allAnimeMock.searchCallCount.Load())
+	// Apenas AnimeFire deve ser chamado
+	assert.Equal(t, int32(0), cinebyMock.searchCallCount.Load())
 	assert.Equal(t, int32(1), animefireMock.searchCallCount.Load())
 }
 
@@ -394,12 +390,12 @@ func TestSearchAnime_SpecificScraper_AnimefireOnly(t *testing.T) {
 // Test: Specific scraper selection - AllAnime only
 // =============================================================================
 
-func TestSearchAnime_SpecificScraper_AllAnimeOnly(t *testing.T) {
+func TestSearchAnime_SpecificScraper_CinebyOnly(t *testing.T) {
 	t.Parallel()
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
-			return []*models.Anime{{Name: "AllAnime Result", URL: "id1"}}, nil
+			return []*models.Anime{{Name: "Cineby Result", URL: "id1"}}, nil
 		},
 	}
 
@@ -409,17 +405,17 @@ func TestSearchAnime_SpecificScraper_AllAnimeOnly(t *testing.T) {
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 
-	scraperType := AllAnimeType
+	scraperType := CinebyType
 	results, err := manager.SearchAnime("test", &scraperType)
 
 	require.NoError(t, err)
 	assert.Len(t, results, 1)
-	assert.Equal(t, "AllAnime", results[0].Source)
+	assert.Equal(t, "Cineby", results[0].Source)
 
-	// Only AllAnime should be called
-	assert.Equal(t, int32(1), allAnimeMock.searchCallCount.Load())
+	// Only Cineby should be called
+	assert.Equal(t, int32(1), cinebyMock.searchCallCount.Load())
 	assert.Equal(t, int32(0), animefireMock.searchCallCount.Load())
 }
 
@@ -454,10 +450,10 @@ func TestSearchAnime_SpecificScraper_Fails(t *testing.T) {
 func TestSearchAnime_SourceTagsNotDuplicated(t *testing.T) {
 	t.Parallel()
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
 			return []*models.Anime{
-				{Name: "[AllAnime] Naruto", URL: "id1"}, // Already has tag
+				{Name: "[Movies/TV] Naruto", URL: "id1"}, // Já tem tag
 			}, nil
 		},
 	}
@@ -465,24 +461,24 @@ func TestSearchAnime_SourceTagsNotDuplicated(t *testing.T) {
 	animefireMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
 			return []*models.Anime{
-				{Name: "[AnimeFire] Naruto", URL: "https://animefire.io/1"}, // Already has tag
+				{Name: "[Portuguese] Naruto", URL: "https://animefire.io/1"}, // Já tem tag
 			}, nil
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 	results, err := manager.SearchAnime("naruto", nil)
 
 	require.NoError(t, err)
 
 	for _, anime := range results {
-		// Count occurrences of tags
-		allAnimeTagCount := countOccurrences(anime.Name, "[AllAnime]")
-		animefireTagCount := countOccurrences(anime.Name, "[AnimeFire]")
+		// Conta ocorrências de tags
+		cinebyTagCount := countOccurrences(anime.Name, "[Movies/TV]")
+		animefireTagCount := countOccurrences(anime.Name, "[Portuguese]")
 
-		// Should never have more than one of each tag
-		assert.LessOrEqual(t, allAnimeTagCount, 1, "AllAnime tag duplicated")
-		assert.LessOrEqual(t, animefireTagCount, 1, "AnimeFire tag duplicated")
+		// Nunca deve ter mais de uma de cada tag
+		assert.LessOrEqual(t, cinebyTagCount, 1, "Cineby tag duplicada")
+		assert.LessOrEqual(t, animefireTagCount, 1, "AnimeFire tag duplicada")
 	}
 }
 
@@ -493,7 +489,7 @@ func TestSearchAnime_SourceTagsNotDuplicated(t *testing.T) {
 func TestSearchAnime_NoConcurrentRaceConditions(t *testing.T) {
 	t.Parallel()
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
 			time.Sleep(10 * time.Millisecond)
 			return []*models.Anime{{Name: "Result " + query, URL: "id-" + query}}, nil
@@ -507,7 +503,7 @@ func TestSearchAnime_NoConcurrentRaceConditions(t *testing.T) {
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 
 	// Run multiple concurrent searches
 	var wg sync.WaitGroup
@@ -543,7 +539,7 @@ func TestSearchAnime_NoConcurrentRaceConditions(t *testing.T) {
 func TestSearchAnime_NetworkTimeout(t *testing.T) {
 	t.Parallel()
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
 			return []*models.Anime{{Name: "Quick Result", URL: "id1"}}, nil
 		},
@@ -551,17 +547,17 @@ func TestSearchAnime_NetworkTimeout(t *testing.T) {
 
 	animefireMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
-			// Simulate network timeout error (not actual timeout, just error)
+			// Simula erro de timeout de rede
 			return nil, errors.New("connection timeout after 30s")
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 	results, err := manager.SearchAnime("test", nil)
 
 	require.NoError(t, err)
 	assert.Len(t, results, 1)
-	assert.Equal(t, "AllAnime", results[0].Source)
+	assert.Equal(t, "Cineby", results[0].Source)
 }
 
 // =============================================================================
@@ -571,7 +567,7 @@ func TestSearchAnime_NetworkTimeout(t *testing.T) {
 func TestSearchAnime_VPNRequired(t *testing.T) {
 	t.Parallel()
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
 			return []*models.Anime{{Name: "English Result", URL: "id1"}}, nil
 		},
@@ -583,7 +579,7 @@ func TestSearchAnime_VPNRequired(t *testing.T) {
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 	results, err := manager.SearchAnime("test", nil)
 
 	require.NoError(t, err, "Should return results from working source")
@@ -597,7 +593,7 @@ func TestSearchAnime_VPNRequired(t *testing.T) {
 func TestSearchAnime_CloudflareChallenge(t *testing.T) {
 	t.Parallel()
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
 			return []*models.Anime{{Name: "Result", URL: "id1"}}, nil
 		},
@@ -609,7 +605,7 @@ func TestSearchAnime_CloudflareChallenge(t *testing.T) {
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 	results, err := manager.SearchAnime("test", nil)
 
 	require.NoError(t, err)
@@ -626,10 +622,10 @@ func TestSearchAnime_QueryPassedCorrectly(t *testing.T) {
 	var capturedQueries []string
 	var mu sync.Mutex
 
-	allAnimeMock := &MockScraper{
+	cinebyMock := &MockScraper{
 		searchFunc: func(query string) ([]*models.Anime, error) {
 			mu.Lock()
-			capturedQueries = append(capturedQueries, "allanime:"+query)
+			capturedQueries = append(capturedQueries, "cineby:"+query)
 			mu.Unlock()
 			return []*models.Anime{}, nil
 		},
@@ -644,14 +640,14 @@ func TestSearchAnime_QueryPassedCorrectly(t *testing.T) {
 		},
 	}
 
-	manager := createTestManager(allAnimeMock, animefireMock)
+	manager := createTestManager(cinebyMock, animefireMock)
 	_, _ = manager.SearchAnime("Shingeki no Kyojin", nil)
 
 	mu.Lock()
 	defer mu.Unlock()
 
 	assert.Len(t, capturedQueries, 2)
-	assert.Contains(t, capturedQueries, "allanime:Shingeki no Kyojin")
+	assert.Contains(t, capturedQueries, "cineby:Shingeki no Kyojin")
 	assert.Contains(t, capturedQueries, "animefire:Shingeki no Kyojin")
 }
 

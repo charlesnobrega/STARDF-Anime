@@ -11,10 +11,8 @@ import (
 type Source int
 
 const (
-	// SourceAllAnime represents the AllAnime source
-	SourceAllAnime Source = iota
 	// SourceAnimeFire represents the AnimeFire source
-	SourceAnimeFire
+	SourceAnimeFire Source = iota
 	// SourceFlixHQ represents the FlixHQ source (movies/TV)
 	SourceFlixHQ
 	// SourceCineby represents the Cineby source (movies)
@@ -30,8 +28,6 @@ const (
 // String returns the string representation of the source
 func (s Source) String() string {
 	switch s {
-	case SourceAllAnime:
-		return "AllAnime"
 	case SourceAnimeFire:
 		return "AnimeFire"
 	case SourceFlixHQ:
@@ -49,11 +45,8 @@ func (s Source) String() string {
 	}
 }
 
-// ToScraperType converts the public Source type to internal ScraperType
 func (s Source) ToScraperType() scraper.ScraperType {
 	switch s {
-	case SourceAllAnime:
-		return scraper.AllAnimeType
 	case SourceAnimeFire:
 		return scraper.AnimefireType
 	case SourceFlixHQ:
@@ -67,15 +60,13 @@ func (s Source) ToScraperType() scraper.ScraperType {
 	case SourceSuperAnimes:
 		return scraper.SuperAnimesType
 	default:
-		return scraper.AllAnimeType
+		return scraper.CinebyType
 	}
 }
 
 // ParseSource parses a string into a Source type
 func ParseSource(s string) (Source, error) {
 	switch strings.ToLower(s) {
-	case "allanime", "all":
-		return SourceAllAnime, nil
 	case "animefire", "fire":
 		return SourceAnimeFire, nil
 	case "flixhq", "flix", "movies", "tv":
@@ -89,6 +80,6 @@ func ParseSource(s string) (Source, error) {
 	case "superanimes", "super":
 		return SourceSuperAnimes, nil
 	default:
-		return SourceAllAnime, fmt.Errorf("unknown source: %s", s)
+		return SourceSuperAnimes, fmt.Errorf("unknown source: %s", s)
 	}
 }

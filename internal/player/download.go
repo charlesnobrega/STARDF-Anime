@@ -497,7 +497,7 @@ func getBestQualityURL(episode models.Episode, animeURL string) (string, error) 
 		if url, err := api.GetEpisodeStreamURLEnhanced(ep, anime, util.GlobalQuality); err == nil && url != "" {
 			return url, nil
 		}
-		if url, err := api.GetEpisodeStreamURL(ep, anime, util.GlobalQuality); err == nil && url != "" {
+		if url, err := api.GetEpisodeStreamURLEnhanced(ep, anime, util.GlobalQuality); err == nil && url != "" {
 			return url, nil
 		}
 		return "", fmt.Errorf("failed to resolve AllAnime stream URL")

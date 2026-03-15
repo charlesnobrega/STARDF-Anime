@@ -161,12 +161,11 @@ func HandleSeries(anime *models.Anime, episodes []models.Episode, totalEpisodes 
 			continue
 		}
 
-		selectedEpisodeURL, episodeNumberStr, selectedEpisodeNum = handleUserNavigationEnhanced(
+		selectedEpisodeURL, episodeNumberStr, selectedEpisodeNum = handleUserNavigation(
 			userInput,
 			episodes,
 			selectedEpisodeNum,
 			totalEpisodes,
-			anime,
 		)
 	}
 	return nil
@@ -207,56 +206,6 @@ func handleUserNavigation(input string, episodes []models.Episode, currentNum, t
 	}
 }
 
-// Enhanced navigation handler that supports AllAnime-specific navigation
-func handleUserNavigationEnhanced(input string, episodes []models.Episode, currentNum, totalEpisodes int, anime *models.Anime) (string, string, int) {
-	// Check if this is an AllAnime source and use enhanced navigation
-	if isAllAnimeSource(anime) {
-		return handleAllAnimeNavigation(input, episodes, currentNum, totalEpisodes, anime)
-	}
-
-	// Fallback to regular navigation for other sources
-	return handleUserNavigation(input, episodes, currentNum, totalEpisodes)
-}
-
-// AllAnime-specific navigation handler
-func handleAllAnimeNavigation(input string, episodes []models.Episode, currentNum, totalEpisodes int, anime *models.Anime) (string, string, int) {
-	// Find current episode string
-	currentEpisodeStr := ""
-	for _, ep := range episodes {
-		if ep.Num == currentNum {
-			currentEpisodeStr = ep.Number
-			break
-		}
-	}
-
-	if currentEpisodeStr == "" {
-		util.Debug("Current episode not found, falling back to regular navigation", "currentNum", currentNum)
-		return handleUserNavigation(input, episodes, currentNum, totalEpisodes)
-	}
-
-	switch input {
-	case "e":
-		return SelectEpisodeWithFuzzy(episodes)
-	case "p":
-		// Use AllAnime navigator for previous episode
-		nextEp, err := HandleAllAnimeEpisodeNavigation(anime, currentEpisodeStr, "previous")
-		if err != nil {
-			util.Debug("AllAnime previous navigation failed, using fallback", "error", err.Error())
-			return handleUserNavigation(input, episodes, currentNum, totalEpisodes)
-		}
-		return nextEp.URL, nextEp.Number, nextEp.Num
-	case "n":
-		// Use AllAnime navigator for next episode
-		nextEp, err := HandleAllAnimeEpisodeNavigation(anime, currentEpisodeStr, "next")
-		if err != nil {
-			util.Debug("AllAnime next navigation failed, using fallback", "error", err.Error())
-			return handleUserNavigation(input, episodes, currentNum, totalEpisodes)
-		}
-		return nextEp.URL, nextEp.Number, nextEp.Num
-	default:
-		return handleUserNavigation(input, episodes, currentNum, totalEpisodes)
-	}
-}
 
 func CheckIfSeries(url string) (bool, int) {
 	series, totalEpisodes, err := api.IsSeries(url)

@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	AnimefireBase = "https://animefire.io"
+	AnimefireBase  = "https://animefire.io"
+	AnimefireAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
 
 // AnimefireClient handles interactions with Animefire.io
@@ -31,7 +32,7 @@ func NewAnimefireClient() *AnimefireClient {
 	return &AnimefireClient{
 		client:     util.GetFastClient(), // Use shared fast client
 		baseURL:    AnimefireBase,
-		userAgent:  UserAgent,
+		userAgent:  AnimefireAgent,
 		maxRetries: 2,
 		retryDelay: 250 * time.Millisecond, // Reduced from 350ms
 	}

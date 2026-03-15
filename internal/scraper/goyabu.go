@@ -218,26 +218,3 @@ func (c *GoyabuClient) GetStreamURL(episodeURL string) (string, map[string]strin
 	return videoURL, metadata, nil
 }
 
-type GoyabuAdapter struct {
-	client *GoyabuClient
-}
-
-func NewGoyabuAdapter(client *GoyabuClient) *GoyabuAdapter {
-	return &GoyabuAdapter{client: client}
-}
-
-func (a *GoyabuAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
-	return a.client.SearchAnime(query)
-}
-
-func (a *GoyabuAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
-	return a.client.GetEpisodes(animeURL)
-}
-
-func (a *GoyabuAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
-	return a.client.GetStreamURL(episodeURL)
-}
-
-func (a *GoyabuAdapter) GetType() ScraperType {
-	return GoyabuType
-}

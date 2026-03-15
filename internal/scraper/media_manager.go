@@ -42,11 +42,25 @@ func (mm *MediaManager) SearchAll(query string) ([]*models.Anime, error) {
 func (mm *MediaManager) SearchAnimeOnly(query string) ([]*models.Anime, error) {
 	var allResults []*models.Anime
 
-	// Search AllAnime
-	allAnimeType := AllAnimeType
-	animeResults, err := mm.scraperManager.SearchAnime(query, &allAnimeType)
+	// Search AnimesOnlineCC
+	animesonlineType := AnimesOnlineCCTYPE
+	animesResults, err := mm.scraperManager.SearchAnime(query, &animesonlineType)
 	if err == nil {
-		allResults = append(allResults, animeResults...)
+		allResults = append(allResults, animesResults...)
+	}
+
+	// Search Goyabu
+	goyabuType := GoyabuType
+	goyabuResults, err := mm.scraperManager.SearchAnime(query, &goyabuType)
+	if err == nil {
+		allResults = append(allResults, goyabuResults...)
+	}
+
+	// Search SuperAnimes
+	superanimesType := SuperAnimesType
+	superanimesResults, err := mm.scraperManager.SearchAnime(query, &superanimesType)
+	if err == nil {
+		allResults = append(allResults, superanimesResults...)
 	}
 
 	// Search AnimeFire
@@ -150,22 +164,29 @@ func (mm *MediaManager) GetAnimeStreamURL(anime *models.Anime, episodeNum string
 	util.Debug("Getting stream URL", "source", source, "anime", anime.Name, "episode", episodeNum)
 
 	switch {
-	case strings.Contains(source, "allanime"):
-		scraper, err := mm.scraperManager.GetScraper(AllAnimeType)
+	case strings.Contains(source, "animesonlinecc"):
+		scraper, err := mm.scraperManager.GetScraper(AnimesOnlineCCTYPE)
 		if err != nil {
 			return "", nil, err
 		}
 		return scraper.GetStreamURL(anime.URL, episodeNum, quality, mode)
 
-	case strings.Contains(source, "animefire"):
-		scraper, err := mm.scraperManager.GetScraper(AnimefireType)
+	case strings.Contains(source, "goyabu"):
+		scraper, err := mm.scraperManager.GetScraper(GoyabuType)
 		if err != nil {
 			return "", nil, err
 		}
 		return scraper.GetStreamURL(anime.URL, episodeNum, quality, mode)
 
-	case strings.Contains(source, "animedrive"):
-		scraper, err := mm.scraperManager.GetScraper(AnimeDriveType)
+	case strings.Contains(source, "superanimes"):
+		scraper, err := mm.scraperManager.GetScraper(SuperAnimesType)
+		if err != nil {
+			return "", nil, err
+		}
+		return scraper.GetStreamURL(anime.URL, episodeNum, quality, mode)
+
+	case strings.Contains(source, "cineby"):
+		scraper, err := mm.scraperManager.GetScraper(CinebyType)
 		if err != nil {
 			return "", nil, err
 		}

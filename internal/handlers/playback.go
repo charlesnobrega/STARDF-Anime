@@ -50,8 +50,15 @@ func HandlePlaybackMode(animeName string) {
 		detailsTimer.Stop()
 
 		episodesTimer := util.StartTimer("GetAnimeEpisodes")
-		episodes := appflow.GetAnimeEpisodes(anime)
+		episodes, err := appflow.GetAnimeEpisodes(anime)
 		episodesTimer.Stop()
+
+		if err != nil {
+			util.Warnf("Could not load episodes from %s: %v", anime.Source, err)
+			util.Infof("Please pick another source from the list.")
+			// Setting anime to nil will trigger search again with same term (effectively going back)
+			continue
+		}
 
 		util.PerfCount("anime_loaded")
 

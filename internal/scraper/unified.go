@@ -29,15 +29,17 @@ const (
 	minResultsForEarlyReturn = 5
 )
 
+// ErrBackRequested is returned when the user requests to go back to the previous menu
+var ErrBackRequested = fmt.Errorf("back requested")
+
 const (
-	AllAnimeType ScraperType = iota
-	AnimefireType
-	AnimeDriveType
+	AnimefireType ScraperType = iota
 	FlixHQType
 	CinebyType
 	AnimesOnlineCCTYPE
 	GoyabuType
 	SuperAnimesType
+	CineGratisType
 )
 
 // UnifiedScraper provides a common interface for all scrapers
@@ -59,24 +61,13 @@ func NewScraperManager() *ScraperManager {
 		scrapers: make(map[ScraperType]UnifiedScraper),
 	}
 
-	// Initialize scrapers
-	manager.scrapers[AllAnimeType] = &AllAnimeAdapter{client: NewAllAnimeClient()}
 	manager.scrapers[AnimefireType] = &AnimefireAdapter{client: NewAnimefireClient()}
-	manager.scrapers[FlixHQType] = &FlixHQAdapter{client: NewFlixHQClient()}
-	manager.scrapers[CinebyType] = &CinebyAdapter{client: NewCinebyClient()}
-	manager.scrapers[AnimesOnlineCCTYPE] = &AnimesOnlineCCAdapter{client: NewAnimesOnlineCCClient()}
 	manager.scrapers[GoyabuType] = &GoyabuAdapter{client: NewGoyabuClient()}
 	manager.scrapers[SuperAnimesType] = &SuperAnimesAdapter{client: NewSuperAnimesClient()}
-
-	// AnimeDrive - Currently on standby
-	// Reason: Site is protected by Cloudflare, no bypass solution found yet
-	// TODO: Revisit when Cloudflare protection is removed or bypass method is discovered
-	// manager.scrapers[AnimeDriveType] = &AnimeDriveAdapter{client: NewAnimeDriveClient()}
-
-	// AnimeDrive - Currently on standby
-	// Reason: Site is protected by Cloudflare, no bypass solution found yet
-	// TODO: Revisit when Cloudflare protection is removed or bypass method is discovered
-	// manager.scrapers[AnimeDriveType] = &AnimeDriveAdapter{client: NewAnimeDriveClient()}
+	manager.scrapers[AnimesOnlineCCTYPE] = &AnimesOnlineCCAdapter{client: NewAnimesOnlineCCClient()}
+	manager.scrapers[CinebyType] = &CinebyAdapter{client: NewCinebyClient()}
+	manager.scrapers[CineGratisType] = &CineGratisAdapter{client: NewCineGratisClient()}
+	manager.scrapers[FlixHQType] = &FlixHQAdapter{client: NewFlixHQClient()}
 
 	return manager
 }
@@ -313,7 +304,8 @@ func (sm *ScraperManager) tagResults(results []*models.Anime, scraperType Scrape
 		// Check if the anime name already has any language tag
 		hasLanguageTag := strings.Contains(anime.Name, "[English]") ||
 			strings.Contains(anime.Name, "[Portuguese]") ||
-			strings.Contains(anime.Name, "[Português]")
+			strings.Contains(anime.Name, "[Português]") ||
+			strings.Contains(anime.Name, "[Movies/TV]")
 
 		if !hasLanguageTag {
 			anime.Name = fmt.Sprintf("%s %s", languageTag, anime.Name)
@@ -335,8 +327,10 @@ func (sm *ScraperManager) logSearchSummary(results []*models.Anime) {
 
 	util.Debug("Search summary",
 		"animeFire", counts["Animefire.io"],
-		"allAnime", counts["AllAnime"],
-		"animeDrive", counts["AnimeDrive"],
+		"animesOnlineCC", counts["AnimesOnlineCC"],
+		"goyabu", counts["Goyabu"],
+		"superAnimes", counts["SuperAnimes"],
+		"cineby", counts["Cineby"],
 		"flixHQ", counts["FlixHQ"],
 		"total", len(results))
 }
@@ -352,12 +346,18 @@ func (sm *ScraperManager) GetScraper(scraperType ScraperType) (UnifiedScraper, e
 // getScraperDisplayName returns a Portuguese display name for the scraper type
 func (sm *ScraperManager) getScraperDisplayName(scraperType ScraperType) string {
 	switch scraperType {
-	case AllAnimeType:
-		return "AllAnime"
+	case AnimesOnlineCCTYPE:
+		return "AnimesOnlineCC"
 	case AnimefireType:
 		return "Animefire.io"
-	case AnimeDriveType:
-		return "AnimeDrive"
+	case GoyabuType:
+		return "Goyabu"
+	case SuperAnimesType:
+		return "SuperAnimes"
+	case CinebyType:
+		return "Cineby"
+	case CineGratisType:
+		return "CineGratis"
 	case FlixHQType:
 		return "FlixHQ"
 	default:
@@ -368,82 +368,23 @@ func (sm *ScraperManager) getScraperDisplayName(scraperType ScraperType) string 
 // getLanguageTag returns a language tag for the source
 func (sm *ScraperManager) getLanguageTag(scraperType ScraperType) string {
 	switch scraperType {
-	case AllAnimeType:
-		return "[English]"
+	case AnimesOnlineCCTYPE:
+		return "[Portuguese]"
 	case AnimefireType:
 		return "[Portuguese]"
-	case AnimeDriveType:
+	case GoyabuType:
 		return "[Portuguese]"
+	case SuperAnimesType:
+		return "[Portuguese]"
+	case CinebyType:
+		return "[Movies/TV]"
+	case CineGratisType:
+		return "[Movies/TV]"
 	case FlixHQType:
 		return "[Movies/TV]"
 	default:
 		return "[Unknown]"
 	}
-}
-
-// AllAnimeAdapter adapts AllAnimeClient to UnifiedScraper interface
-type AllAnimeAdapter struct {
-	client *AllAnimeClient
-}
-
-func (a *AllAnimeAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
-	// mode is now hardcoded in the new implementation
-	return a.client.SearchAnime(query)
-}
-
-func (a *AllAnimeAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
-	// For AllAnime, animeURL is actually the anime ID
-	episodes, err := a.client.GetEpisodesList(animeURL, "sub")
-	if err != nil {
-		return nil, err
-	}
-
-	var episodeModels []models.Episode
-	for i, ep := range episodes {
-		episodeModels = append(episodeModels, models.Episode{
-			Number: ep,
-			Num:    i + 1,
-			URL:    animeURL, // Store the anime ID in URL field
-			Title: models.TitleDetails{
-				Romaji: fmt.Sprintf("Episode %s", ep),
-			},
-		})
-	}
-
-	return episodeModels, nil
-}
-
-func (a *AllAnimeAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
-	// For AllAnime, episodeURL contains the anime ID
-	animeID := episodeURL
-
-	// Parse options to get episode number
-	episodeNo := "1"
-	if len(options) > 0 {
-		if ep, ok := options[0].(string); ok {
-			episodeNo = ep
-		}
-	}
-
-	quality := "best"
-	if len(options) > 1 {
-		if q, ok := options[1].(string); ok {
-			quality = q
-		}
-	}
-
-	mode := "sub"
-	if len(options) > 2 {
-		if m, ok := options[2].(string); ok {
-			mode = m
-		}
-	}
-
-	return a.client.GetEpisodeURL(animeID, episodeNo, mode, quality)
-}
-
-func (a *AllAnimeAdapter) GetType() ScraperType {
-	return AllAnimeType
 }
 
 // AnimefireAdapter adapts AnimefireClient to UnifiedScraper interface
@@ -470,40 +411,99 @@ func (a *AnimefireAdapter) GetType() ScraperType {
 	return AnimefireType
 }
 
-// AnimeDriveAdapter adapts AnimeDriveClient to UnifiedScraper interface
-type AnimeDriveAdapter struct {
-	client *AnimeDriveClient
+// GoyabuAdapter adapts GoyabuClient to UnifiedScraper interface
+type GoyabuAdapter struct {
+	client *GoyabuClient
 }
 
-func (a *AnimeDriveAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
+func (a *GoyabuAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
 	return a.client.SearchAnime(query)
 }
 
-func (a *AnimeDriveAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
-	return a.client.GetAnimeEpisodes(animeURL)
+func (a *GoyabuAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
+	return a.client.GetEpisodes(animeURL)
 }
 
-func (a *AnimeDriveAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
-	// Check if server selection is requested via options
-	selectServer := true // Default to showing server selection
-	for _, opt := range options {
-		if s, ok := opt.(string); ok && s == "auto" {
-			selectServer = false
-			break
-		}
-		if b, ok := opt.(bool); ok {
-			selectServer = b
-		}
-	}
-
-	if selectServer {
-		return a.client.GetStreamURLWithSelection(episodeURL)
-	}
+func (a *GoyabuAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
 	return a.client.GetStreamURL(episodeURL)
 }
 
-func (a *AnimeDriveAdapter) GetType() ScraperType {
-	return AnimeDriveType
+func (a *GoyabuAdapter) GetType() ScraperType {
+	return GoyabuType
+}
+
+// SuperAnimesAdapter adapts SuperAnimesClient to UnifiedScraper interface
+type SuperAnimesAdapter struct {
+	client *SuperAnimesClient
+}
+
+func (a *SuperAnimesAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
+	return a.client.SearchAnime(query)
+}
+
+func (a *SuperAnimesAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
+	return a.client.GetEpisodes(animeURL)
+}
+
+func (a *SuperAnimesAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
+	return a.client.GetStreamURL(episodeURL)
+}
+
+func (a *SuperAnimesAdapter) GetType() ScraperType {
+	return SuperAnimesType
+}
+
+// AnimesOnlineCCAdapter adapts AnimesOnlineCCClient to UnifiedScraper interface
+type AnimesOnlineCCAdapter struct {
+	client *AnimesOnlineCCClient
+}
+
+func (a *AnimesOnlineCCAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
+	return a.client.SearchAnime(query)
+}
+
+func (a *AnimesOnlineCCAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
+	return a.client.GetEpisodes(animeURL)
+}
+
+func (a *AnimesOnlineCCAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
+	return a.client.GetStreamURL(episodeURL)
+}
+
+func (a *AnimesOnlineCCAdapter) GetType() ScraperType {
+	return AnimesOnlineCCTYPE
+}
+
+// CinebyAdapter adapts CinebyClient to UnifiedScraper interface
+type CinebyAdapter struct {
+	client *CinebyClient
+}
+
+func (a *CinebyAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
+	return a.client.SearchMovies(query)
+}
+
+func (a *CinebyAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
+	return nil, nil
+}
+
+func (a *CinebyAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
+	streams, err := a.client.GetStreamURLs(episodeURL)
+	if err != nil {
+		return "", nil, err
+	}
+	if len(streams) == 0 {
+		return "", nil, fmt.Errorf("no streams found")
+	}
+	metadata := map[string]string{
+		"source":  "cineby",
+		"quality": "default",
+	}
+	return streams[0], metadata, nil
+}
+
+func (a *CinebyAdapter) GetType() ScraperType {
+	return CinebyType
 }
 
 // FlixHQAdapter adapts FlixHQClient to UnifiedScraper interface for movies and TV shows
@@ -597,4 +597,30 @@ func (a *FlixHQAdapter) GetType() ScraperType {
 // GetClient returns the underlying FlixHQ client for direct access
 func (a *FlixHQAdapter) GetClient() *FlixHQClient {
 	return a.client
+}
+// CineGratisAdapter adapts CineGratisClient to UnifiedScraper interface
+type CineGratisAdapter struct {
+	client *CineGratisClient
+}
+
+func (a *CineGratisAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
+	return a.client.Search(query)
+}
+
+func (a *CineGratisAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
+	if strings.Contains(animeURL, "/series/") {
+		return a.client.GetEpisodes(animeURL)
+	}
+	// For movies, return the page itself as a single episode
+	return []models.Episode{{Number: "Filme", Num: 1, URL: animeURL}}, nil
+}
+
+func (a *CineGratisAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
+	url, err := a.client.GetStreamURL(episodeURL)
+	metadata := map[string]string{"source": "cinegratis"}
+	return url, metadata, err
+}
+
+func (a *CineGratisAdapter) GetType() ScraperType {
+	return CineGratisType
 }

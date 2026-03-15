@@ -14,31 +14,25 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
-func SearchAnime(name string) *models.Anime {
+func SearchAnime(name string) (*models.Anime, error) {
 	searchStart := time.Now()
-
-	// Use enhanced API with source selection
 	anime, err := api.SearchAnimeEnhanced(name, util.GlobalSource)
 	if err != nil {
-		log.Fatalln("Failed to search for anime:", util.ErrorHandler(err))
+		return nil, err
 	}
-
 	util.Debugf("[PERF] SearchAnime completed in %v", time.Since(searchStart))
-	return anime
+	return anime, nil
 }
 
 // SearchAnimeEnhanced - busca em ambas as fontes (AllAnime e AnimeFire) simultaneamente
-func SearchAnimeEnhanced(name string) *models.Anime {
+func SearchAnimeEnhanced(name string) (*models.Anime, error) {
 	searchStart := time.Now()
-
-	// Buscar em ambas as fontes (source = "" significa buscar em todas)
 	anime, err := api.SearchAnimeEnhanced(name, "")
 	if err != nil {
-		log.Fatalln("Failed to search for anime:", util.ErrorHandler(err))
+		return nil, err
 	}
-
 	util.Debugf("[PERF] SearchAnimeEnhanced completed in %v", time.Since(searchStart))
-	return anime
+	return anime, nil
 }
 
 // SearchAnimeWithRetry - searches for anime with retry logic on failure
@@ -48,7 +42,6 @@ func SearchAnimeWithRetry(name string) (*models.Anime, error) {
 	for {
 		searchStart := time.Now()
 
-		// Attempt to search for anime (empty string means search all sources)
 		util.Debugf("Searching for: %s (searching all sources)", currentName)
 		anime, err := api.SearchAnimeEnhanced(currentName, "")
 
@@ -57,28 +50,20 @@ func SearchAnimeWithRetry(name string) (*models.Anime, error) {
 			return anime, nil
 		}
 
-		// Check if user requested to go back to search
 		if errors.Is(err, api.ErrBackToSearch) {
 			util.Infof("Going back to new search...")
+		} else if err != nil {
+			util.Errorf("Search error: %v", err)
 		} else {
-			// Display error message to user for other errors
 			util.Errorf("No anime found with the name: %s", currentName)
 		}
 
 		util.Infof("Please enter a new search term.")
-
-		// Prompt user for new input
 		var newName string
 		prompt := huh.NewInput().
 			Title("Search Again").
 			Description("Enter a new anime name to search for:").
-			Value(&newName).
-			Validate(func(v string) error {
-				if len(strings.TrimSpace(v)) < 2 {
-					return fmt.Errorf("anime name must be at least 2 characters")
-				}
-				return nil
-			})
+			Value(&newName)
 
 		if promptErr := prompt.Run(); promptErr != nil {
 			return nil, fmt.Errorf("search cancelled by user")
@@ -141,17 +126,17 @@ func FetchAnimeDetails(anime *models.Anime) {
 	util.Debugf("[PERF] FetchAnimeDetails completed in %v", time.Since(detailsStart))
 }
 
-func GetAnimeEpisodes(anime *models.Anime) []models.Episode {
+func GetAnimeEpisodes(anime *models.Anime) ([]models.Episode, error) {
 	episodesStart := time.Now()
-
-	// Use enhanced API for episode fetching
 	episodes, err := api.GetAnimeEpisodesEnhanced(anime)
-	if err != nil || len(episodes) == 0 {
-		log.Fatalln("The selected anime does not have episodes on the server.")
+	if err != nil {
+		return nil, err
 	}
-
+	if len(episodes) == 0 {
+		return nil, fmt.Errorf("no episodes found for source: %s", anime.Source)
+	}
 	util.Debugf("[PERF] GetAnimeEpisodes completed in %v", time.Since(episodesStart))
-	return episodes
+	return episodes, nil
 }
 
 // GetAnimeEpisodesLegacy - compatibility function for old URL-based calls

@@ -1,6 +1,7 @@
 package scraper
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -29,12 +30,14 @@ func NewCinebyClient() *CinebyClient {
 }
 
 func (c *CinebyClient) SearchMovies(query string) ([]*models.Anime, error) {
-	searchURL := fmt.Sprintf("%s/search?q=%s", c.baseURL, url.QueryEscape(query))
+	searchURL := fmt.Sprintf("https://db.videasy.net/3/search/multi?language=en&page=1&query=%s", url.QueryEscape(query))
 	req, err := http.NewRequest("GET", searchURL, nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("User-Agent", CinebyAgent)
+	req.Header.Set("Origin", "https://www.cineby.gd")
+	req.Header.Set("Referer", "https://www.cineby.gd/")
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -46,30 +49,54 @@ func (c *CinebyClient) SearchMovies(query string) ([]*models.Anime, error) {
 		return nil, fmt.Errorf("cineby search failed: %s", resp.Status)
 	}
 
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		return nil, err
+	var apiResponse struct {
+		Results []struct {
+			ID           int    `json:"id"`
+			Name         string `json:"name"`
+			Title        string `json:"title"`
+			MediaType    string `json:"media_type"`
+			PosterPath   string `json:"poster_path"`
+			ReleaseDate  string `json:"release_date"`
+			FirstAirDate string `json:"first_air_date"`
+		} `json:"results"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&apiResponse); err != nil {
+		return nil, fmt.Errorf("failed to decode cineby response: %w", err)
 	}
 
 	var results []*models.Anime
-	doc.Find(".movie-card, .film-item, .poster").Each(func(i int, s *goquery.Selection) {
-		title := strings.TrimSpace(s.Find("h3, .title, .name").Text())
-		href, _ := s.Find("a").First().Attr("href")
-		img, _ := s.Find("img").First().Attr("src")
-
-		if title != "" && href != "" {
-			if !strings.HasPrefix(href, "http") {
-				href = c.baseURL + href
-			}
-			results = append(results, &models.Anime{
-				Name:      title,
-				URL:       href,
-				ImageURL:  img,
-				MediaType: models.MediaTypeMovie,
-				Source:    "Cineby",
-			})
+	for _, res := range apiResponse.Results {
+		name := res.Name
+		if name == "" {
+			name = res.Title
 		}
-	})
+		if name == "" {
+			continue
+		}
+
+		mediaType := models.MediaTypeTV
+		if res.MediaType == "movie" {
+			mediaType = models.MediaTypeMovie
+		}
+
+		year := res.ReleaseDate
+		if year == "" {
+			year = res.FirstAirDate
+		}
+		if len(year) > 4 {
+			year = year[:4]
+		}
+
+		results = append(results, &models.Anime{
+			Name:      name,
+			URL:       fmt.Sprintf("%s/%s/%d", CinebyBase, res.MediaType, res.ID),
+			ImageURL:  fmt.Sprintf("https://image.tmdb.org/t/p/w500%s", res.PosterPath),
+			MediaType: mediaType,
+			Source:    "Cineby",
+			Year:      year,
+		})
+	}
 	return results, nil
 }
 
@@ -104,37 +131,3 @@ func (c *CinebyClient) GetStreamURLs(movieURL string) ([]string, error) {
 	return streams, nil
 }
 
-type CinebyAdapter struct {
-	client *CinebyClient
-}
-
-func NewCinebyAdapter(client *CinebyClient) *CinebyAdapter {
-	return &CinebyAdapter{client: client}
-}
-
-func (a *CinebyAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
-	return a.client.SearchMovies(query)
-}
-
-func (a *CinebyAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
-	return nil, nil
-}
-
-func (a *CinebyAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
-	streams, err := a.client.GetStreamURLs(episodeURL)
-	if err != nil {
-		return "", nil, err
-	}
-	if len(streams) == 0 {
-		return "", nil, fmt.Errorf("no streams found")
-	}
-	metadata := map[string]string{
-		"source":  "cineby",
-		"quality": "default",
-	}
-	return streams[0], metadata, nil
-}
-
-func (a *CinebyAdapter) GetType() ScraperType {
-	return CinebyType
-}

@@ -27,6 +27,8 @@ type Media struct {
 	MediaType MediaType // Type of media (anime, movie, tv)
 	Year      string    // Release year
 	Quality   string    // Video quality (if available)
+	TotalEpisodes int       // Total episodes available from source
+	SeasonCount   int       // Total seasons available from source
 
 	// Anime-specific fields (AniList)
 	AnilistID int

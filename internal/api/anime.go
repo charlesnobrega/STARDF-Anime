@@ -381,7 +381,6 @@ func selectAnimeWithGoFuzzyFinder(animes []models.Anime) (*models.Anime, error) 
 
 	idx, err := fuzzyfinder.Find(animes, func(i int) string {
 		name := animes[i].Name
-		name = strings.ReplaceAll(name, "[AllAnime]", "[English]")
 		name = strings.ReplaceAll(name, "[AnimeFire]", "[Portuguese]")
 		return name
 	})
@@ -545,8 +544,8 @@ func CleanTitle(title string) string {
 	reLangTags := regexp.MustCompile(`^\s*\[(?:English|Portuguese|Português|Japonês|Japanese)\]\s*`)
 	cleaned = strings.TrimSpace(reLangTags.ReplaceAllString(cleaned, ""))
 
-	// Remove source tags like 🔥[AnimeFire], 🌐[AllAnime], or [AnimeDrive]
-	re1 := regexp.MustCompile(`(?i)[🔥🌐]?\[(?:animefire|allanime|animedrive)\]\s*`)
+	// Remove source tags like 🔥[AnimeFire]
+	re1 := regexp.MustCompile(`(?i)[🔥]?\[(?:animefire)\]\s*`)
 	cleaned = strings.TrimSpace(re1.ReplaceAllString(cleaned, ""))
 
 	// Remove everything after em-dash or en-dash (typically subtitles like "– Todos os Episódios")

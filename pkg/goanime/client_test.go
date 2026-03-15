@@ -23,21 +23,14 @@ func TestGetAvailableSources(t *testing.T) {
 	}
 
 	// Check if expected sources are present
-	hasAllAnime := false
 	hasAnimeFire := false
 
 	for _, source := range sources {
-		if source == types.SourceAllAnime {
-			hasAllAnime = true
-		}
 		if source == types.SourceAnimeFire {
 			hasAnimeFire = true
 		}
 	}
 
-	if !hasAllAnime {
-		t.Error("AllAnime source not found")
-	}
 	if !hasAnimeFire {
 		t.Error("AnimeFire source not found")
 	}
@@ -48,7 +41,7 @@ func TestSourceString(t *testing.T) {
 		source   types.Source
 		expected string
 	}{
-		{types.SourceAllAnime, "AllAnime"},
+		{types.SourceCineby, "Cineby"},
 		{types.SourceAnimeFire, "AnimeFire"},
 	}
 
@@ -65,13 +58,13 @@ func TestParseSource(t *testing.T) {
 		expected types.Source
 		hasError bool
 	}{
-		{"AllAnime", types.SourceAllAnime, false},
-		{"allanime", types.SourceAllAnime, false},
-		{"all", types.SourceAllAnime, false},
 		{"AnimeFire", types.SourceAnimeFire, false},
 		{"animefire", types.SourceAnimeFire, false},
 		{"fire", types.SourceAnimeFire, false},
-		{"invalid", types.SourceAllAnime, true},
+		{"Cineby", types.SourceCineby, false},
+		{"cineby", types.SourceCineby, false},
+		{"cine", types.SourceCineby, false},
+		{"invalid", types.SourceSuperAnimes, true},
 	}
 
 	for _, tt := range tests {
@@ -129,7 +122,7 @@ func TestSearchAnimeSpecificSource_Integration(t *testing.T) {
 	}
 
 	client := goanime.NewClient()
-	source := types.SourceAllAnime
+	source := types.SourceAnimeFire
 
 	results, err := client.SearchAnime("One Piece", &source)
 	if err != nil {

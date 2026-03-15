@@ -10,6 +10,9 @@ import (
 
 	"github.com/alvarorichard/Goanime/internal/models"
 	"github.com/alvarorichard/Goanime/internal/util"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 // GetAniSkipData fetches skip times data for a given anime ID and episode
@@ -97,4 +100,42 @@ func GetAndParseAniSkipData(animeMalId int, episodeNum int, episode *models.Epis
 		return err
 	}
 	return ParseAniSkipResponse(responseText, episode, 0)
+}
+
+// WriteAniSkipSidecar writes a JSON file with OP/ED skip times next to the video
+func WriteAniSkipSidecar(videoPath string, ep *models.Episode) error {
+	if ep == nil {
+		return nil
+	}
+	// Only write if we have at least one skip window
+	if ep.SkipTimes.Op.Start == 0 && ep.SkipTimes.Op.End == 0 && ep.SkipTimes.Ed.Start == 0 && ep.SkipTimes.Ed.End == 0 {
+		return nil
+	}
+
+	type skipFile struct {
+		Format  string `json:"format"`
+		OPStart int    `json:"op_start"`
+		OPEnd   int    `json:"op_end"`
+		EDStart int    `json:"ed_start"`
+		EDEnd   int    `json:"ed_end"`
+		Updated string `json:"updated"`
+		Episode string `json:"episode"`
+		Source  string `json:"source"`
+	}
+
+	payload := skipFile{
+		Format:  "aniskip",
+		OPStart: ep.SkipTimes.Op.Start,
+		OPEnd:   ep.SkipTimes.Op.End,
+		EDStart: ep.SkipTimes.Ed.Start,
+		EDEnd:   ep.SkipTimes.Ed.End,
+		Updated: time.Now().Format(time.RFC3339),
+		Episode: ep.Number,
+		Source:  "GoAnime",
+	}
+
+	b, _ := json.MarshalIndent(payload, "", "  ")
+	sidecar := strings.TrimSuffix(videoPath, filepath.Ext(videoPath)) + ".skips.json"
+	// Restrictive permissions: owner read/write only
+	return os.WriteFile(sidecar, b, 0600)
 }
