@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	GoyabuBase      = "https://goyabu.io/inicio-2"
-	GoyabuSearchURL = "https://goyabu.io/inicio-2/?s=%s"
+	GoyabuBase      = "https://goyabu.io"
+	GoyabuSearchURL = "https://goyabu.io/?s=%s"
 )
 
 type GoyabuClient struct {
@@ -86,16 +86,12 @@ func (c *GoyabuClient) SearchAnime(query string) ([]*models.Anime, error) {
 	}
 
 	var results []*models.Anime
-	doc.Find("article, .post, .entry, .post-item, .anime-card, .common-item, .item").Each(func(i int, s *goquery.Selection) {
-		titleLink := s.Find("a").First()
-		title := strings.TrimSpace(titleLink.Text())
-		if title == "" {
-			title = strings.TrimSpace(s.Find("h3, h2, .title").Text())
-		}
-		href, _ := titleLink.Attr("href")
-		img, _ := s.Find("img").First().Attr("src")
+	doc.Find("article.boxAN").Each(func(i int, s *goquery.Selection) {
+		title := strings.TrimSpace(s.Find(".title").Text())
+		href, _ := s.Find("a").First().Attr("href")
+		img, _ := s.Find("img.cover").First().Attr("src")
 		if img == "" {
-			img, _ = s.Find("img").First().Attr("data-src")
+			img, _ = s.Find("img").First().Attr("src")
 		}
 
 		if title == "" || href == "" {

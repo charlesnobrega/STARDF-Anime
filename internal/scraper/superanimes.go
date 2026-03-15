@@ -16,7 +16,7 @@ import (
 
 const (
 	SuperAnimesBase      = "https://superanimes.in"
-	SuperAnimesSearchURL = "https://superanimes.in/?s=%s"
+	SuperAnimesSearchURL = "https://superanimes.in/busca/?search_query=%s"
 )
 
 type SuperAnimesClient struct {
@@ -85,9 +85,10 @@ func (c *SuperAnimesClient) SearchAnime(query string) ([]*models.Anime, error) {
 	}
 
 	var results []*models.Anime
-	doc.Find("article, .post, .entry, .post-item, .anime-card").Each(func(i int, s *goquery.Selection) {
-		title := strings.TrimSpace(s.Find("h2.entry-title, h3.title, .post-title, a").Text())
-		href, _ := s.Find("a").First().Attr("href")
+	doc.Find("div.box-anime").Each(func(i int, s *goquery.Selection) {
+		titleEl := s.Find("a.tt")
+		title := strings.TrimSpace(titleEl.Text())
+		href, _ := titleEl.Attr("href")
 		img, _ := s.Find("img").First().Attr("src")
 
 		if title == "" || href == "" {

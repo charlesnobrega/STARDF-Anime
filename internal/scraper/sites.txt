@@ -1,0 +1,130 @@
+animefire.go:	"net/http"
+animefire.go:	AnimefireBase  = "https://animefire.io"
+animefire.go:	client     *http.Client
+animefire.go:		req, err := http.NewRequest("GET", searchURL, nil)
+animefire.go:		if resp.StatusCode != http.StatusOK {
+animefire.go:func (c *AnimefireClient) decorateRequest(req *http.Request) {
+animefire.go:func (c *AnimefireClient) handleStatusError(resp *http.Response) error {
+animefire.go:	if resp.StatusCode == http.StatusForbidden {
+animefire.go:	if strings.HasPrefix(ref, "http") {
+animefire_test.go:	"net/http"
+animefire_test.go:	"net/http/httptest"
+animefire_test.go:	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+animefire_test.go:			w.WriteHeader(http.StatusBadGateway)
+animefire_test.go:	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+animefire_test.go:		w.WriteHeader(http.StatusOK)
+animefire_test.go:	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+animefire_test.go:		w.WriteHeader(http.StatusOK)
+animesonlinecc.go:	"net/http"
+animesonlinecc.go:	AnimesOnlineCCBase      = "https://animesonlinecc.to"
+animesonlinecc.go:	AnimesOnlineCCSearchURL = "https://animesonlinecc.to/?s=%s"
+animesonlinecc.go:	client  *http.Client
+animesonlinecc.go:	req, _ := http.NewRequest("GET", c.baseURL, nil)
+animesonlinecc.go:	req, err := http.NewRequest("GET", searchURL, nil)
+animesonlinecc.go:	if resp.StatusCode != http.StatusOK {
+animesonlinecc.go:		if !strings.HasPrefix(href, "http") {
+animesonlinecc.go:		if img != "" && !strings.HasPrefix(img, "http") {
+animesonlinecc.go:	req, err := http.NewRequest("GET", animeURL, nil)
+animesonlinecc.go:			if !strings.HasPrefix(href, "http") {
+animesonlinecc.go:	req, err := http.NewRequest("GET", episodeURL, nil)
+animesonlinecc.go:		if src, ok := s.Attr("src"); ok && strings.HasPrefix(src, "http") {
+animesonlinecc.go:		if dataSrc, ok := s.Attr("data-src"); ok && strings.HasPrefix(dataSrc, "http") {
+cineby.go:	"net/http"
+cineby.go:	CinebyBase  = "https://www.cineby.gd"
+cineby.go:	client  *http.Client
+cineby.go:	searchURL := fmt.Sprintf("https://db.videasy.net/3/search/multi?language=en&page=1&query=%s", url.QueryEscape(query))
+cineby.go:	req, err := http.NewRequest("GET", searchURL, nil)
+cineby.go:	req.Header.Set("Origin", "https://www.cineby.gd")
+cineby.go:	req.Header.Set("Referer", "https://www.cineby.gd/")
+cineby.go:	if resp.StatusCode != http.StatusOK {
+cineby.go:			ImageURL:  fmt.Sprintf("https://image.tmdb.org/t/p/w500%s", res.PosterPath),
+cineby.go:	req, err := http.NewRequest("GET", mediaURL, nil)
+cineby.go:		// Example: https://www.cineby.gd/movie/157336
+cineby.go:		streamURL = fmt.Sprintf("https://db.videasy.net/3/movie/%s", id)
+cineby.go:		streamURL = fmt.Sprintf("https://db.videasy.net/3/tv/%s/%s/%s", id, season, episode)
+cineby.go:	req, err := http.NewRequest("GET", movieURL, nil)
+cineby.go:		if src, ok := s.Attr("src"); ok && strings.HasPrefix(src, "http") {
+cineby.go:		if dataSrc, ok := s.Attr("data-src"); ok && strings.HasPrefix(dataSrc, "http") {
+cinegratis.go:	"net/http"
+cinegratis.go:	CineGratisBase = "https://cinegratis.tv"
+cinegratis.go:	client  *http.Client
+cinegratis.go:	req, err := http.NewRequest("POST", c.baseURL, strings.NewReader(data.Encode()))
+cinegratis.go:	if resp.StatusCode != http.StatusOK {
+cinegratis.go:			if !strings.HasPrefix(href, "http") {
+cinegratis.go:	req, err := http.NewRequest("GET", pageURL, nil)
+cinegratis.go:	req, err := http.NewRequest("GET", seriesURL, nil)
+cinegratis.go:		if !strings.HasPrefix(href, "http") {
+flixhq.go:	"net/http"
+flixhq.go:	FlixHQBase      = "https://flixhq.to"
+flixhq.go:	FlixHQAPI       = "https://dec.eatmynerds.live"
+flixhq.go:	client     *http.Client
+flixhq.go:		req, err := http.NewRequest("GET", searchURL, nil)
+flixhq.go:		if resp.StatusCode != http.StatusOK {
+flixhq.go:	req, err := http.NewRequest("GET", pageURL, nil)
+flixhq.go:	req, err := http.NewRequest("GET", pageURL, nil)
+flixhq.go:	req, err := http.NewRequest("GET", seasonsURL, nil)
+flixhq.go:	req, err := http.NewRequest("GET", episodesURL, nil)
+flixhq.go:	req, err := http.NewRequest("GET", serversURL, nil)
+flixhq.go:	req, err := http.NewRequest("GET", movieURL, nil)
+flixhq.go:	req, err := http.NewRequest("GET", sourcesURL, nil)
+flixhq.go:	req, err := http.NewRequest("GET", apiURL, nil)
+flixhq.go:func (c *FlixHQClient) decorateRequest(req *http.Request) {
+flixhq.go:	if strings.HasPrefix(ref, "http") {
+flixhq_test.go:		ImageURL: "https://example.com/image.jpg",
+flixhq_test.go:		URL:      "https://flixhq.to/movie/test-movie-12345",
+flixhq_test.go:		{"https://example.com/test", "https://example.com/test"},
+goyabu.go:	"net/http"
+goyabu.go:	GoyabuBase      = "https://goyabu.io"
+goyabu.go:	GoyabuSearchURL = "https://goyabu.io/?s=%s"
+goyabu.go:	client  *http.Client
+goyabu.go:	req, _ := http.NewRequest("GET", c.baseURL, nil)
+goyabu.go:	req, err := http.NewRequest("GET", searchURL, nil)
+goyabu.go:	if resp.StatusCode != http.StatusOK {
+goyabu.go:		if !strings.HasPrefix(href, "http") {
+goyabu.go:		if img != "" && !strings.HasPrefix(img, "http") {
+goyabu.go:	req, err := http.NewRequest("GET", animeURL, nil)
+goyabu.go:			if !strings.HasPrefix(href, "http") {
+goyabu.go:	req, err := http.NewRequest("GET", episodeURL, nil)
+goyabu.go:		if src, ok := s.Attr("src"); ok && strings.HasPrefix(src, "http") {
+goyabu.go:		if dataSrc, ok := s.Attr("data-src"); ok && strings.HasPrefix(dataSrc, "http") {
+movie\flixhq.go:	"net/http"
+movie\flixhq.go:	FlixHQBase      = "https://flixhq.to"
+movie\flixhq.go:	FlixHQAPI       = "https://dec.eatmynerds.live"
+movie\flixhq.go:	client     *http.Client
+movie\flixhq.go:		client: &http.Client{
+movie\flixhq.go:		req, err := http.NewRequest("GET", searchURL, nil)
+movie\flixhq.go:		if resp.StatusCode != http.StatusOK {
+movie\flixhq.go:	req, err := http.NewRequest("GET", pageURL, nil)
+movie\flixhq.go:	req, err := http.NewRequest("GET", pageURL, nil)
+movie\flixhq.go:	req, err := http.NewRequest("GET", seasonsURL, nil)
+movie\flixhq.go:	req, err := http.NewRequest("GET", episodesURL, nil)
+movie\flixhq.go:	req, err := http.NewRequest("GET", serversURL, nil)
+movie\flixhq.go:	req, err := http.NewRequest("GET", movieURL, nil)
+movie\flixhq.go:	req, err := http.NewRequest("GET", sourcesURL, nil)
+movie\flixhq.go:	req, err := http.NewRequest("GET", apiURL, nil)
+movie\flixhq.go:func (c *FlixHQClient) decorateRequest(req *http.Request) {
+movie\flixhq.go:	if strings.HasPrefix(ref, "http") {
+superanimes.go:	"net/http"
+superanimes.go:	SuperAnimesBase      = "https://superanimes.in"
+superanimes.go:	SuperAnimesSearchURL = "https://superanimes.in/busca/?search_query=%s"
+superanimes.go:	client  *http.Client
+superanimes.go:	req, _ := http.NewRequest("GET", c.baseURL, nil)
+superanimes.go:	req, err := http.NewRequest("GET", searchURL, nil)
+superanimes.go:	if resp.StatusCode != http.StatusOK {
+superanimes.go:		if !strings.HasPrefix(href, "http") {
+superanimes.go:		if img != "" && !strings.HasPrefix(img, "http") {
+superanimes.go:	req, err := http.NewRequest("GET", animeURL, nil)
+superanimes.go:			if !strings.HasPrefix(href, "http") {
+superanimes.go:	req, err := http.NewRequest("GET", episodeURL, nil)
+superanimes.go:		if src, ok := s.Attr("src"); ok && strings.HasPrefix(src, "http") {
+superanimes.go:		if dataSrc, ok := s.Attr("data-src"); ok && strings.HasPrefix(dataSrc, "http") {
+unified_test.go:				{Name: "Naruto", URL: "https://animefire.io/anime/naruto"},
+unified_test.go:				{Name: "Naruto Classico", URL: "https://animefire.io/anime/naruto-classico"},
+unified_test.go:				{Name: "Naruto", URL: "https://animefire.io/anime/naruto"},
+unified_test.go:				{Name: "Anime Brasileiro", URL: "https://animefire.io/anime/brasileiro"},
+unified_test.go:			return []*models.Anime{{Name: "AnimeFire Result", URL: "https://animefire.io/1"}}, nil
+unified_test.go:			return []*models.Anime{{Name: "Fast Result", URL: "https://animefire.io/1"}}, nil
+unified_test.go:			return []*models.Anime{{Name: "AnimeFire Result", URL: "https://animefire.io/1"}}, nil
+unified_test.go:			return []*models.Anime{{Name: "AnimeFire Result", URL: "https://animefire.io/1"}}, nil
+unified_test.go:				{Name: "[Portuguese] Naruto", URL: "https://animefire.io/1"}, // Já tem tag
+unified_test.go:			return []*models.Anime{{Name: "AF Result " + query, URL: "https://animefire.io/" + query}}, nil

@@ -85,13 +85,13 @@ func (c *AnimesOnlineCCClient) SearchAnime(query string) ([]*models.Anime, error
 	}
 
 	var results []*models.Anime
-	doc.Find("article, .post, .entry, .post-item, .common-item, .item").Each(func(i int, s *goquery.Selection) {
-		titleLink := s.Find("a").First()
+	doc.Find("article.item").Each(func(i int, s *goquery.Selection) {
+		titleLink := s.Find("h3 a")
 		title := strings.TrimSpace(titleLink.Text())
-		if title == "" {
-			title = strings.TrimSpace(s.Find("h3, h2, .title").Text())
-		}
 		href, _ := titleLink.Attr("href")
+		if href == "" {
+			href, _ = s.Find("a").First().Attr("href")
+		}
 		img, _ := s.Find("img").First().Attr("src")
 		if img == "" {
 			img, _ = s.Find("img").First().Attr("data-src")
