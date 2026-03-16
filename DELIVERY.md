@@ -44,17 +44,22 @@ Para este projeto (STARDF-Anime), a entrega significa:
 - [x] **Acompanhamento (Watchlist)**: Sistema de "Follow/Acompanhar" integrado à seleção de episódios.
 - [x] **Relatório de Plugin Health**: Dashboard para desenvolvedores monitorarem falhas nos scrapers.
 - [x] **Sincronização de Episódios**: Verificação automática de novos episódios ao iniciar o app.
+- [x] **Auto-sync AniList**: Marcação automática de episódio assistido quando >85% concluído.
+- [x] **Notificações Desktop**: Alertas nativos (Windows/macOS/Linux) ao encontrar novos episódios.
+- [x] **--anilist-login / --anilist-logout**: Flags CLI para conectar/desconectar conta AniList.
+- [x] **Token Store Cross-platform**: Token OAuth2 salvo em AppData/Application Support/~/.config.
 
 ## Próximas Propostas (Aguardando Aprovação)
-- [ ] **Integração AniList API (Real Sync)**: Sincronização bidirecional com contas oficiais via OAuth2.
-- [ ] **Notificações Desktop**: Alertar sobre novos episódios através do sistema operacional.
-- [ ] **Sistema de Temas**: Personalização de cores da interface TUI.
+- [ ] **Integração AniList Real Sync**: Recuperar lista completa do AniList para popular watchlist local.
+- [ ] **Status AniList no Menu**: Exibir nome do usuário logado no menu principal.
+- [ ] **Rating Local**: Avaliar obras (1-10) e salvar no SQLite local.
+- [ ] **Exportar Watchlist**: Exportar lista como JSON/CSV para backup.
 - [ ] **Streaming Progressivo P2P**: Investigar suporte a BitTorrent (WebTorrent) para algumas fontes.
 
 ## Rollback
 Se Release Discovery indica falha crítica:
 1. Reverter para última tag estável (`v1.6.2`)
-2. Comunicar emIssue da release
+2. Comunicar em Issue da release
 
 ## Pós-entrega
 - Monitorar issues novas por 7 dias

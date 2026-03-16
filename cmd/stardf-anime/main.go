@@ -67,6 +67,18 @@ func main() {
 			}
 			return
 		}
+		if errors.Is(err, util.ErrAniListLoginRequested) {
+			if loginErr := handlers.HandleAniListLogin(); loginErr != nil {
+				log.Fatalln(util.ErrorHandler(loginErr))
+			}
+			return
+		}
+		if errors.Is(err, util.ErrAniListLogoutRequested) {
+			if logoutErr := handlers.HandleAniListLogout(); logoutErr != nil {
+				log.Fatalln(util.ErrorHandler(logoutErr))
+			}
+			return
+		}
 		if errors.Is(err, util.ErrHelpRequested) {
 			return
 		}

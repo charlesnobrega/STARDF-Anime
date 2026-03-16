@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/charlesnobrega/STARDF-Anime/internal/api"
+	anilistModule "github.com/charlesnobrega/STARDF-Anime/internal/anilist"
 	"github.com/charlesnobrega/STARDF-Anime/internal/discord"
 	"github.com/charlesnobrega/STARDF-Anime/internal/models"
 	"github.com/charlesnobrega/STARDF-Anime/internal/tracking"
@@ -822,7 +823,29 @@ func updateTracking(tracker *tracking.LocalTracker, socketPath string, anilistID
 
 	if err := tracker.UpdateProgress(anime); err != nil {
 		util.Errorf("Error updating tracking: %v", err)
+		return
 	}
+
+	// Auto-sync to AniList if user is authenticated and episode is >85% watched
+	if anilistID > 0 && duration > 0 {
+		watchedPct := (position / float64(duration)) * 100
+		if watchedPct >= 85 {
+			syncAniListProgress(anilistID, episodeNum)
+		}
+	}
+}
+
+// syncAniListProgress sends the current episode progress to AniList.
+// Runs in a short-lived goroutine to avoid blocking playback.
+func syncAniListProgress(anilistID, episodeNum int) {
+	go func() {
+		if err := anilistModule.GlobalSession.SyncProgress(anilistID, episodeNum); err != nil {
+			// Only log at debug because ErrNotAuthenticated is expected when not logged in
+			util.Debugf("AniList sync skipped: %v", err)
+		} else {
+			util.Debugf("AniList sync: ep %d marked as watched for mediaID=%d", episodeNum, anilistID)
+		}
+	}()
 }
 
 // showPlayerMenu displays an interactive menu using huh.Select

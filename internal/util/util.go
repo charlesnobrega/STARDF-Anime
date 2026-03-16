@@ -65,6 +65,8 @@ var (
 	ErrDownloadRequested = errors.New("download requested")
 	ErrBackToMainMenu    = errors.New("back to main menu")
 	ErrExitRequested     = errors.New("exit requested")
+	ErrAniListLoginRequested  = errors.New("anilist login requested")
+	ErrAniListLogoutRequested = errors.New("anilist logout requested")
 )
 
 // MenuAction defines possible actions from the main menu
@@ -122,6 +124,9 @@ func ParseFlags() (string, error) {
 		subsLanguageFlag := flag.String("subs", "english", "specify subtitle language for movies/TV (FlixHQ only)")
 		audioLanguageFlag := flag.String("audio", "pt-BR,pt,english", "specify preferred audio language for movies/TV (FlixHQ only)")
 
+		anilistLoginFlag  := flag.Bool("anilist-login",  false, "connect your AniList account for automatic progress sync")
+		anilistLogoutFlag := flag.Bool("anilist-logout", false, "disconnect AniList account and remove saved token")
+
 		// Parse the flags early
 		flag.Parse()
 
@@ -156,6 +161,16 @@ func ParseFlags() (string, error) {
 
 		if *updateFlag {
 			err = ErrUpdateRequested
+			return
+		}
+
+		if *anilistLoginFlag {
+			err = ErrAniListLoginRequested
+			return
+		}
+
+		if *anilistLogoutFlag {
+			err = ErrAniListLogoutRequested
 			return
 		}
 

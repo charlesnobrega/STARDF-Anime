@@ -1,10 +1,12 @@
 package watchlist
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/charlesnobrega/STARDF-Anime/internal/api"
 	"github.com/charlesnobrega/STARDF-Anime/internal/models"
+	"github.com/charlesnobrega/STARDF-Anime/internal/notify"
 	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 )
 
@@ -46,7 +48,13 @@ func (wm *WatchlistManager) SyncWatchlist() error {
 		if len(episodes) > item.LastEpisode {
 			diff := len(episodes) - item.LastEpisode
 			util.Infof("✨ NOVO: %d novos episódios encontrados para %s!", diff, item.Title)
-			
+
+			// Fire a desktop notification
+			notify.Send(
+				"StarDF-Anime — Novos Episódios! 🎉",
+				fmt.Sprintf("%d novo(s) ep(s) disponível(is) de %s!", diff, item.Title),
+			)
+
 			// Update the record
 			item.TotalEpisodes = len(episodes)
 			item.LastEpisode = len(episodes)
