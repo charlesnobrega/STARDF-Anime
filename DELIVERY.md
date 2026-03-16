@@ -26,13 +26,14 @@ Para este projeto (STARDF-Anime), a entrega significa:
 - [ ] Teste manual: `./stardf-anime --source animefire "naruto"` retorna resultados
 - [ ] Correção das Issues #1 e #2 (Scrapers WordPress)
 - [ ] Atualização do README.md com a nova identidade
-- [ ] CHANGELOG.md atualizado com a desvinculação do fork
-- [ ] Versão Mobile para Android
-- [ ] Instalador Windows (.exe)
-- [ ] Binários para Linux e macOS
-- [ ] Suporte a NixOS Flakes
-- [ ] Tag `v1.6.3` criada e pushada para o novo repositório
-- [ ] GitHub Release draft criado com os novos assets
+- [ ] Versão Mobile para Android <!-- id: 6 -->
+- [ ] Instalador Windows (.exe) <!-- id: 7 -->
+- [ ] Binários para Linux e macOS <!-- id: 8 -->
+- [ ] Suporte a NixOS Flakes <!-- id: 9 -->
+- [ ] Criação de Comunidade Oficial (Discord) <!-- id: 10 -->
+- [ ] Reavaliação de Scrapers Instáveis (Goyabu/SuperAnimes - Atualmente OFFLINE) <!-- id: 11 -->
+- [ ] Tag `v1.6.3` criada e pushada para o novo repositório <!-- id: 12 -->
+- [ ] GitHub Release draft criado com os novos assets <!-- id: 13 -->
 
 ## Rollback
 Se Release Discovery indica falha crítica:

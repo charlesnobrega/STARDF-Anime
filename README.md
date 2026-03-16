@@ -24,10 +24,9 @@ StarDF-Anime is a powerful text-based user interface (TUI) built in Go, evolving
 
 A mobile version of StarDF-Anime is planned for Android devices.
 
-### Community
+### Community (Coming soon)
 
-
-Join our Discord for support, feedback, and updates: [Discord Server](https://discord.gg/6nZ2SYv3)
+An official Discord server is planned for support and updates.
 
 ## Features
 

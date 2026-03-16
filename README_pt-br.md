@@ -24,10 +24,9 @@ StarDF-Anime é uma interface de usuário baseada em texto (TUI) poderosa, desen
 
 Uma versão mobile do StarDF-Anime está planejada para dispositivos Android.
 
-### Comunidade
+### Comunidade (Em breve)
 
-
-Entre no nosso Discord para suporte, feedback e novidades: [Servidor Discord](https://discord.gg/6nZ2SYv3)
+Um servidor oficial no Discord está nos planos para suporte e novidades.
 
 ## Recursos
 
