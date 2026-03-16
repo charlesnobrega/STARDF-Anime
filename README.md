@@ -1,29 +1,24 @@
 <h4 align="center">
     <p>
         <b>English</b> |
-        <a href="https://github.com/alvarorichard/GoAnime/blob/main/README_pt-br.md">Рortuguês</a>
+        <a href="https://github.com/charlesnobrega/STARDF-Anime/blob/main/README_pt-br.md">Рortuguês</a>
     </p>
 </h4>
 
 <p align="center">
-  <img src="https://github.com/alvarorichard/GoAnime/assets/102667323/49600255-d5a2-4405-81d1-a08cebae569a" alt="Imagem logo" />
+  <img src="https://raw.githubusercontent.com/charlesnobrega/STARDF-Anime/main/docs/logo_stardf.webp" alt="StarDF-Anime Logo" />
 </p>
 
-[![GitHub license](https://img.shields.io/github/license/alvarorichard/GoAnime)
-](alvarorichard/GoAnime/blob/master/LICENSE)
-![GitHub stars](https://img.shields.io/github/stars/alvarorichard/GoAnime)
-![GitHub stars](https://img.shields.io/github/last-commit/alvarorichard/GoAnime)
-![GitHub stars](https://img.shields.io/github/forks/alvarorichard/GoAnime?style=social)
-[![Build Status](https://github.com/alvarorichard/GoAnime/actions/workflows/ci.yml/badge.svg)](https://github.com/alvarorichard/GoAnime/actions)
-![GitHub contributors](https://img.shields.io/github/contributors/alvarorichard/GoAnime)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/9923765cb2854ae39af6b567996aad43)](https://app.codacy.com/gh/alvarorichard/GoAnime/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-[![Build Status](https://app.travis-ci.com/alvarorichard/GoAnime.svg?branch=main)](https://app.travis-ci.com/alvarorichard/GoAnime)
-[![Discord](https://img.shields.io/badge/Discord-Community-7289DA?logo=discord&logoColor=white)](https://discord.gg/FbQuf78D9G)
+[![GitHub license](https://img.shields.io/github/license/charlesnobrega/STARDF-Anime)](https://github.com/charlesnobrega/STARDF-Anime/blob/main/LICENSE)
+![GitHub stars](https://img.shields.io/github/stars/charlesnobrega/STARDF-Anime)
+![GitHub last commit](https://img.shields.io/github/last-commit/charlesnobrega/STARDF-Anime)
+![GitHub forks](https://img.shields.io/github/forks/charlesnobrega/STARDF-Anime?style=social)
+[![Build Status](https://github.com/charlesnobrega/STARDF-Anime/actions/workflows/ci.yml/badge.svg)](https://github.com/charlesnobrega/STARDF-Anime/actions)
+![GitHub contributors](https://img.shields.io/github/contributors/charlesnobrega/STARDF-Anime)
 
-# GoAnime
+# StarDF-Anime
 
-
-GoAnime is a simple text-based user interface (TUI) built in Go, allowing users to search for anime and either play or download episodes directly in mpv. It scrapes data from websites to provide a selection of anime and episodes, with support for both subbed and dubbed content in English and Portuguese.
+StarDF-Anime is a powerful text-based user interface (TUI) built in Go, evolving from the original GoAnime. It allows users to search for anime, movies, and TV shows, and play or download content directly in mpv. It is specifically optimized for high-performance scraping and metadata enrichment for both Portuguese and English content.
 
 ### Mobile Version
 
@@ -82,11 +77,11 @@ go install github.com/alvarorichard/Goanime/cmd/goanime@latest
 ### Manual install methods
 
 ```shell
-git clone https://github.com/alvarorichard/GoAnime.git
+git clone https://github.com/charlesnobrega/STARDF-Anime.git
 ```
 
 ```shell
-cd GoAnime
+cd STARDF-Anime
 ```
 
 ```shell
@@ -95,20 +90,20 @@ go run cmd/goanime/main.go
 
 ## Movies and TV Shows
 
-GoAnime supports movies and TV shows through the FlixHQ source. Use the `--source flixhq` flag to search for movies and TV shows. You can also restrict results by type using the `--type` parameter (for example `--type movie` to search only movies).
+StarDF-Anime supports movies and TV shows through the FlixHQ source. Use the `--source flixhq` flag to search for movies and TV shows. You can also restrict results by type using the `--type` parameter (for example `--type movie` to search only movies).
 
 ```bash
 # Search for movies/TV shows
-goanime --source flixhq "The Matrix"
+stardf-anime --source flixhq "The Matrix"
 
 # Search specifically for movies
-goanime --source flixhq --type movie "Inception"
+stardf-anime --source flixhq --type movie "Inception"
 
 # Search specifically for TV shows
-goanime --source flixhq --type tv "Breaking Bad"
+stardf-anime --source flixhq --type tv "Breaking Bad"
 
 # Enable subtitles (English by default)
-goanime --source flixhq --subs "Avatar"
+stardf-anime --source flixhq --subs "Avatar"
 ```
 
 
