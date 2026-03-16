@@ -5,7 +5,7 @@ This package provides a simple and clean API for searching and scraping anime co
 ## Installation
 
 ```bash
-go get github.com/alvarorichard/Goanime
+go get github.com/charlesnobrega/STARDF-Anime
 ```
 
 ## Quick Start
@@ -17,8 +17,8 @@ import (
     "fmt"
     "log"
 
-    "github.com/alvarorichard/Goanime/pkg/goanime"
-    "github.com/alvarorichard/Goanime/pkg/goanime/types"
+    "github.com/charlesnobrega/STARDF-Anime/pkg/goanime"
+    "github.com/charlesnobrega/STARDF-Anime/pkg/goanime/types"
 )
 
 func main() {
@@ -49,8 +49,8 @@ import (
     "fmt"
     "log"
 
-    "github.com/alvarorichard/Goanime/pkg/goanime"
-    "github.com/alvarorichard/Goanime/pkg/goanime/types"
+    "github.com/charlesnobrega/STARDF-Anime/pkg/goanime"
+    "github.com/charlesnobrega/STARDF-Anime/pkg/goanime/types"
 )
 
 func main() {
@@ -81,8 +81,8 @@ import (
     "fmt"
     "log"
 
-    "github.com/alvarorichard/Goanime/pkg/goanime"
-    "github.com/alvarorichard/Goanime/pkg/goanime/types"
+    "github.com/charlesnobrega/STARDF-Anime/pkg/goanime"
+    "github.com/charlesnobrega/STARDF-Anime/pkg/goanime/types"
 )
 
 func main() {
@@ -131,8 +131,8 @@ import (
     "fmt"
     "log"
 
-    "github.com/alvarorichard/Goanime/pkg/goanime"
-    "github.com/alvarorichard/Goanime/pkg/goanime/types"
+    "github.com/charlesnobrega/STARDF-Anime/pkg/goanime"
+    "github.com/charlesnobrega/STARDF-Anime/pkg/goanime/types"
 )
 
 func main() {
@@ -190,7 +190,7 @@ package main
 import (
     "fmt"
 
-    "github.com/alvarorichard/Goanime/pkg/goanime"
+    "github.com/charlesnobrega/STARDF-Anime/pkg/goanime"
 )
 
 func main() {
@@ -213,8 +213,8 @@ import (
     "fmt"
     "log"
 
-    "github.com/alvarorichard/Goanime/pkg/goanime"
-    "github.com/alvarorichard/Goanime/pkg/goanime/types"
+    "github.com/charlesnobrega/STARDF-Anime/pkg/goanime"
+    "github.com/charlesnobrega/STARDF-Anime/pkg/goanime/types"
 )
 
 func main() {

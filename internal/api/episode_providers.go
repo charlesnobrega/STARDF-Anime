@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alvarorichard/Goanime/internal/models"
-	"github.com/alvarorichard/Goanime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/models"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 )
 
 // EpisodeDataProvider defines an interface for fetching episode data from various sources

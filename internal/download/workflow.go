@@ -4,10 +4,10 @@ package download
 import (
 	"log"
 
-	"github.com/alvarorichard/Goanime/internal/api"
-	"github.com/alvarorichard/Goanime/internal/appflow"
-	"github.com/alvarorichard/Goanime/internal/downloader"
-	"github.com/alvarorichard/Goanime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/api"
+	"github.com/charlesnobrega/STARDF-Anime/internal/appflow"
+	"github.com/charlesnobrega/STARDF-Anime/internal/downloader"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 )
 
 // HandleDownloadRequest processes a download request from command line

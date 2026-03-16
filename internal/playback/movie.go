@@ -10,11 +10,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alvarorichard/Goanime/internal/api"
-	"github.com/alvarorichard/Goanime/internal/discord"
-	"github.com/alvarorichard/Goanime/internal/models"
-	"github.com/alvarorichard/Goanime/internal/player"
-	"github.com/alvarorichard/Goanime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/api"
+	"github.com/charlesnobrega/STARDF-Anime/internal/discord"
+	"github.com/charlesnobrega/STARDF-Anime/internal/models"
+	"github.com/charlesnobrega/STARDF-Anime/internal/player"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 )
 
 // HandleMovie gerencia a reprodução de filmes/OVAs

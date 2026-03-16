@@ -6,9 +6,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/alvarorichard/Goanime/internal/handlers"
-	"github.com/alvarorichard/Goanime/internal/player"
-	"github.com/alvarorichard/Goanime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/handlers"
+	"github.com/charlesnobrega/STARDF-Anime/internal/player"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 )
 
 func main() {

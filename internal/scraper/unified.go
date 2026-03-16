@@ -9,8 +9,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/alvarorichard/Goanime/internal/models"
-	"github.com/alvarorichard/Goanime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/models"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 )
 
 // ScraperType represents different scraper types
@@ -67,11 +67,12 @@ func NewScraperManager() *ScraperManager {
 	manager.scrapers[BetterAnimeType] = &BetterAnimeAdapter{client: NewBetterAnimeClient()}
 	manager.scrapers[TopAnimesType] = &TopAnimesAdapter{client: NewTopAnimesClient()}
 	manager.scrapers[AnimesDigitalType] = &AnimesDigitalAdapter{client: NewAnimesDigitalClient()}
-	manager.scrapers[CinebyType] = &CinebyAdapter{client: NewCinebyClient()}
-	manager.scrapers[CineGratisType] = &CineGratisAdapter{client: NewCineGratisClient()}
+	// manager.scrapers[CinebyType] = &CinebyAdapter{client: NewCinebyClient()}
+	// manager.scrapers[CineGratisType] = &CineGratisAdapter{client: NewCineGratisClient()}
 	manager.scrapers[FlixHQType] = &FlixHQAdapter{client: NewFlixHQClient()}
 	
 	// Deprecated unstable sources - commenting out from active map
+	// manager.scrapers[CinebyType] = &CinebyAdapter{client: NewCinebyClient()}
 	// manager.scrapers[GoyabuType] = &GoyabuAdapter{client: NewGoyabuClient()}
 	// manager.scrapers[SuperAnimesType] = &SuperAnimesAdapter{client: NewSuperAnimesClient()}
 	// manager.scrapers[AnimesOnlineCCTYPE] = &AnimesOnlineCCAdapter{client: NewAnimesOnlineCCClient()}
@@ -380,8 +381,8 @@ func (sm *ScraperManager) getScraperDisplayName(scraperType ScraperType) string 
 		return "Goyabu"
 	case SuperAnimesType:
 		return "SuperAnimes"
-	case CinebyType:
-		return "Cineby"
+	// case CinebyType:
+	// 	return "Cineby"
 	case CineGratisType:
 		return "CineGratis"
 	case FlixHQType:

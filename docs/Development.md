@@ -41,7 +41,7 @@ project.
 
 ```bash
 # Clone the repository
-git clone https://github.com/alvarorichard/GoAnime.git
+git clone https://github.com/charlesnobrega/STARDF-Anime.git
 cd GoAnime
 
 # Switch to dev branch

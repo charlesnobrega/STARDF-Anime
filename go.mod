@@ -1,4 +1,4 @@
-module github.com/alvarorichard/Goanime
+module github.com/charlesnobrega/STARDF-Anime
 
 go 1.25
 

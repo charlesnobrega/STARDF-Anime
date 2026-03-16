@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/alvarorichard/Goanime/internal/api"
-	"github.com/alvarorichard/Goanime/internal/models"
+	"github.com/charlesnobrega/STARDF-Anime/internal/api"
+	"github.com/charlesnobrega/STARDF-Anime/internal/models"
 	"github.com/stretchr/testify/assert"
 )
 

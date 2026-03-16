@@ -2,7 +2,7 @@
 package types
 
 import (
-	"github.com/alvarorichard/Goanime/internal/models"
+	"github.com/charlesnobrega/STARDF-Anime/internal/models"
 )
 
 // Anime represents an anime series with its metadata

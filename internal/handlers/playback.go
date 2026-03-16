@@ -3,13 +3,13 @@ package handlers
 import (
 	"errors"
 
-	"github.com/alvarorichard/Goanime/internal/appflow"
-	"github.com/alvarorichard/Goanime/internal/discord"
-	"github.com/alvarorichard/Goanime/internal/playback"
-	"github.com/alvarorichard/Goanime/internal/player"
-	"github.com/alvarorichard/Goanime/internal/tracking"
-	"github.com/alvarorichard/Goanime/internal/util"
-	"github.com/alvarorichard/Goanime/internal/version"
+	"github.com/charlesnobrega/STARDF-Anime/internal/appflow"
+	"github.com/charlesnobrega/STARDF-Anime/internal/discord"
+	"github.com/charlesnobrega/STARDF-Anime/internal/playback"
+	"github.com/charlesnobrega/STARDF-Anime/internal/player"
+	"github.com/charlesnobrega/STARDF-Anime/internal/tracking"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/version"
 )
 
 // HandlePlaybackMode processes normal anime playback

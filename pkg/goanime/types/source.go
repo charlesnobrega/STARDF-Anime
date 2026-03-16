@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/alvarorichard/Goanime/internal/scraper"
+	"github.com/charlesnobrega/STARDF-Anime/internal/scraper"
 )
 
 // Source represents an anime scraper source

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/alvarorichard/Goanime/internal/version"
+	"github.com/charlesnobrega/STARDF-Anime/internal/version"
 	"github.com/charmbracelet/huh"
 )
 

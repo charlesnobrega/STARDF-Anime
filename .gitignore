@@ -2,18 +2,18 @@ main.exe
 main
 .main
 .idea
-
-# Compiled Object files
-
 *.slo
 *.lo
-
-# Compiled Dynamic libraries
-
 *.so
 *.dylib
 *.dll
 result
-
-#Ignore vscode AI rules
 .github/copilot-instructions.md
+git.github_token
+*.exe
+*.html
+*.txt
+goanime
+zip_contents/
+stardf-anime.exe
+all_files.txt

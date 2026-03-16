@@ -3,7 +3,7 @@ package test_util_test
 import (
 	"testing"
 
-	"github.com/alvarorichard/Goanime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 )
 
 func TestTreatingAnimeName(t *testing.T) {

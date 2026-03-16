@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/alvarorichard/Goanime/internal/models"
-	"github.com/alvarorichard/Goanime/internal/scraper"
-	"github.com/alvarorichard/Goanime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/models"
+	"github.com/charlesnobrega/STARDF-Anime/internal/scraper"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 	"github.com/manifoldco/promptui"
 )
 

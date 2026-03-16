@@ -30,7 +30,7 @@ pkg/
 ### 1. Instalação
 
 ```bash
-go get github.com/alvarorichard/Goanime
+go get github.com/charlesnobrega/STARDF-Anime
 ```
 
 ### 2. Uso Básico
@@ -41,7 +41,7 @@ package main
 import (
     "fmt"
     "log"
-    "github.com/alvarorichard/Goanime/pkg/goanime"
+    "github.com/charlesnobrega/STARDF-Anime/pkg/goanime"
 )
 
 func main() {
@@ -64,7 +64,7 @@ func main() {
 ### 3. Busca em Fonte Específica
 
 ```go
-import "github.com/alvarorichard/Goanime/pkg/goanime/types"
+import "github.com/charlesnobrega/STARDF-Anime/pkg/goanime/types"
 
 client := goanime.NewClient()
 
@@ -252,10 +252,10 @@ MIT License - veja [LICENSE](../LICENSE)
 
 ## 🔗 Links Úteis
 
-- Repositório principal: https://github.com/alvarorichard/GoAnime
+- Repositório principal: https://github.com/charlesnobrega/STARDF-Anime
 - Documentação completa: [pkg/goanime/README.md](pkg/goanime/README.md)
 - Exemplos: [pkg/goanime/examples/](pkg/goanime/examples/)
-- Issues: https://github.com/alvarorichard/GoAnime/issues
+- Issues: https://github.com/charlesnobrega/STARDF-Anime/issues
 
 ---
 

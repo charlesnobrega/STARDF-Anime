@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/alvarorichard/Goanime/internal/models"
-	"github.com/alvarorichard/Goanime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/models"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 )
 
 const (
@@ -59,22 +59,22 @@ func (c *AnimesDigitalClient) SearchAnime(query string) ([]*models.Anime, error)
 
 	var results []*models.Anime
 
-	doc.Find(".result-item, article, .item").Each(func(i int, s *goquery.Selection) {
+	doc.Find(".itemA").Each(func(i int, s *goquery.Selection) {
 		link := s.Find("a").First()
 		href, exists := link.Attr("href")
-		if !exists || href == "" || strings.Contains(href, "/genre/") {
+		if !exists || href == "" {
 			return
 		}
 
 		title := strings.TrimSpace(link.AttrOr("title", ""))
 		if title == "" {
-			title = strings.TrimSpace(s.Find(".title, h3, h2").Text())
+			title = strings.TrimSpace(s.Find(".tt").Text())
 		}
 		if title == "" {
 			title = strings.TrimSpace(link.Text())
 		}
 
-		img := s.Find("img").AttrOr("src", "")
+		img := s.Find(".thumb img").AttrOr("src", "")
 		if img == "" {
 			img = s.Find("img").AttrOr("data-src", "")
 		}
@@ -122,13 +122,18 @@ func (c *AnimesDigitalClient) GetEpisodes(animeURL string) ([]models.Episode, er
 	}
 
 	var episodes []models.Episode
-	doc.Find(".episodios li a, .episodes a, ul.episodes li a").Each(func(i int, s *goquery.Selection) {
-		href, exists := s.Attr("href")
+	doc.Find(".item_ep, .episodios li, .episodes .item").Each(func(i int, s *goquery.Selection) {
+		link := s.Find("a.b_flex, a").First()
+		href, exists := link.Attr("href")
 		if !exists {
 			return
 		}
 
-		title := strings.TrimSpace(s.Text())
+		title := strings.TrimSpace(link.Text())
+		if title == "" {
+			title = strings.TrimSpace(link.AttrOr("title", ""))
+		}
+		
 		num := i + 1
 
 		re := regexp.MustCompile(`(?i)(?:epis[oó]dio|ep)\s*(\d+)`)

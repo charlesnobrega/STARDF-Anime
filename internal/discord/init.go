@@ -3,7 +3,7 @@ package discord
 import (
 	"time"
 
-	"github.com/alvarorichard/Goanime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 )
 
 // Manager manages the global Discord Rich Presence state

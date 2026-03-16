@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alvarorichard/Goanime/internal/api"
-	"github.com/alvarorichard/Goanime/internal/discord"
-	"github.com/alvarorichard/Goanime/internal/models"
-	"github.com/alvarorichard/Goanime/internal/tracking"
-	"github.com/alvarorichard/Goanime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/api"
+	"github.com/charlesnobrega/STARDF-Anime/internal/discord"
+	"github.com/charlesnobrega/STARDF-Anime/internal/models"
+	"github.com/charlesnobrega/STARDF-Anime/internal/tracking"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 	"github.com/charmbracelet/huh"
 )
 

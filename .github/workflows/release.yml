@@ -159,9 +159,9 @@ jobs:
           COMMIT=$(git rev-parse --short HEAD)
           
           LDFLAGS="-s -w"
-          LDFLAGS="${LDFLAGS} -X github.com/alvarorichard/Goanime/internal/version.Version=${VERSION}"
-          LDFLAGS="${LDFLAGS} -X github.com/alvarorichard/Goanime/internal/version.BuildTime=${BUILD_TIME}"
-          LDFLAGS="${LDFLAGS} -X github.com/alvarorichard/Goanime/internal/version.Commit=${COMMIT}"
+          LDFLAGS="${LDFLAGS} -X github.com/charlesnobrega/STARDF-Anime/internal/version.Version=${VERSION}"
+          LDFLAGS="${LDFLAGS} -X github.com/charlesnobrega/STARDF-Anime/internal/version.BuildTime=${BUILD_TIME}"
+          LDFLAGS="${LDFLAGS} -X github.com/charlesnobrega/STARDF-Anime/internal/version.Commit=${COMMIT}"
           
           OUTPUT_NAME="${{ env.BINARY_NAME }}-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }}"
           
@@ -181,9 +181,9 @@ jobs:
           $COMMIT = git rev-parse --short HEAD
           
           $LDFLAGS = "-s -w"
-          $LDFLAGS = "$LDFLAGS -X github.com/alvarorichard/Goanime/internal/version.Version=$VERSION"
-          $LDFLAGS = "$LDFLAGS -X github.com/alvarorichard/Goanime/internal/version.BuildTime=$BUILD_TIME"
-          $LDFLAGS = "$LDFLAGS -X github.com/alvarorichard/Goanime/internal/version.Commit=$COMMIT"
+          $LDFLAGS = "$LDFLAGS -X github.com/charlesnobrega/STARDF-Anime/internal/version.Version=$VERSION"
+          $LDFLAGS = "$LDFLAGS -X github.com/charlesnobrega/STARDF-Anime/internal/version.BuildTime=$BUILD_TIME"
+          $LDFLAGS = "$LDFLAGS -X github.com/charlesnobrega/STARDF-Anime/internal/version.Commit=$COMMIT"
           
           $OUTPUT_NAME = "${{ env.BINARY_NAME }}-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }}"
           
@@ -473,7 +473,7 @@ jobs:
           echo "#### Linux / macOS" >> RELEASE_NOTES.md
           echo '```bash' >> RELEASE_NOTES.md
           echo "# Download the binary for your platform" >> RELEASE_NOTES.md
-          echo "curl -LO https://github.com/alvarorichard/Goanime/releases/download/${VERSION}/goanime-linux-amd64.tar.gz" >> RELEASE_NOTES.md
+          echo "curl -LO https://github.com/charlesnobrega/STARDF-Anime/releases/download/${VERSION}/goanime-linux-amd64.tar.gz" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "# Extract and install" >> RELEASE_NOTES.md
           echo "tar -xzf goanime-linux-amd64.tar.gz" >> RELEASE_NOTES.md

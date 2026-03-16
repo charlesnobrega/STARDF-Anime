@@ -1,7 +1,7 @@
 package playback
 
 import (
-	"github.com/alvarorichard/Goanime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 	"github.com/charmbracelet/huh"
 )
 

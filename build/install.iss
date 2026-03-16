@@ -4,7 +4,7 @@
 #define MyAppName "GoAnime"
 #define MyAppVersion "1.6"
 #define MyAppPublisher "GoAnime Team"
-#define MyAppURL "https://github.com/alvarorichard/GoAnime"
+#define MyAppURL "https://github.com/charlesnobrega/STARDF-Anime"
 #define MyAppExeName "goanime.exe"
 
 [Setup]

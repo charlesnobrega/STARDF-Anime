@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alvarorichard/Goanime/internal/models"
-	"github.com/alvarorichard/Goanime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/models"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 	"github.com/tr1xem/go-discordrpc/client"
 )
 
@@ -272,7 +272,7 @@ func (rpu *RichPresenceUpdater) updateDiscordPresence(forceUpdate bool) {
 	// Get image URL
 	imageURL := rpu.anime.ImageURL
 	if imageURL == "" {
-		imageURL = "https://raw.githubusercontent.com/alvarorichard/Goanime/main/docs/assets/goanime-logo.png"
+		imageURL = "https://raw.githubusercontent.com/charlesnobrega/STARDF-Anime/main/docs/assets/goanime-logo.png"
 	}
 
 	// Build precise timestamps based on actual playback position

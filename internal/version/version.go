@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/alvarorichard/Goanime/internal/tracking"
+	"github.com/charlesnobrega/STARDF-Anime/internal/tracking"
 )
 
 const (

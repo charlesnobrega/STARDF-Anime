@@ -12,10 +12,10 @@ import (
 
 	//"github.com/Microsoft/go-winio"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/alvarorichard/Goanime/internal/api"
-	"github.com/alvarorichard/Goanime/internal/models"
-	"github.com/alvarorichard/Goanime/internal/scraper"
-	"github.com/alvarorichard/Goanime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/api"
+	"github.com/charlesnobrega/STARDF-Anime/internal/models"
+	"github.com/charlesnobrega/STARDF-Anime/internal/scraper"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 	"github.com/charmbracelet/huh"
 	"github.com/ktr0731/go-fuzzyfinder"
 )

@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/alvarorichard/Goanime/internal/api/movie"
-	"github.com/alvarorichard/Goanime/internal/models"
-	"github.com/alvarorichard/Goanime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/api/movie"
+	"github.com/charlesnobrega/STARDF-Anime/internal/models"
+	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 	"github.com/ktr0731/go-fuzzyfinder"
 	"github.com/pkg/errors"
 )
@@ -544,8 +544,8 @@ func CleanTitle(title string) string {
 	reLangTags := regexp.MustCompile(`^\s*\[(?:English|Portuguese|Português|Japonês|Japanese)\]\s*`)
 	cleaned = strings.TrimSpace(reLangTags.ReplaceAllString(cleaned, ""))
 
-	// Remove source tags like 🔥[AnimeFire]
-	re1 := regexp.MustCompile(`(?i)[🔥]?\[(?:animefire)\]\s*`)
+	// Remove source tags like 🔥[AnimeFire] or 🌐[AllAnime]
+	re1 := regexp.MustCompile(`(?i)[^\w\s]*\s*\[(?:animefire|allanime|animesonlinecc|goyabu|superanimes)\]\s*`)
 	cleaned = strings.TrimSpace(re1.ReplaceAllString(cleaned, ""))
 
 	// Remove everything after em-dash or en-dash (typically subtitles like "– Todos os Episódios")

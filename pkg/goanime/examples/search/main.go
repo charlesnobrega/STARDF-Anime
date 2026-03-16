@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/alvarorichard/Goanime/pkg/goanime"
+	"github.com/charlesnobrega/STARDF-Anime/pkg/goanime"
 )
 
 func main() {

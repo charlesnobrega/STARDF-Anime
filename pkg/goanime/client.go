@@ -3,8 +3,8 @@
 package goanime
 
 import (
-	"github.com/alvarorichard/Goanime/internal/scraper"
-	"github.com/alvarorichard/Goanime/pkg/goanime/types"
+	"github.com/charlesnobrega/STARDF-Anime/internal/scraper"
+	"github.com/charlesnobrega/STARDF-Anime/pkg/goanime/types"
 )
 
 // Client is the main client for interacting with anime sources

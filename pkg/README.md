@@ -18,7 +18,7 @@ A clean and simple Go library for searching and scraping anime content from mult
 ## Installation
 
 ```bash
-go get github.com/alvarorichard/Goanime
+go get github.com/charlesnobrega/STARDF-Anime
 ```
 
 ## Quick Start
@@ -30,7 +30,7 @@ import (
     "fmt"
     "log"
 
-    "github.com/alvarorichard/Goanime/pkg/goanime"
+    "github.com/charlesnobrega/STARDF-Anime/pkg/goanime"
 )
 
 func main() {
@@ -270,7 +270,7 @@ defer resp.Body.Close()
 For detailed documentation, see:
 - [Complete API Documentation](goanime/README.md)
 - [Code Examples](goanime/examples/)
-- [GoDoc](https://pkg.go.dev/github.com/alvarorichard/Goanime/pkg/goanime)
+- [GoDoc](https://pkg.go.dev/github.com/charlesnobrega/STARDF-Anime/pkg/goanime)
 
 ## Contributing
 
