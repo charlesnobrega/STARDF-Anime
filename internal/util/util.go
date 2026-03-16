@@ -75,6 +75,7 @@ const (
 	ActionWatchlist
 	ActionContinue
 	ActionHealth
+	ActionTheme
 	ActionExit
 )
 
@@ -193,7 +194,8 @@ func PromptInteractive() (MenuResult, error) {
 		huh.NewOption("🔍 Buscar Novo Conteúdo", ActionSearch),
 		huh.NewOption("📂 Minha Lista (Watchlist)", ActionWatchlist),
 		huh.NewOption("🕒 Continuar Assistindo", ActionContinue),
-		huh.NewOption("📊 Relatório de Plugins", ActionHealth),
+		huh.NewOption("📊 Saúde dos Plugins", ActionHealth),
+		huh.NewOption("🎨 Temas Visuais", ActionTheme),
 		huh.NewOption("❌ Sair", ActionExit),
 	}
 
@@ -234,6 +236,9 @@ func PromptInteractive() (MenuResult, error) {
 
 	case ActionHealth:
 		return MenuResult{Action: ActionHealth}, nil
+
+	case ActionTheme:
+		return MenuResult{Action: ActionTheme}, nil
 
 	case ActionExit:
 		return MenuResult{}, ErrExitRequested

@@ -11,11 +11,11 @@ import (
 
 var Logger *log.Logger
 
-// getColoredPrefix returns a styled prefix with colors
+// getColoredPrefix returns a styled prefix with colors from the active theme
 func getColoredPrefix() string {
 	style := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Background(lipgloss.Color("#6366F1")).
+		Foreground(GlobalTheme.Background).
+		Background(GlobalTheme.Primary).
 		Bold(true).
 		Padding(0, 1).
 		MarginRight(1)

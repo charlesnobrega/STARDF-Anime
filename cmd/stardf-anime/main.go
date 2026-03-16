@@ -106,6 +106,8 @@ func main() {
 			err = handlers.HandleContinueWatchingMode()
 		case util.ActionHealth:
 			err = handlers.HandleScraperHealthMode()
+		case util.ActionTheme:
+			err = handlers.HandleThemeMode()
 		case util.ActionExit:
 			return
 		}
