@@ -1,7 +1,11 @@
 package handlers
 
 import (
+	"encoding/csv"
+	"encoding/json"
 	"fmt"
+	"os"
+	"time"
 
 	"github.com/charlesnobrega/STARDF-Anime/internal/tracking"
 	"github.com/charlesnobrega/STARDF-Anime/internal/util"
@@ -41,6 +45,8 @@ func HandleWatchlistMode() error {
 
 	var options []huh.Option[string]
 	options = append(options, huh.NewOption("<< Voltar ao Menu Principal", "back"))
+	options = append(options, huh.NewOption(">> Exportar Lista (JSON)", "export_json"))
+	options = append(options, huh.NewOption(">> Exportar Lista (CSV)", "export_csv"))
 	for _, m := range list {
 		var statusColor lipgloss.Color
 		switch m.Status {
@@ -69,7 +75,72 @@ func HandleWatchlistMode() error {
 		return util.ErrBackToMainMenu
 	}
 
+	if selected == "export_json" || selected == "export_csv" {
+		var filename string
+		var exportErr error
+
+		if selected == "export_json" {
+			filename, exportErr = exportWatchlistJSON(list)
+		} else {
+			filename, exportErr = exportWatchlistCSV(list)
+		}
+
+		if exportErr != nil {
+			fmt.Println(util.ErrorStyle().Render("❌ Erro ao exportar lista: " + exportErr.Error()))
+		} else {
+			fmt.Println(util.SuccessStyle().Render("✅ Lista exportada com sucesso para: " + filename))
+		}
+
+		var b bool
+		huh.NewConfirm().Title("Voltar ao menu?").Value(&b).Run()
+		return util.ErrBackToMainMenu
+	}
+
 	return HandlePlaybackMode(selected)
+}
+
+func exportWatchlistJSON(list []tracking.FollowedMedia) (string, error) {
+	filename := fmt.Sprintf("stardf_watchlist_%s.json", time.Now().Format("20060102_150405"))
+	data, err := json.MarshalIndent(list, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	err = os.WriteFile(filename, data, 0644)
+	return filename, err
+}
+
+func exportWatchlistCSV(list []tracking.FollowedMedia) (string, error) {
+	filename := fmt.Sprintf("stardf_watchlist_%s.csv", time.Now().Format("20060102_150405"))
+	file, err := os.Create(filename)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// Escrever cabeçalho
+	header := []string{"Title", "MediaType", "Status", "EpisodesWatched", "TotalEpisodes", "AniListID", "LastUpdated"}
+	if err := writer.Write(header); err != nil {
+		return "", err
+	}
+
+	for _, m := range list {
+		row := []string{
+			m.Title,
+			m.MediaType,
+			m.Status,
+			fmt.Sprintf("%d", m.LastEpisode),
+			fmt.Sprintf("%d", m.TotalEpisodes),
+			fmt.Sprintf("%d", m.AnilistID),
+			m.UpdatedAt.Format(time.RFC3339),
+		}
+		if err := writer.Write(row); err != nil {
+			return "", err
+		}
+	}
+	return filename, nil
 }
 
 // HandleContinueWatchingMode shows media with progress and allows resuming

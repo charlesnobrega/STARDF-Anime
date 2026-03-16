@@ -105,6 +105,11 @@ func HandleMovie(anime *models.Anime, episodes []models.Episode, discordEnabled 
 			break
 		}
 
+		if userInput == "rate" {
+			HandleRating(anime)
+			continue
+		}
+
 		// Handle back/change anime for movies - both options allow searching for a new anime
 		if userInput == "c" || userInput == "back" {
 			newAnime, newEpisodes, err := ChangeAnimeLocal()

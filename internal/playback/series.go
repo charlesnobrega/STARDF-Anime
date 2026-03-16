@@ -111,6 +111,11 @@ func HandleSeries(anime *models.Anime, episodes []models.Episode, totalEpisodes 
 			break
 		}
 
+		if userInput == "rate" {
+			HandleRating(anime)
+			continue
+		}
+
 		// Handle back/change anime - both options allow searching for a new anime
 		if userInput == "c" || userInput == "back" {
 			newAnime, newEpisodes, err := ChangeAnimeLocal()

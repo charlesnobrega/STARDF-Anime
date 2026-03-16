@@ -24,6 +24,7 @@ var (
 	GlobalAudioLanguage string                         // Global variable to store preferred audio language
 	flagsOnce           sync.Once                      // Ensure flags are only defined/parsed once
 	flagsParsed         bool                           // Track if flags have been parsed
+	GetMenuSubtitleFunc func() string                  // Function to get the menu subtitle
 )
 
 // Cleanup function to be called on program exit
@@ -215,10 +216,16 @@ func PromptInteractive() (MenuResult, error) {
 	}
 
 	var action MenuAction
+
+	subtitle := ""
+	if GetMenuSubtitleFunc != nil {
+		subtitle = GetMenuSubtitleFunc()
+	}
+
 	form := huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[MenuAction]().
-				Title("StarDF-Anime - Menu Principal").
+				Title("StarDF-Anime - Menu Principal" + subtitle).
 				Description("Escolha uma opção:").
 				Options(items...).
 				Value(&action),

@@ -50,10 +50,10 @@ Para este projeto (STARDF-Anime), a entrega significa:
 - [x] **Token Store Cross-platform**: Token OAuth2 salvo em AppData/Application Support/~/.config.
 
 ## Próximas Propostas (Aguardando Aprovação)
-- [ ] **Integração AniList Real Sync**: Recuperar lista completa do AniList para popular watchlist local.
-- [ ] **Status AniList no Menu**: Exibir nome do usuário logado no menu principal.
-- [ ] **Rating Local**: Avaliar obras (1-10) e salvar no SQLite local.
-- [ ] **Exportar Watchlist**: Exportar lista como JSON/CSV para backup.
+- [x] **Integração AniList Real Sync**: Recuperar lista completa do AniList para popular watchlist local.
+- [x] **Status AniList no Menu**: Exibir nome do usuário logado no menu principal.
+- [x] **Rating Local**: Avaliar obras (1-10) e salvar no SQLite local.
+- [x] **Exportar Watchlist**: Exportar lista como JSON/CSV para backup.
 - [ ] **Streaming Progressivo P2P**: Investigar suporte a BitTorrent (WebTorrent) para algumas fontes.
 
 ## Rollback

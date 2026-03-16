@@ -10,8 +10,9 @@ import (
 
 // AniListSession wraps the client + token store for a user session
 type AniListSession struct {
-	Client     *Client
-	TokenStore *TokenStore
+	Client      *Client
+	TokenStore  *TokenStore
+	CurrentUser *User
 }
 
 // GlobalSession is the application's AniList session
@@ -26,7 +27,20 @@ func (s *AniListSession) Initialize() {
 	if err == nil && token != "" {
 		s.Client.SetToken(token)
 		util.Debug("AniList token loaded from disk")
+		s.FetchViewerAsync()
 	}
+}
+
+// FetchViewerAsync fetches the user profile asynchronously without blocking
+func (s *AniListSession) FetchViewerAsync() {
+	go func() {
+		if s.IsLoggedIn() {
+			user, err := s.Client.GetViewer()
+			if err == nil {
+				s.CurrentUser = user
+			}
+		}
+	}()
 }
 
 // Login starts the OAuth2 login flow
@@ -64,7 +78,13 @@ func (s *AniListSession) Login(cfg OAuthConfig) error {
 		util.Warnf("Não foi possível salvar o token localmente: %v", err)
 	}
 
-	util.Infof("✅ Login no AniList realizado com sucesso!")
+	user, err := s.Client.GetViewer()
+	if err == nil {
+		s.CurrentUser = user
+		util.Infof("✅ Login no AniList realizado com sucesso como %s!", user.Name)
+	} else {
+		util.Infof("✅ Login no AniList realizado com sucesso!")
+	}
 	return nil
 }
 
@@ -91,7 +111,11 @@ func (s *AniListSession) SyncProgress(anilistID int, progress int) error {
 // PrintStatus prints a friendly login status to the UI
 func (s *AniListSession) PrintStatus() {
 	if s.IsLoggedIn() {
-		fmt.Println(util.SuccessStyle().Render("✅ AniList: Conectado"))
+		if s.CurrentUser != nil {
+			fmt.Println(util.SuccessStyle().Render(fmt.Sprintf("✅ AniList: Conectado como %s", s.CurrentUser.Name)))
+		} else {
+			fmt.Println(util.SuccessStyle().Render("✅ AniList: Conectado"))
+		}
 	} else {
 		fmt.Println(util.MutedStyle().Render("○  AniList: Não conectado (use --anilist-login para sincronizar)"))
 	}

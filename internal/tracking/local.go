@@ -66,6 +66,7 @@ type FollowedMedia struct {
 	MediaType     string    `json:"media_type"`
 	TotalEpisodes int       `json:"total_episodes"`
 	Status        string    `json:"status"` // watching, planning, completed, dropped
+	Score         int       `json:"score"`  // User rating 1-10
 	LastChecked   time.Time `json:"last_checked"`
 	LastEpisode   int       `json:"last_episode"`
 	UpdatedAt     time.Time `json:"updated_at"`
@@ -255,6 +256,7 @@ func initializeDatabase(db *sql.DB) error {
 		media_type     TEXT    DEFAULT 'anime',
 		total_episodes INTEGER DEFAULT 0,
 		status         TEXT    DEFAULT 'planning',
+		score          INTEGER DEFAULT 0,
 		last_checked   INTEGER NOT NULL,
 		last_episode   INTEGER DEFAULT 0,
 		updated_at     INTEGER NOT NULL
@@ -274,6 +276,9 @@ func initializeDatabase(db *sql.DB) error {
 
 	// Migrate old data if anime_progress table exists
 	migrateOldData(db)
+
+	// Add score column if it doesn't exist (migration for older v1.6.4 clients)
+	_, _ = db.Exec("ALTER TABLE followed_media ADD COLUMN score INTEGER DEFAULT 0")
 
 	indexes := []string{
 		`CREATE INDEX IF NOT EXISTS idx_media_lookup 
@@ -413,14 +418,15 @@ func prepareStatements(db *sql.DB) (*preparedStatements, error) {
 
 	// Followed Media Statements
 	followUpsert, err := db.Prepare(`INSERT INTO followed_media (
-		allanime_id, anilist_id, title, media_type, total_episodes, status, last_checked, last_episode, updated_at
-	) VALUES (?,?,?,?,?,?,?,?,?)
+		allanime_id, anilist_id, title, media_type, total_episodes, status, score, last_checked, last_episode, updated_at
+	) VALUES (?,?,?,?,?,?,?,?,?,?)
 	ON CONFLICT(allanime_id) DO UPDATE SET
 		anilist_id = CASE WHEN excluded.anilist_id > 0 THEN excluded.anilist_id ELSE followed_media.anilist_id END,
 		title = excluded.title,
 		media_type = excluded.media_type,
 		total_episodes = excluded.total_episodes,
 		status = excluded.status,
+		score = excluded.score,
 		last_checked = excluded.last_checked,
 		last_episode = CASE WHEN excluded.last_episode > 0 THEN excluded.last_episode ELSE followed_media.last_episode END,
 		updated_at = excluded.updated_at`)
@@ -428,13 +434,13 @@ func prepareStatements(db *sql.DB) (*preparedStatements, error) {
 		return nil, fmt.Errorf("followUpsert preparation failed: %w", err)
 	}
 
-	followGet, err := db.Prepare(`SELECT anilist_id, title, media_type, total_episodes, status, last_checked, last_episode, updated_at 
+	followGet, err := db.Prepare(`SELECT anilist_id, title, media_type, total_episodes, status, score, last_checked, last_episode, updated_at 
 		FROM followed_media WHERE allanime_id = ?`)
 	if err != nil {
 		return nil, fmt.Errorf("followGet preparation failed: %w", err)
 	}
 
-	followAll, err := db.Prepare(`SELECT allanime_id, anilist_id, title, media_type, total_episodes, status, last_checked, last_episode, updated_at 
+	followAll, err := db.Prepare(`SELECT allanime_id, anilist_id, title, media_type, total_episodes, status, score, last_checked, last_episode, updated_at 
 		FROM followed_media ORDER BY updated_at DESC`)
 	if err != nil {
 		return nil, fmt.Errorf("followAll preparation failed: %w", err)
@@ -616,6 +622,7 @@ func (t *LocalTracker) UpdateFollowedMedia(m FollowedMedia) error {
 		m.MediaType,
 		m.TotalEpisodes,
 		m.Status,
+		m.Score,
 		m.LastChecked.Unix(),
 		m.LastEpisode,
 		m.UpdatedAt.Unix(),
@@ -636,6 +643,7 @@ func (t *LocalTracker) GetFollowedMedia(allanimeID string) (*FollowedMedia, erro
 		&m.MediaType,
 		&m.TotalEpisodes,
 		&m.Status,
+		&m.Score,
 		&lc,
 		&m.LastEpisode,
 		&ua,
@@ -674,6 +682,7 @@ func (t *LocalTracker) GetAllFollowedMedia() ([]FollowedMedia, error) {
 			&m.MediaType,
 			&m.TotalEpisodes,
 			&m.Status,
+			&m.Score,
 			&lc,
 			&m.LastEpisode,
 			&ua,

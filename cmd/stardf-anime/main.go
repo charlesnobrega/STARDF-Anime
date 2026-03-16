@@ -9,6 +9,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/charlesnobrega/STARDF-Anime/internal/anilist"
 	"github.com/charlesnobrega/STARDF-Anime/internal/handlers"
 	"github.com/charlesnobrega/STARDF-Anime/internal/player"
 	"github.com/charlesnobrega/STARDF-Anime/internal/tracking"
@@ -83,6 +84,14 @@ func main() {
 			return
 		}
 		log.Fatalln(util.ErrorHandler(err))
+	}
+
+	// Setup AniList user display
+	util.GetMenuSubtitleFunc = func() string {
+		if anilist.GlobalSession.IsLoggedIn() && anilist.GlobalSession.CurrentUser != nil {
+			return " [👤 " + anilist.GlobalSession.CurrentUser.Name + "]"
+		}
+		return ""
 	}
 
 	var menuResult util.MenuResult
