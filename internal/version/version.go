@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	Version = "1.6.2"
+	Version = "1.6.3"
 )
 
 func HasVersionArg() bool {
@@ -20,7 +20,7 @@ func HasVersionArg() bool {
 }
 
 func ShowVersion() {
-	fmt.Printf("GoAnime v%s", Version)
+	fmt.Printf("StarDF-Anime v%s", Version)
 	if tracking.IsCgoEnabled {
 		fmt.Println(" (with SQLite tracking)")
 	} else {

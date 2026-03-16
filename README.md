@@ -221,7 +221,7 @@ sudo port install mpv
 ## Temporary Run
 
 ```shell
-nix github:alvarorichard/StarDF-Anime
+nix github:charlesnobrega/STARDF-Anime
 ```
 
 ## Install
@@ -229,7 +229,7 @@ nix github:alvarorichard/StarDF-Anime
 Add in your `flake.nix`:
 
 ```nix
- inputs.StarDF-Anime.url = "github:alvarorichard/StarDF-Anime";
+ inputs.StarDF-Anime.url = "github:charlesnobrega/STARDF-Anime";
 ```
 
 Pass inputs to your modules using ``specialArgs`` and Then in ``configuration.nix``:

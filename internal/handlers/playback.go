@@ -13,7 +13,7 @@ import (
 )
 
 // HandlePlaybackMode processes normal anime playback
-func HandlePlaybackMode(animeName string) {
+func HandlePlaybackMode(animeName string) error {
 	timer := util.StartTimer("PlaybackMode:Total")
 	defer timer.Stop()
 
@@ -21,7 +21,7 @@ func HandlePlaybackMode(animeName string) {
 	util.InitLogger()
 
 	tracking.HandleTrackingNotice()
-	util.Debugf("[PERF] starting Goanime v%s", version.Version)
+	util.Debugf("[PERF] starting StarDF-Anime v%s", version.Version)
 
 	discordTimer := util.StartTimer("Discord:Initialize")
 	discordManager := discord.NewManager()
@@ -41,8 +41,11 @@ func HandlePlaybackMode(animeName string) {
 		searchTimer.Stop()
 
 		if err != nil {
+			if errors.Is(err, util.ErrBackToMainMenu) {
+				return err
+			}
 			util.Errorf("Failed to search for anime: %v", err)
-			return
+			return err
 		}
 
 		detailsTimer := util.StartTimer("FetchAnimeDetails")
@@ -81,6 +84,10 @@ func HandlePlaybackMode(animeName string) {
 		}
 
 		// Normal exit or other errors
+		if playbackErr != nil && !errors.Is(playbackErr, player.ErrBackToAnimeSelection) {
+			return playbackErr
+		}
 		break
 	}
+	return nil
 }

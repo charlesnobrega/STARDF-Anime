@@ -18,7 +18,7 @@ var (
 
 	// Text styles
 	titleStyle = lipgloss.NewStyle().
-			Foreground(blue). // Title in blue (matching GoAnime prefix)
+			Foreground(blue). // Title in blue (matching StarDF-Anime prefix)
 			Bold(true).
 			PaddingBottom(1).
 			MarginLeft(2)
@@ -67,7 +67,7 @@ func ShowBeautifulHelp() {
 	var helpContent strings.Builder
 
 	// Program title
-	helpContent.WriteString(titleStyle.Render("GoAnime - Beautiful Anime Streaming CLI"))
+	helpContent.WriteString(titleStyle.Render("StarDF-Anime - Beautiful Anime Streaming CLI"))
 	helpContent.WriteString("\n")
 	helpContent.WriteString(subtitleStyle.Render("Watch your favorite anime directly from the terminal with style and ease."))
 	helpContent.WriteString("\n\n")
@@ -77,19 +77,19 @@ func ShowBeautifulHelp() {
 	helpContent.WriteString("\n")
 	helpContent.WriteString(sectionTitleStyle.Render("Usage:"))
 	helpContent.WriteString("\n")
-	helpContent.WriteString(commandStyle.Render("  goanime"))
+	helpContent.WriteString(commandStyle.Render("  stardf-anime"))
 	helpContent.WriteString("\n")
 	helpContent.WriteString(descriptionStyle.Render("    Interactive mode - search and select anime from a beautiful menu"))
 	helpContent.WriteString("\n")
-	helpContent.WriteString(commandStyle.Render("  goanime ") + parameterStyle.Render("[options]"))
+	helpContent.WriteString(commandStyle.Render("  stardf-anime ") + parameterStyle.Render("[options]"))
 	helpContent.WriteString("\n")
 	helpContent.WriteString(descriptionStyle.Render("    Run with specific options"))
 	helpContent.WriteString("\n")
-	helpContent.WriteString(commandStyle.Render("  goanime ") + parameterStyle.Render("[options] [anime name]"))
+	helpContent.WriteString(commandStyle.Render("  stardf-anime ") + parameterStyle.Render("[options] [anime name]"))
 	helpContent.WriteString("\n")
 	helpContent.WriteString(descriptionStyle.Render("    Direct search for anime (use spaces, not hyphens)"))
 	helpContent.WriteString("\n")
-	helpContent.WriteString(exampleStyle.Render("Example: goanime \"one piece\" (not \"one-piece\")"))
+	helpContent.WriteString(exampleStyle.Render("Example: stardf-anime \"one piece\" (not \"one-piece\")"))
 	helpContent.WriteString("\n\n")
 
 	// Options section
@@ -137,21 +137,21 @@ func ShowBeautifulHelp() {
 	helpContent.WriteString("\n")
 	helpContent.WriteString(sectionTitleStyle.Render("Examples:"))
 	helpContent.WriteString("\n")
-	addExample(&helpContent, "goanime", "Start interactive mode")
-	addExample(&helpContent, "goanime \"attack on titan\"", "Search directly for Attack on Titan")
-	addExample(&helpContent, "goanime --debug \"naruto\"", "Search with debug information")
-	addExample(&helpContent, "goanime --update", "Check for updates and update automatically")
-	addExample(&helpContent, "goanime --version", "Show version information")
-	addExample(&helpContent, "goanime -d \"one piece\" 1", "Download episode 1 of One Piece")
-	addExample(&helpContent, "goanime -d -r \"naruto\" 1-5", "Download episodes 1-5 of Naruto")
-	addExample(&helpContent, "goanime -d --source allanime \"bleach\" 10", "Download from AllAnime specifically")
-	addExample(&helpContent, "goanime -d --quality 720p \"demon slayer\" 1", "Download in 720p quality")
-	addExample(&helpContent, "goanime -d --source animefire --quality best \"jujutsu kaisen\" 5", "Use AnimeFire with best quality")
-	addExample(&helpContent, "goanime -d -r --source allanime --allanime-smart \"vinland saga\" 1-4", "AllAnime Smart Range for episodes 1-4")
-	addExample(&helpContent, "goanime --type movie \"avengers\"", "Search for movies matching 'avengers'")
-	addExample(&helpContent, "goanime --type tv \"breaking bad\"", "Search for TV shows matching 'breaking bad'")
-	addExample(&helpContent, "goanime --type movie --subs spanish \"spider-man\"", "Search movies with Spanish subtitles")
-	addExample(&helpContent, "goanime --type movie --audio \"pt-BR,english\" \"matrix\"", "Play movie with Portuguese audio preference")
+	addExample(&helpContent, "stardf-anime", "Start interactive mode")
+	addExample(&helpContent, "stardf-anime \"attack on titan\"", "Search directly for Attack on Titan")
+	addExample(&helpContent, "stardf-anime --debug \"naruto\"", "Search with debug information")
+	addExample(&helpContent, "stardf-anime --update", "Check for updates and update automatically")
+	addExample(&helpContent, "stardf-anime --version", "Show version information")
+	addExample(&helpContent, "stardf-anime -d \"one piece\" 1", "Download episode 1 of One Piece")
+	addExample(&helpContent, "stardf-anime -d -r \"naruto\" 1-5", "Download episodes 1-5 of Naruto")
+	addExample(&helpContent, "stardf-anime -d --source allanime \"bleach\" 10", "Download from AllAnime specifically")
+	addExample(&helpContent, "stardf-anime -d --quality 720p \"demon slayer\" 1", "Download in 720p quality")
+	addExample(&helpContent, "stardf-anime -d --source animefire --quality best \"jujutsu kaisen\" 5", "Use AnimeFire with best quality")
+	addExample(&helpContent, "stardf-anime -d -r --source allanime --allanime-smart \"vinland saga\" 1-4", "AllAnime Smart Range for episodes 1-4")
+	addExample(&helpContent, "stardf-anime --type movie \"avengers\"", "Search for movies matching 'avengers'")
+	addExample(&helpContent, "stardf-anime --type tv \"breaking bad\"", "Search for TV shows matching 'breaking bad'")
+	addExample(&helpContent, "stardf-anime --type movie --subs spanish \"spider-man\"", "Search movies with Spanish subtitles")
+	addExample(&helpContent, "stardf-anime --type movie --audio \"pt-BR,english\" \"matrix\"", "Play movie with Portuguese audio preference")
 	helpContent.WriteString("\n")
 
 	// Footer

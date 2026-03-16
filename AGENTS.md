@@ -6,7 +6,7 @@ CI e testes mandam. Sem "achismo".
 ## Comandos oficiais
 ```bash
 # Build
-go build -o goanime cmd/goanime/main.go
+go build -o stardf-anime cmd/stardf-anime/main.go
 
 # Test (unit)
 go test ./...
@@ -15,7 +15,7 @@ go test ./...
 golangci-lint run
 
 # Integration test (local)
-./goanime --source goyabu "test"
+./stardf-anime --source animefire "naruto"
 ```
 
 ## Convenções

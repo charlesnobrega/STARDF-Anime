@@ -1,4 +1,34 @@
-# GoAnime Release Notes - Version 1.6.2
+# StarDF-Anime Release Notes - Version 1.6.3
+
+Release date: 2026-03-16
+
+## Highlights
+
+- **Rebranding**: The project has been officially renamed from GoAnime to **StarDF-Anime**.
+- **New Identity**: Total migration of namespace to `charlesnobrega/STARDF-Anime`.
+- **Improved Stability**: Fixed compilation errors in WordPress scrapers and updated internal components to reflect the new identity.
+
+## Features
+
+- Updated all internal logs and help menus to reflect the new **StarDF-Anime** branding.
+- Migrated all repository links and references in the documentation.
+- Bumped version to `v1.6.3`.
+
+## Bug Fixes
+
+- Fixed "rand undefined" compilation errors in `Goyabu`, `SuperAnimes`, and `AnimesOnlineCC` scrapers.
+- Updated the auto-updater to correctly point to the new repository location at `charlesnobrega/STARDF-Anime`.
+- Resolved file locking issues during local builds on Windows.
+
+## Scraper Status
+
+- **AnimeFire**: Fully functional.
+- **FlixHQ**: Fully functional (Movies/TV).
+- **Goyabu/SuperAnimes**: Currently OFFLINE/Unstable (re-evaluated and kept disabled for stability).
+
+---
+
+# StarDF-Anime Release Notes - Version 1.6.2
 
 Release date: 2026-01-19
 

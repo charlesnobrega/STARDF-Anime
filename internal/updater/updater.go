@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	GitHubOwner = "alvarorichard"
-	GitHubRepo  = "GoAnime"
+	GitHubOwner = "charlesnobrega"
+	GitHubRepo  = "STARDF-Anime"
 	GitHubAPI   = "https://api.github.com/repos/" + GitHubOwner + "/" + GitHubRepo
 )
 
@@ -141,7 +141,7 @@ func PromptForUpdate(release *GitHubRelease) (bool, error) {
 		huh.NewGroup(
 			huh.NewNote().
 				Title("🚀 Update Available").
-				Description(fmt.Sprintf("A new version of GoAnime is available!\n\n"+
+				Description(fmt.Sprintf("A new version of STARDF-Anime is available!\n\n"+
 					"Current version: %s\n"+
 					"Latest version: %s\n\n"+
 					"Release notes:\n%s",
@@ -276,24 +276,24 @@ func findAssetForPlatformWithInfo(release *GitHubRelease, platform PlatformInfo)
 	switch platform.OS {
 	case "windows":
 		expectedNames = []string{
-			fmt.Sprintf("goanime-windows-%s.exe", platform.Arch),
-			fmt.Sprintf("goanime-windows-%s.zip", platform.Arch), // Also check zip files
-			"goanime-windows.exe",
-			"goanime.exe",
+			fmt.Sprintf("stardf-anime-windows-%s.exe", platform.Arch),
+			fmt.Sprintf("stardf-anime-windows-%s.zip", platform.Arch), // Also check zip files
+			"stardf-anime-windows.exe",
+			"stardf-anime.exe",
 		}
 	case "darwin":
 		expectedNames = []string{
-			fmt.Sprintf("goanime-darwin-%s", platform.Arch),
-			fmt.Sprintf("goanime-macos-%s", platform.Arch),
-			"goanime-darwin-universal", // Universal binary (explicit)
-			"goanime-darwin",           // Universal binary (generic) or fallback
-			"goanime-macos",            // Alternative generic name
+			fmt.Sprintf("stardf-anime-darwin-%s", platform.Arch),
+			fmt.Sprintf("stardf-anime-macos-%s", platform.Arch),
+			"stardf-anime-darwin-universal", // Universal binary (explicit)
+			"stardf-anime-darwin",           // Universal binary (generic) or fallback
+			"stardf-anime-macos",            // Alternative generic name
 		}
 	case "linux":
 		expectedNames = []string{
-			fmt.Sprintf("goanime-linux-%s", platform.Arch),
-			"goanime-linux",
-			"goanime",
+			fmt.Sprintf("stardf-anime-linux-%s", platform.Arch),
+			"stardf-anime-linux",
+			"stardf-anime",
 		}
 	default:
 		return "", "", fmt.Errorf("unsupported platform: %s", platform.OS)
@@ -386,7 +386,7 @@ func safeTempFile(filename string) (string, error) {
 	}
 
 	tempDir := os.TempDir()
-	tempFile := filepath.Join(tempDir, "goanime-update-"+filename)
+	tempFile := filepath.Join(tempDir, "stardf-anime-update-"+filename)
 
 	// Validate the resulting path
 	if err := validateFilePath(tempFile); err != nil {
@@ -588,11 +588,11 @@ func createWindowsUpdateScript(currentExe, newExe string) error {
 	// 3. Clean up the temporary files
 	// 4. Restart the application (optional)
 
-	scriptPath := filepath.Join(filepath.Dir(currentExe), "update_goanime.bat")
+	scriptPath := filepath.Join(filepath.Dir(currentExe), "update_stardf_anime.bat")
 
 	// Create the batch script content
 	scriptContent := fmt.Sprintf(`@echo off
-echo Updating GoAnime...
+echo Updating STARDF-Anime...
 timeout /t 2 /nobreak > nul
 :WAIT
 tasklist /FI "PID eq %d" 2>NUL | find /I /N "%d">NUL

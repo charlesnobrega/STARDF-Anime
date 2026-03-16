@@ -13,7 +13,7 @@ git.github_token
 *.exe
 *.html
 *.txt
-goanime
+stardf-anime
 zip_contents/
 stardf-anime.exe
 all_files.txt

@@ -19,7 +19,7 @@ func getColoredPrefix() string {
 		Bold(true).
 		Padding(0, 1).
 		MarginRight(1)
-	return style.Render("GoAnime")
+	return style.Render("StarDF-Anime")
 }
 
 // InitLogger initializes the beautiful charmbracelet logger

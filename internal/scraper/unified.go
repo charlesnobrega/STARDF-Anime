@@ -71,8 +71,7 @@ func NewScraperManager() *ScraperManager {
 	// manager.scrapers[CineGratisType] = &CineGratisAdapter{client: NewCineGratisClient()}
 	manager.scrapers[FlixHQType] = &FlixHQAdapter{client: NewFlixHQClient()}
 	
-	// Deprecated unstable sources - commenting out from active map
-	// manager.scrapers[CinebyType] = &CinebyAdapter{client: NewCinebyClient()}
+	// Re-evaluated (2026-03-16): Goyabu and SuperAnimes are currently OFFLINE (500/No results)
 	// manager.scrapers[GoyabuType] = &GoyabuAdapter{client: NewGoyabuClient()}
 	// manager.scrapers[SuperAnimesType] = &SuperAnimesAdapter{client: NewSuperAnimesClient()}
 	// manager.scrapers[AnimesOnlineCCTYPE] = &AnimesOnlineCCAdapter{client: NewAnimesOnlineCCClient()}

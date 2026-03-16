@@ -52,6 +52,8 @@ func SearchAnimeWithRetry(name string) (*models.Anime, error) {
 
 		if errors.Is(err, api.ErrBackToSearch) {
 			util.Infof("Going back to new search...")
+		} else if errors.Is(err, util.ErrBackToMainMenu) {
+			return nil, err
 		} else if err != nil {
 			util.Errorf("Search error: %v", err)
 		} else {

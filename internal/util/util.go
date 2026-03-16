@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"sync"
+
 	"github.com/charlesnobrega/STARDF-Anime/internal/version"
 	"github.com/charmbracelet/huh"
 )
@@ -20,6 +22,8 @@ var (
 	GlobalMediaType     string                         // Global variable to store media type (anime, movie, tv)
 	GlobalSubsLanguage  string                         // Global variable to store subtitle language
 	GlobalAudioLanguage string                         // Global variable to store preferred audio language
+	flagsOnce           sync.Once                      // Ensure flags are only defined/parsed once
+	flagsParsed         bool                           // Track if flags have been parsed
 )
 
 // Cleanup function to be called on program exit
@@ -59,6 +63,7 @@ func Helper() {
 var (
 	ErrUpdateRequested   = errors.New("update requested")
 	ErrDownloadRequested = errors.New("download requested")
+	ErrBackToMainMenu    = errors.New("back to main menu")
 )
 
 // DownloadRequest holds download command parameters
@@ -76,92 +81,125 @@ type DownloadRequest struct {
 // Global variable to store download request
 var GlobalDownloadRequest *DownloadRequest
 
-// FlagParser parses the -flags and returns the anime name
-func FlagParser() (string, error) {
-	// Define flags
-	debug := flag.Bool("debug", false, "enable debug mode")
-	perf := flag.Bool("perf", false, "enable performance profiling")
-	help := flag.Bool("help", false, "show help message")
-	altHelp := flag.Bool("h", false, "show help message")
-	versionFlag := flag.Bool("version", false, "show version information")
-	updateFlag := flag.Bool("update", false, "check for updates and update if available")
-	downloadFlag := flag.Bool("d", false, "download mode")
-	rangeFlag := flag.Bool("r", false, "download episode range (use with -d)")
-	sourceFlag := flag.String("source", "", "specify anime source (allanime, animefire)")
-	qualityFlag := flag.String("quality", "best", "specify video quality (best, worst, 720p, 1080p, etc.)")
-	allanimeSmartFlag := flag.Bool("allanime-smart", false, "enable AllAnime Smart Range: auto-skip intros/outros and use priority mirrors")
-	mediaTypeFlag := flag.String("type", "", "specify media type (anime, movie, tv)")
-	subsLanguageFlag := flag.String("subs", "english", "specify subtitle language for movies/TV (FlixHQ only)")
-	audioLanguageFlag := flag.String("audio", "pt-BR,pt,english", "specify preferred audio language for movies/TV (FlixHQ only)")
-
-	// Parse the flags early before any manipulation of os.Args
-	flag.Parse()
-
-	// Set debug mode based on flag (set unconditionally for consistency)
-	IsDebug = *debug
-
-	// Set performance profiling mode
-	PerfEnabled = *perf
-	if PerfEnabled {
-		// Also enable debug for performance mode to see detailed logs
-		IsDebug = true
-		Debug("Performance profiling enabled")
-	}
-
-	// Store global configurations
-	GlobalSource = *sourceFlag
-	GlobalQuality = *qualityFlag
-	GlobalMediaType = *mediaTypeFlag
-	GlobalSubsLanguage = *subsLanguageFlag
-	GlobalAudioLanguage = *audioLanguageFlag
-
-	if *versionFlag || version.HasVersionArg() {
-		version.ShowVersion()
-		return "", ErrHelpRequested // Signal version instead of exiting
-	}
-
-	if *help || *altHelp {
-		Helper()
-		return "", ErrHelpRequested // Signal help instead of exiting
-	}
-
-	if *updateFlag {
-		return "", ErrUpdateRequested // Signal update request
-	}
-
-	// Handle download mode
-	if *downloadFlag {
-		return handleDownloadModeWithSmart(*rangeFlag, *sourceFlag, *qualityFlag, *allanimeSmartFlag)
-	}
-
-	if *debug {
-		Debug("Debug mode is enabled")
-	}
-
-	// If the user has provided an anime name as an argument, we use it.
+// ParseFlags parses the -flags and returns the anime name if provided via CLI
+func ParseFlags() (string, error) {
 	var animeName string
-	if len(flag.Args()) > 0 {
-		animeName = strings.Join(flag.Args(), " ")
-		// Check if it has some flags and remove them
-		if strings.Contains(animeName, "-") {
-			animeName = strings.Split(animeName, "-")[0]
+	var err error
+
+	flagsOnce.Do(func() {
+		// Define flags
+		debug := flag.Bool("debug", false, "enable debug mode")
+		perf := flag.Bool("perf", false, "enable performance profiling")
+		help := flag.Bool("help", false, "show help message")
+		altHelp := flag.Bool("h", false, "show help message")
+		versionFlag := flag.Bool("version", false, "show version information")
+		updateFlag := flag.Bool("update", false, "check for updates and update if available")
+		downloadFlag := flag.Bool("d", false, "download mode")
+		rangeFlag := flag.Bool("r", false, "download episode range (use with -d)")
+		sourceFlag := flag.String("source", "", "specify anime source (allanime, animefire)")
+		qualityFlag := flag.String("quality", "best", "specify video quality (best, worst, 720p, 1080p, etc.)")
+		allanimeSmartFlag := flag.Bool("allanime-smart", false, "enable AllAnime Smart Range: auto-skip intros/outros and use priority mirrors")
+		mediaTypeFlag := flag.String("type", "", "specify media type (anime, movie, tv)")
+		subsLanguageFlag := flag.String("subs", "english", "specify subtitle language for movies/TV (FlixHQ only)")
+		audioLanguageFlag := flag.String("audio", "pt-BR,pt,english", "specify preferred audio language for movies/TV (FlixHQ only)")
+
+		// Parse the flags early
+		flag.Parse()
+
+		// Set debug mode
+		IsDebug = *debug
+
+		// Set performance profiling mode
+		PerfEnabled = *perf
+		if PerfEnabled {
+			IsDebug = true
+			Debug("Performance profiling enabled")
 		}
-		Debug("Anime name", "name", animeName)
-		if len(animeName) < minNameLength {
-			return "", fmt.Errorf("anime name must have at least %d characters, you entered: %v", minNameLength, animeName)
+
+		// Store global configurations
+		GlobalSource = *sourceFlag
+		GlobalQuality = *qualityFlag
+		GlobalMediaType = *mediaTypeFlag
+		GlobalSubsLanguage = *subsLanguageFlag
+		GlobalAudioLanguage = *audioLanguageFlag
+
+		if *versionFlag || version.HasVersionArg() {
+			version.ShowVersion()
+			err = ErrHelpRequested
+			return
 		}
-		return TreatingAnimeName(animeName), nil
-	}
+
+		if *help || *altHelp {
+			Helper()
+			err = ErrHelpRequested
+			return
+		}
+
+		if *updateFlag {
+			err = ErrUpdateRequested
+			return
+		}
+
+		// Handle download mode
+		if *downloadFlag {
+			animeName, err = handleDownloadModeWithSmart(*rangeFlag, *sourceFlag, *qualityFlag, *allanimeSmartFlag)
+			return
+		}
+
+		if *debug {
+			Debug("Debug mode is enabled")
+		}
+
+		// If the user has provided an anime name as an argument
+		if len(flag.Args()) > 0 {
+			name := strings.Join(flag.Args(), " ")
+			if strings.Contains(name, "-") {
+				name = strings.Split(name, "-")[0]
+			}
+			Debug("Anime name from CLI", "name", name)
+			if len(name) < minNameLength {
+				err = fmt.Errorf("anime name must have at least %d characters, you entered: %v", minNameLength, name)
+				return
+			}
+			animeName = TreatingAnimeName(name)
+		}
+		flagsParsed = true
+	})
+
+	return animeName, err
+}
+
+// PromptInteractive handles the interactive selection of media type and name
+func PromptInteractive() (string, error) {
 	var mediaTypeChoice string
 	var err error
+
 	mediaTypeChoice, err = selectMediaType()
 	if err != nil {
 		return "", err
 	}
 	GlobalMediaType = mediaTypeChoice
 
-	animeName, err = getUserInput("Enter name")
-	return TreatingAnimeName(animeName), err
+	animeName, err := getUserInput("Enter name")
+	if err != nil {
+		return "", err
+	}
+
+	return TreatingAnimeName(animeName), nil
+}
+
+// FlagParser (Legacy/Deprecated) - now just calls ParseFlags and PromptInteractive if needed
+func FlagParser() (string, error) {
+	name, err := ParseFlags()
+	if err != nil {
+		return "", err
+	}
+
+	if name != "" {
+		return name, nil
+	}
+
+	return PromptInteractive()
 }
 
 // selectMediaType asks the user what type of content they want
@@ -226,7 +264,7 @@ func handleDownloadModeWithSmart(isRange bool, source, quality string, allanimeS
 	}
 
 	if isRange {
-		// Range download: goanime -d -r "anime name" start-end
+		// Range download: stardf-anime -d -r "anime name" start-end
 		if len(args) < 2 {
 			return "", fmt.Errorf("range download requires anime name and episode range (e.g., '1-5')")
 		}
@@ -272,7 +310,7 @@ func handleDownloadModeWithSmart(isRange bool, source, quality string, allanimeS
 		return TreatingAnimeName(animeName), ErrDownloadRequested
 
 	} else {
-		// Single episode download: goanime -d "anime name" episode_number
+		// Single episode download: stardf-anime -d "anime name" episode_number
 		if len(args) < 2 {
 			return "", fmt.Errorf("single episode download requires anime name and episode number")
 		}

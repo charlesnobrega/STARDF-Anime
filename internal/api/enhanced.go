@@ -130,15 +130,21 @@ func SearchAnimeEnhanced(name string, source string) (*models.Anime, error) {
 
 	util.Debug("Source breakdown", "AnimeFire", animefireCount, "AnimesOnlineCC", animesonlineccCount, "Goyabu", goyabuCount, "SuperAnimes", superanimesCount, "Cineby", cinebyCount, "FlixHQ", flixhqCount)
 
-	// Create a special "back" option as the first item
-	backOption := &models.Anime{
-		Name:   "← Back",
+	// Create a special "back" options
+	backToSearch := &models.Anime{
+		Name:   "← Back (Search Again)",
 		URL:    "__back__",
 		Source: "__back__",
 	}
 
-	// Prepend back option to the list
-	animesWithBack := append([]*models.Anime{backOption}, animes...)
+	backToMenu := &models.Anime{
+		Name:   "🏠 Back to Main Menu",
+		URL:    "__back_to_menu__",
+		Source: "__back_to_menu__",
+	}
+
+	// Prepend back options to the list
+	animesWithBack := append([]*models.Anime{backToSearch, backToMenu}, animes...)
 
 	// Concurrent episode count fetching for top results (optimization)
 	util.Debug("Fetching episode counts for top results...")
@@ -211,6 +217,9 @@ func SearchAnimeEnhanced(name string, source string) (*models.Anime, error) {
 					if anime.Source == "__back__" {
 						return "Go back to perform a new search"
 					}
+					if anime.Source == "__back_to_menu__" {
+						return "Return to the category selection (Anime/Movies)"
+					}
 					var preview string
 					preview = "Source: " + anime.Source + "\nURL: " + anime.URL
 					if anime.ImageURL != "" {
@@ -230,7 +239,7 @@ func SearchAnimeEnhanced(name string, source string) (*models.Anime, error) {
 					return ""
 				}
 				anime := animesWithBack[i]
-				if anime.Source == "__back__" {
+				if anime.Source == "__back__" || anime.Source == "__back_to_menu__" {
 					return anime.Name
 				}
 				
@@ -265,9 +274,12 @@ func SearchAnimeEnhanced(name string, source string) (*models.Anime, error) {
 	}
 	selectedAnime := animesWithBack[idx]
 
-	// Check if user selected the back option
+	// Check if user selected back options
 	if selectedAnime.Source == "__back__" {
 		return nil, ErrBackToSearch
+	}
+	if selectedAnime.Source == "__back_to_menu__" {
+		return nil, util.ErrBackToMainMenu
 	}
 	util.Debug("Anime selected", "name", selectedAnime.Name, "source", selectedAnime.Source)
 

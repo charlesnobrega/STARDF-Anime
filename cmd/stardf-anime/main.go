@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/charlesnobrega/STARDF-Anime/internal/handlers"
@@ -31,30 +34,55 @@ func main() {
 	// Initialize tracker early in background to avoid delays when playing movies
 	player.InitTrackerAsync()
 
-	animeName, err := util.FlagParser()
+	// Parse initial flags/CLI arguments
+	cliName, err := util.ParseFlags()
 	if err != nil {
-		// Check if error is update request
-		if err == util.ErrUpdateRequested {
+		// Handle special requests
+		if errors.Is(err, util.ErrUpdateRequested) {
 			if updateErr := handlers.HandleUpdateRequest(); updateErr != nil {
 				log.Fatalln(util.ErrorHandler(updateErr))
 			}
 			return
-
 		}
-		// Check if error is download request
-		if err == util.ErrDownloadRequested {
+		if errors.Is(err, util.ErrDownloadRequested) {
 			if downloadErr := handlers.HandleDownloadRequest(); downloadErr != nil {
 				log.Fatalln(util.ErrorHandler(downloadErr))
 			}
 			return
 		}
-		// For help and version requests, just exit silently
-		if err == util.ErrHelpRequested {
+		if errors.Is(err, util.ErrHelpRequested) {
 			return
 		}
 		log.Fatalln(util.ErrorHandler(err))
 	}
 
-	// Handle normal playback mode
-	handlers.HandlePlaybackMode(animeName)
+	targetName := cliName
+
+	// Loop for main menu navigation
+	for {
+		// If no name from CLI or returning from menu, prompt user
+		if targetName == "" {
+			var promptErr error
+			targetName, promptErr = util.PromptInteractive()
+			if promptErr != nil {
+				// Handle exit/cancel from prompt
+				if errors.Is(promptErr, context.Canceled) || strings.Contains(promptErr.Error(), "user") {
+					return
+				}
+				log.Fatalln(util.ErrorHandler(promptErr))
+			}
+		}
+
+		// Handle normal playback mode
+		err = handlers.HandlePlaybackMode(targetName)
+		if err != nil {
+			if errors.Is(err, util.ErrBackToMainMenu) {
+				util.Infof("Returning to main menu...")
+				targetName = "" // Reset to force interactive prompt
+				continue
+			}
+			log.Fatalln(util.ErrorHandler(err))
+		}
+		break
+	}
 }

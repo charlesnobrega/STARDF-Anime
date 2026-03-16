@@ -272,7 +272,7 @@ func (rpu *RichPresenceUpdater) updateDiscordPresence(forceUpdate bool) {
 	// Get image URL
 	imageURL := rpu.anime.ImageURL
 	if imageURL == "" {
-		imageURL = "https://raw.githubusercontent.com/charlesnobrega/STARDF-Anime/main/docs/assets/goanime-logo.png"
+		imageURL = "https://raw.githubusercontent.com/charlesnobrega/STARDF-Anime/main/docs/logo_stardf.png"
 	}
 
 	// Build precise timestamps based on actual playback position
