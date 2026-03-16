@@ -18,13 +18,11 @@
 
 # StarDF-Anime
 
-StarDF-Anime is a powerful text-based user interface (TUI) built in Go, evolving from the original GoAnime. It allows users to search for anime, movies, and TV shows, and play or download content directly in mpv. It is specifically optimized for high-performance scraping and metadata enrichment for both Portuguese and English content.
+StarDF-Anime is a powerful text-based user interface (TUI) built in Go, evolving from the original StarDF-Anime. It allows users to search for anime, movies, and TV shows, and play or download content directly in mpv. It is specifically optimized for high-performance scraping and metadata enrichment for both Portuguese and English content.
 
-### Mobile Version
+### Mobile Version (Em breve)
 
-A mobile version of GoAnime is available for Android devices: [GoAnime Mobile](https://github.com/alvarorichard/goanime-mobile)
-
-> **Note:** This version is under active development and may contain bugs or incomplete features.
+A mobile version of StarDF-Anime is planned for Android devices.
 
 ### Community
 
@@ -46,7 +44,7 @@ Join our Discord for support, feedback, and updates: [Discord Server](https://di
 - **NEW:** Movies and TV Shows support via FlixHQ source
  - **NEW:** OMDb integration for movie/TV metadata (ratings, genres, runtime)
 
-> **Note:** GoAnime can be built with or without SQLite support for tracking anime progress.  
+> **Note:** StarDF-Anime can be built with or without SQLite support for tracking anime progress.  
 > [See the build options documentation](docs/BUILD_OPTIONS.md) for more details.
 
 > ⚠️ Warning: Portuguese (PT-BR) source availability
@@ -57,7 +55,7 @@ Join our Discord for support, feedback, and updates: [Discord Server](https://di
 
 # Demo
 
-<https://github.com/alvarorichard/GoAnime/assets/88117897/ffec6ad7-6ac1-464d-b048-c80082119836>
+<https://github.com/charlesnobrega/STARDF-Anime/assets/88117897/ffec6ad7-6ac1-464d-b048-c80082119836>
 
 ## Prerequisites
 
@@ -67,10 +65,10 @@ Join our Discord for support, feedback, and updates: [Discord Server](https://di
 
 ## how to install and run
 
-### Universal install (Only needs go installed and recommended for most users)  
+### Universal install (Only needs Go installed)  
 
 ```shell
-go install github.com/alvarorichard/Goanime/cmd/goanime@latest
+go install github.com/charlesnobrega/STARDF-Anime/cmd/stardf-anime@latest
 ```
 
 ...existing code...
@@ -85,7 +83,7 @@ cd STARDF-Anime
 ```
 
 ```shell
-go run cmd/goanime/main.go
+go run cmd/stardf-anime/main.go
 ```
 
 ## Movies and TV Shows
@@ -115,20 +113,20 @@ stardf-anime --source flixhq --subs "Avatar"
 Using Yay:
 
 ```bash
-yay -S goanime
+yay -S StarDF-Anime
 ```
 
 or using Paru:
 
 ```bash
-paru -S goanime
+paru -S StarDF-Anime
 ```
 
 Or, to manually clone and install:
 
 ```bash
-git clone https://aur.archlinux.org/goanime.git
-cd goanime
+git clone https://aur.archlinux.org/StarDF-Anime.git
+cd StarDF-Anime
 makepkg -si
 sudo pacman -S mpv
 ```
@@ -142,12 +140,8 @@ sudo pacman -S mpv
 sudo apt update
 sudo apt install mpv
 
-# For x86_64 systems:
-curl -Lo goanime https://github.com/alvarorichard/GoAnime/releases/latest/download/goanime-linux
-
-chmod +x goanime
-sudo mv goanime /usr/bin/
-goanime
+# For x86_64 systems (Em breve):
+# curl -Lo stardf-anime https://github.com/charlesnobrega/STARDF-Anime/releases/latest/download/stardf-anime-linux
 ```
 
 </details>
@@ -159,12 +153,8 @@ goanime
 sudo dnf update
 sudo dnf install mpv
 
-# For x86_64 systems:
-curl -Lo goanime https://github.com/alvarorichard/GoAnime/releases/latest/download/goanime-linux
-
-chmod +x goanime
-sudo mv goanime /usr/bin/
-goanime
+# For x86_64 systems (Em breve):
+# curl -Lo stardf-anime https://github.com/charlesnobrega/STARDF-Anime/releases/latest/download/stardf-anime-linux
 ```
 
 </details>
@@ -176,12 +166,8 @@ goanime
 sudo zypper refresh
 sudo zypper install mpv
 
-# For x86_64 systems:
-curl -Lo goanime https://github.com/alvarorichard/GoAnime/releases/latest/download/goanime-linux
-
-chmod +x goanime
-sudo mv goanime /usr/bin/
-goanime
+# For x86_64 systems (Em breve):
+# curl -Lo stardf-anime https://github.com/charlesnobrega/STARDF-Anime/releases/latest/download/stardf-anime-linux
 ```
 
 </details>
@@ -189,17 +175,13 @@ goanime
 ## Windows
 
 <details>
-<summary>Windows Installation</summary>
+Option 1: Using the installer (Em breve)
 
-> **Strongly Recommended:** Use the installer for the best experience on Windows.
+- A Windows Installer will be available in the next release.
 
-Option 1: Using the installer (Recommended)
+Option 2: Standalone executable (Em breve)
 
-- Download and run the [Windows Installer](https://github.com/alvarorichard/GoAnime/releases/latest/download/GoAnimeInstaller.exe)
-
-Option 2: Standalone executable
-
-- Download the appropriate executable for your system from the [latest release](https://github.com/alvarorichard/GoAnime/releases/latest)
+- Executables will be available in the [releases](https://github.com/charlesnobrega/STARDF-Anime/releases) section soon.
 
 </details>
 
@@ -217,12 +199,8 @@ First, install mpv using Homebrew:
 # Install mpv
 brew install mpv
 
-# Download and install GoAnime
-curl -Lo goanime https://github.com/alvarorichard/GoAnime/releases/latest/download/goanime-apple-darwin
-
-chmod +x goanime
-sudo mv goanime /usr/local/bin/
-goanime
+# Download and install StarDF-Anime (Em breve)
+# curl -Lo stardf-anime https://github.com/charlesnobrega/STARDF-Anime/releases/latest/download/stardf-anime-apple-darwin
 ```
 
 Alternative installation using MacPorts:
@@ -231,12 +209,8 @@ Alternative installation using MacPorts:
 # Install mpv using MacPorts
 sudo port install mpv
 
-# Download and install GoAnime
-curl -Lo goanime https://github.com/alvarorichard/GoAnime/releases/latest/download/goanime-apple-darwin
-
-chmod +x goanime
-sudo mv goanime /usr/local/bin/
-goanime
+# Download and install StarDF-Anime (Em breve)
+# curl -Lo stardf-anime https://github.com/charlesnobrega/STARDF-Anime/releases/latest/download/stardf-anime-apple-darwin
 ```
 
 </details>
@@ -248,7 +222,7 @@ goanime
 ## Temporary Run
 
 ```shell
-nix github:alvarorichard/GoAnime
+nix github:alvarorichard/StarDF-Anime
 ```
 
 ## Install
@@ -256,14 +230,14 @@ nix github:alvarorichard/GoAnime
 Add in your `flake.nix`:
 
 ```nix
- inputs.goanime.url = "github:alvarorichard/GoAnime";
+ inputs.StarDF-Anime.url = "github:alvarorichard/StarDF-Anime";
 ```
 
 Pass inputs to your modules using ``specialArgs`` and Then in ``configuration.nix``:
 
 ```nix
 environment.systemPackages = [
-  inputs.goanime.packages.${pkgs.system}.GoAnime
+  inputs.StarDF-Anime.packages.${pkgs.system}.StarDF-Anime
 ];
 ```
 
@@ -276,7 +250,7 @@ go-anime
 ### Usage in Windows
 
 ```go
-goanime
+StarDF-Anime
 ```
 
 ### Advanced Usage
@@ -286,21 +260,21 @@ You can also use parameters to search for and play anime directly. Here are some
 - To search for and play an anime directly, use the following command:
 
 ```shell
-goanime  "anime name"
+StarDF-Anime  "anime name"
 ```
 
-- To update GoAnime to the latest version, use the update flag:
+- To update StarDF-Anime to the latest version, use the update flag:
 
 ```shell
-goanime --update
+StarDF-Anime --update
 ```
 
-This command will automatically download and install the latest version of GoAnime using Go's built-in update mechanism.
+This command will automatically download and install the latest version of StarDF-Anime using Go's built-in update mechanism.
 
-You can use the `-h` or `--help` option to display help information about how to use the `goanime` command.
+You can use the `-h` or `--help` option to display help information about how to use the `StarDF-Anime` command.
 
 ```shell
-goanime -h
+StarDF-Anime -h
 ```
 
 The program will prompt you to input the name of an anime. Enter the name of the anime you wish to watch.
@@ -317,7 +291,7 @@ The selected episode will then play in mpv media player.
 
 # Alternatives
 
-If you're looking for more options, check out this alternative project by my friend [@KitsuneSemCalda](https://github.com/KitsuneSemCalda) called [Animatic-v2](https://github.com/KitsuneSemCalda/Animatic-v2), which was inspired by GoAnime.
+If you're looking for more options, check out this alternative project by my friend [@KitsuneSemCalda](https://github.com/KitsuneSemCalda) called [Animatic-v2](https://github.com/KitsuneSemCalda/Animatic-v2), which was inspired by StarDF-Anime.
 
 ## Contributing
 

@@ -27,6 +27,10 @@ Para este projeto (STARDF-Anime), a entrega significa:
 - [ ] Correção das Issues #1 e #2 (Scrapers WordPress)
 - [ ] Atualização do README.md com a nova identidade
 - [ ] CHANGELOG.md atualizado com a desvinculação do fork
+- [ ] Versão Mobile para Android
+- [ ] Instalador Windows (.exe)
+- [ ] Binários para Linux e macOS
+- [ ] Suporte a NixOS Flakes
 - [ ] Tag `v1.6.3` criada e pushada para o novo repositório
 - [ ] GitHub Release draft criado com os novos assets
 
