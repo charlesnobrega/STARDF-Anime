@@ -6,7 +6,7 @@
 </h4>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/charlesnobrega/STARDF-Anime/main/docs/logo_stardf.webp" alt="StarDF-Anime Logo" />
+  <img src="docs/logo_stardf.png" alt="StarDF-Anime Logo" width="400"/>
 </p>
 
 [![GitHub license](https://img.shields.io/github/license/charlesnobrega/STARDF-Anime)](https://github.com/charlesnobrega/STARDF-Anime/blob/main/LICENSE)
