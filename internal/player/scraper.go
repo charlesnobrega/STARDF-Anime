@@ -172,18 +172,23 @@ var ErrBackToAnimeSelection = errors.New("back to anime selection")
 // ErrBackToEpisodeSelection is returned when user wants to go back to episode selection
 var ErrBackToEpisodeSelection = errors.New("back to episode selection")
 
+// ErrFollowRequested is returned when user selects the follow option
+var ErrFollowRequested = errors.New("follow requested")
+
 // SelectEpisodeWithFuzzyFinder allows the user to select an episode using fuzzy finder
 func SelectEpisodeWithFuzzyFinder(episodes []models.Episode) (string, string, error) {
 	if len(episodes) == 0 {
 		return "", "", errors.New("no episodes provided")
 	}
 
-	// Create a list with back option at the beginning
-	backOption := "← Back"
-	displayList := make([]string, len(episodes)+1)
+	// Create a list with back and follow options at the beginning
+	backOption := "← Voltar"
+	followOption := "⭐ Acompanhar esta obra (Watchlist)"
+	displayList := make([]string, len(episodes)+2)
 	displayList[0] = backOption
+	displayList[1] = followOption
 	for i, ep := range episodes {
-		displayList[i+1] = ep.Number
+		displayList[i+2] = ep.Number
 	}
 
 	idx, err := fuzzyfinder.Find(
@@ -201,13 +206,16 @@ func SelectEpisodeWithFuzzyFinder(episodes []models.Episode) (string, string, er
 		return "", "", errors.New("invalid index returned by fuzzyfinder")
 	}
 
-	// Check if back was selected
+	// Check special options
 	if idx == 0 {
 		return "", "", ErrBackRequested
 	}
+	if idx == 1 {
+		return "", "", ErrFollowRequested
+	}
 
-	// Adjust index for episodes (subtract 1 for the back option)
-	episodeIdx := idx - 1
+	// Adjust index for episodes (subtract 2 for the back and follow options)
+	episodeIdx := idx - 2
 	return episodes[episodeIdx].URL, episodes[episodeIdx].Number, nil
 }
 

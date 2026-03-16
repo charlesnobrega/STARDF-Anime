@@ -35,14 +35,21 @@ Para este projeto (STARDF-Anime), a entrega significa:
 - [ ] Tag `v1.6.3` criada e pushada para o novo repositório <!-- id: 12 -->
 - [ ] GitHub Release draft criado com os novos assets <!-- id: 13 -->
 - [x] Navegação: Permitir retornar ao menu inicial (Animes/Filmes) <!-- id: 14 -->
-- [ ] Fontes: Habilitar/Corrigir segundo servidor de Filmes (Cineby/CineGratis) <!-- id: 15 -->
+- [x] Fontes: Habilitar/Corrigir segundo servidor de Filmes (Cineby/CineGratis) <!-- id: 15 -->
 - [ ] Validação: Testes de acesso online aos scrapers (Bloqueado por rede) <!-- id: 16 -->
 
+## Implementações Recentes (v1.6.4-preview)
+- [x] **Expansão SQLite**: Implementação de tabelas para Watchlist e Monitoramento de Plugins.
+- [x] **Menu Principal (TUI)**: Novo fluxo de navegação com Busca, Minha Lista, Continuar Assistindo e Saúde dos Plugins.
+- [x] **Acompanhamento (Watchlist)**: Sistema de "Follow/Acompanhar" integrado à seleção de episódios.
+- [x] **Relatório de Plugin Health**: Dashboard para desenvolvedores monitorarem falhas nos scrapers.
+- [x] **Sincronização de Episódios**: Verificação automática de novos episódios ao iniciar o app.
+
 ## Próximas Propostas (Aguardando Aprovação)
-- [ ] **Cache de Metadados Local**: Implementar SQLite para salvar resultados de busca e listas de episódios (reduz latência).
-- [ ] **Sistema de Plugins para Scrapers**: Modularizar scrapers para facilitar adição/remoção sem alterar o core.
-- [ ] **Migração para Bubbletea**: Interface TUI mais rica e informativa com painéis e progresso visual.
-- [ ] **Integração com MAL/AniList (Sync)**: Sincronizar progresso de visualização automaticamente com contas do usuário.
+- [ ] **Integração AniList API (Real Sync)**: Sincronização bidirecional com contas oficiais via OAuth2.
+- [ ] **Notificações Desktop**: Alertar sobre novos episódios através do sistema operacional.
+- [ ] **Sistema de Temas**: Personalização de cores da interface TUI.
+- [ ] **Streaming Progressivo P2P**: Investigar suporte a BitTorrent (WebTorrent) para algumas fontes.
 
 ## Rollback
 Se Release Discovery indica falha crítica:

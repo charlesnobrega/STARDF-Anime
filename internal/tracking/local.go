@@ -58,12 +58,40 @@ type Anime struct {
 	LastUpdated   time.Time `json:"last_updated"`
 }
 
+// FollowedMedia represents a media item the user is following
+type FollowedMedia struct {
+	AllanimeID    string    `json:"allanime_id"`
+	AnilistID     int       `json:"anilist_id"`
+	Title         string    `json:"title"`
+	MediaType     string    `json:"media_type"`
+	TotalEpisodes int       `json:"total_episodes"`
+	Status        string    `json:"status"` // watching, planning, completed, dropped
+	LastChecked   time.Time `json:"last_checked"`
+	LastEpisode   int       `json:"last_episode"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+// ScraperHealth represents the reliability of a scraper plugin
+type ScraperHealth struct {
+	ScraperName    string    `json:"scraper_name"`
+	TotalSearches  int       `json:"total_searches"`
+	FailedSearches int       `json:"failed_searches"`
+	LastFailure    string    `json:"last_failure"`
+	LastUpdate     time.Time `json:"last_update"`
+}
+
 type LocalTracker struct {
-	db       *sql.DB
-	upsertPS *sql.Stmt
-	getPS    *sql.Stmt
-	allPS    *sql.Stmt
-	deletePS *sql.Stmt
+	db              *sql.DB
+	upsertPS        *sql.Stmt
+	getPS           *sql.Stmt
+	allPS           *sql.Stmt
+	deletePS        *sql.Stmt
+	followUpsertPS  *sql.Stmt
+	followGetPS     *sql.Stmt
+	followAllPS     *sql.Stmt
+	followDeletePS  *sql.Stmt
+	healthUpdatePS  *sql.Stmt
+	healthAllPS     *sql.Stmt
 }
 
 /*
@@ -180,11 +208,17 @@ func newLocalTrackerImpl(dbPath string) *LocalTracker {
 	}
 
 	tracker := &LocalTracker{
-		db:       db,
-		upsertPS: statements.upsert,
-		getPS:    statements.get,
-		allPS:    statements.all,
-		deletePS: statements.delete,
+		db:              db,
+		upsertPS:        statements.upsert,
+		getPS:           statements.get,
+		allPS:           statements.all,
+		deletePS:        statements.delete,
+		followUpsertPS:  statements.followUpsert,
+		followGetPS:     statements.followGet,
+		followAllPS:     statements.followAll,
+		followDeletePS:  statements.followDelete,
+		healthUpdatePS:  statements.healthUpdate,
+		healthAllPS:     statements.healthAll,
 	}
 
 	// Cache the tracker globally for reuse
@@ -202,7 +236,8 @@ func newLocalTrackerImpl(dbPath string) *LocalTracker {
 func initializeDatabase(db *sql.DB) error {
 	// New schema: allanime_id is the primary key (works for both movies and anime)
 	// media_type: 'anime' or 'movie' to distinguish content type
-	schema := `CREATE TABLE IF NOT EXISTS media_progress (
+	schema := `
+	CREATE TABLE IF NOT EXISTS media_progress (
 		allanime_id    TEXT    PRIMARY KEY NOT NULL,
 		anilist_id     INTEGER DEFAULT 0,
 		episode_number INTEGER NOT NULL,
@@ -211,6 +246,26 @@ func initializeDatabase(db *sql.DB) error {
 		title          TEXT,
 		media_type     TEXT    DEFAULT 'anime',
 		last_updated   INTEGER NOT NULL
+	);
+	
+	CREATE TABLE IF NOT EXISTS followed_media (
+		allanime_id    TEXT    PRIMARY KEY NOT NULL,
+		anilist_id     INTEGER DEFAULT 0,
+		title          TEXT,
+		media_type     TEXT    DEFAULT 'anime',
+		total_episodes INTEGER DEFAULT 0,
+		status         TEXT    DEFAULT 'planning',
+		last_checked   INTEGER NOT NULL,
+		last_episode   INTEGER DEFAULT 0,
+		updated_at     INTEGER NOT NULL
+	);
+
+	CREATE TABLE IF NOT EXISTS scraper_health (
+		scraper_name    TEXT    PRIMARY KEY NOT NULL,
+		total_searches  INTEGER DEFAULT 0,
+		failed_searches INTEGER DEFAULT 0,
+		last_failure    TEXT,
+		last_update     INTEGER NOT NULL
 	);`
 
 	if _, err := db.Exec(schema); err != nil {
@@ -225,6 +280,10 @@ func initializeDatabase(db *sql.DB) error {
 		ON media_progress(allanime_id, last_updated DESC)`,
 		`CREATE INDEX IF NOT EXISTS idx_media_type 
 		ON media_progress(media_type, last_updated DESC)`,
+		`CREATE INDEX IF NOT EXISTS idx_followed_status
+		ON followed_media(status, updated_at DESC)`,
+		`CREATE INDEX IF NOT EXISTS idx_health_failure
+		ON scraper_health(failed_searches DESC)`,
 	}
 
 	for _, idx := range indexes {
@@ -280,10 +339,16 @@ func migrateOldData(db *sql.DB) {
 *────────────────────────────────────────────────────────────────────────────
 */
 type preparedStatements struct {
-	upsert *sql.Stmt
-	get    *sql.Stmt
-	all    *sql.Stmt
-	delete *sql.Stmt
+	upsert       *sql.Stmt
+	get          *sql.Stmt
+	all          *sql.Stmt
+	delete       *sql.Stmt
+	followUpsert *sql.Stmt
+	followGet    *sql.Stmt
+	followAll    *sql.Stmt
+	followDelete *sql.Stmt
+	healthUpdate *sql.Stmt
+	healthAll    *sql.Stmt
 }
 
 func prepareStatements(db *sql.DB) (*preparedStatements, error) {
@@ -346,11 +411,70 @@ func prepareStatements(db *sql.DB) (*preparedStatements, error) {
 		return nil, fmt.Errorf("delete preparation failed: %w", err)
 	}
 
+	// Followed Media Statements
+	followUpsert, err := db.Prepare(`INSERT INTO followed_media (
+		allanime_id, anilist_id, title, media_type, total_episodes, status, last_checked, last_episode, updated_at
+	) VALUES (?,?,?,?,?,?,?,?,?)
+	ON CONFLICT(allanime_id) DO UPDATE SET
+		anilist_id = CASE WHEN excluded.anilist_id > 0 THEN excluded.anilist_id ELSE followed_media.anilist_id END,
+		title = excluded.title,
+		media_type = excluded.media_type,
+		total_episodes = excluded.total_episodes,
+		status = excluded.status,
+		last_checked = excluded.last_checked,
+		last_episode = CASE WHEN excluded.last_episode > 0 THEN excluded.last_episode ELSE followed_media.last_episode END,
+		updated_at = excluded.updated_at`)
+	if err != nil {
+		return nil, fmt.Errorf("followUpsert preparation failed: %w", err)
+	}
+
+	followGet, err := db.Prepare(`SELECT anilist_id, title, media_type, total_episodes, status, last_checked, last_episode, updated_at 
+		FROM followed_media WHERE allanime_id = ?`)
+	if err != nil {
+		return nil, fmt.Errorf("followGet preparation failed: %w", err)
+	}
+
+	followAll, err := db.Prepare(`SELECT allanime_id, anilist_id, title, media_type, total_episodes, status, last_checked, last_episode, updated_at 
+		FROM followed_media ORDER BY updated_at DESC`)
+	if err != nil {
+		return nil, fmt.Errorf("followAll preparation failed: %w", err)
+	}
+
+	followDelete, err := db.Prepare(`DELETE FROM followed_media WHERE allanime_id = ?`)
+	if err != nil {
+		return nil, fmt.Errorf("followDelete preparation failed: %w", err)
+	}
+
+	// Scraper Health Statements
+	healthUpdate, err := db.Prepare(`INSERT INTO scraper_health (
+		scraper_name, total_searches, failed_searches, last_failure, last_update
+	) VALUES (?,1,?,?,?)
+	ON CONFLICT(scraper_name) DO UPDATE SET
+		total_searches = scraper_health.total_searches + 1,
+		failed_searches = scraper_health.failed_searches + ?,
+		last_failure = CASE WHEN ? != '' THEN ? ELSE scraper_health.last_failure END,
+		last_update = excluded.last_update`)
+	if err != nil {
+		return nil, fmt.Errorf("healthUpdate preparation failed: %w", err)
+	}
+
+	healthAll, err := db.Prepare(`SELECT scraper_name, total_searches, failed_searches, last_failure, last_update 
+		FROM scraper_health ORDER BY failed_searches DESC`)
+	if err != nil {
+		return nil, fmt.Errorf("healthAll preparation failed: %w", err)
+	}
+
 	return &preparedStatements{
-		upsert: upsert,
-		get:    get,
-		all:    all,
-		delete: delete,
+		upsert:       upsert,
+		get:          get,
+		all:          all,
+		delete:       delete,
+		followUpsert: followUpsert,
+		followGet:    followGet,
+		followAll:    followAll,
+		followDelete: followDelete,
+		healthUpdate: healthUpdate,
+		healthAll:    healthAll,
 	}, nil
 }
 
@@ -480,6 +604,149 @@ func (t *LocalTracker) DeleteAnime(anilistID int, allanimeID string) error {
 	return err
 }
 
+// UpdateFollowedMedia adds or updates a media in the watchlist
+func (t *LocalTracker) UpdateFollowedMedia(m FollowedMedia) error {
+	if t == nil || t.followUpsertPS == nil {
+		return ErrTrackerNotInited
+	}
+	_, err := t.followUpsertPS.Exec(
+		m.AllanimeID,
+		m.AnilistID,
+		m.Title,
+		m.MediaType,
+		m.TotalEpisodes,
+		m.Status,
+		m.LastChecked.Unix(),
+		m.LastEpisode,
+		m.UpdatedAt.Unix(),
+	)
+	return err
+}
+
+// GetFollowedMedia retrieves a single followed media
+func (t *LocalTracker) GetFollowedMedia(allanimeID string) (*FollowedMedia, error) {
+	if t == nil || t.followGetPS == nil {
+		return nil, ErrTrackerNotInited
+	}
+	var m FollowedMedia
+	var lc, ua int64
+	err := t.followGetPS.QueryRow(allanimeID).Scan(
+		&m.AnilistID,
+		&m.Title,
+		&m.MediaType,
+		&m.TotalEpisodes,
+		&m.Status,
+		&lc,
+		&m.LastEpisode,
+		&ua,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	m.AllanimeID = allanimeID
+	m.LastChecked = time.Unix(lc, 0)
+	m.UpdatedAt = time.Unix(ua, 0)
+	return &m, nil
+}
+
+// GetAllFollowedMedia retrieves all items in the watchlist
+func (t *LocalTracker) GetAllFollowedMedia() ([]FollowedMedia, error) {
+	if t == nil || t.followAllPS == nil {
+		return nil, ErrTrackerNotInited
+	}
+	rows, err := t.followAllPS.Query()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []FollowedMedia
+	for rows.Next() {
+		var m FollowedMedia
+		var lc, ua int64
+		if err := rows.Scan(
+			&m.AllanimeID,
+			&m.AnilistID,
+			&m.Title,
+			&m.MediaType,
+			&m.TotalEpisodes,
+			&m.Status,
+			&lc,
+			&m.LastEpisode,
+			&ua,
+		); err != nil {
+			return nil, err
+		}
+		m.LastChecked = time.Unix(lc, 0)
+		m.UpdatedAt = time.Unix(ua, 0)
+		list = append(list, m)
+	}
+	return list, nil
+}
+
+// UnfollowMedia removes an item from the watchlist
+func (t *LocalTracker) UnfollowMedia(allanimeID string) error {
+	if t == nil || t.followDeletePS == nil {
+		return ErrTrackerNotInited
+	}
+	_, err := t.followDeletePS.Exec(allanimeID)
+	return err
+}
+
+// TrackScraperAction records a success or failure for a scraper
+func (t *LocalTracker) TrackScraperAction(name string, success bool, lastErr string) error {
+	if t == nil || t.healthUpdatePS == nil {
+		return ErrTrackerNotInited
+	}
+	failInc := 0
+	if !success {
+		failInc = 1
+	}
+	now := time.Now().Unix()
+	_, err := t.healthUpdatePS.Exec(
+		name,
+		lastErr,
+		now,
+		failInc,
+		lastErr,
+		lastErr,
+	)
+	return err
+}
+
+// GetScraperHealthRecords retrieves all scraper health data
+func (t *LocalTracker) GetScraperHealthRecords() ([]ScraperHealth, error) {
+	if t == nil || t.healthAllPS == nil {
+		return nil, ErrTrackerNotInited
+	}
+	rows, err := t.healthAllPS.Query()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []ScraperHealth
+	for rows.Next() {
+		var h ScraperHealth
+		var lu int64
+		if err := rows.Scan(
+			&h.ScraperName,
+			&h.TotalSearches,
+			&h.FailedSearches,
+			&h.LastFailure,
+			&lu,
+		); err != nil {
+			return nil, err
+		}
+		h.LastUpdate = time.Unix(lu, 0)
+		list = append(list, h)
+	}
+	return list, nil
+}
+
 /*
 ────────────────────────────────────────────────────────────────────────────*
 │  Finalização                                                               │
@@ -504,6 +771,12 @@ func (t *LocalTracker) Close() error {
 	closeStmt(t.getPS, "get")
 	closeStmt(t.allPS, "all")
 	closeStmt(t.deletePS, "delete")
+	closeStmt(t.followUpsertPS, "followUpsert")
+	closeStmt(t.followGetPS, "followGet")
+	closeStmt(t.followAllPS, "followAll")
+	closeStmt(t.followDeletePS, "followDelete")
+	closeStmt(t.healthUpdatePS, "healthUpdate")
+	closeStmt(t.healthAllPS, "healthAll")
 
 	if err := t.db.Close(); err != nil {
 		finalErr = fmt.Errorf("database close error: %w", err)

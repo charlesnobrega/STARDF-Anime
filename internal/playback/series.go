@@ -10,7 +10,9 @@ import (
 	"github.com/charlesnobrega/STARDF-Anime/internal/api"
 	"github.com/charlesnobrega/STARDF-Anime/internal/models"
 	"github.com/charlesnobrega/STARDF-Anime/internal/player"
+	"github.com/charlesnobrega/STARDF-Anime/internal/tracking"
 	"github.com/charlesnobrega/STARDF-Anime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/watchlist"
 	"github.com/charmbracelet/huh"
 )
 
@@ -19,7 +21,7 @@ func HandleSeries(anime *models.Anime, episodes []models.Episode, totalEpisodes 
 	animeMutex := sync.Mutex{}
 	isPaused := false
 
-	selectedEpisodeURL, episodeNumberStr, selectedEpisodeNum, err := SelectInitialEpisode(episodes)
+	selectedEpisodeURL, episodeNumberStr, selectedEpisodeNum, err := SelectInitialEpisode(anime, episodes)
 	if err != nil {
 		// If user selected back at initial episode selection, return to anime selection
 		if errors.Is(err, player.ErrBackRequested) {
@@ -49,7 +51,7 @@ func HandleSeries(anime *models.Anime, episodes []models.Episode, totalEpisodes 
 
 		// Check if user requested to go back to episode selection (from server selection)
 		if errors.Is(err, player.ErrBackToEpisodeSelection) {
-			selectedEpisodeURL, episodeNumberStr, selectedEpisodeNum, err = SelectInitialEpisode(episodes)
+			selectedEpisodeURL, episodeNumberStr, selectedEpisodeNum, err = SelectInitialEpisode(anime, episodes)
 			if err != nil {
 				// If user selected back at episode selection, go back to anime selection
 				if errors.Is(err, player.ErrBackRequested) {
@@ -88,7 +90,7 @@ func HandleSeries(anime *models.Anime, episodes []models.Episode, totalEpisodes 
 			}
 
 			// Select initial episode for the new anime
-			selectedEpisodeURL, episodeNumberStr, selectedEpisodeNum, err = SelectInitialEpisode(episodes)
+			selectedEpisodeURL, episodeNumberStr, selectedEpisodeNum, err = SelectInitialEpisode(anime, episodes)
 			if err != nil {
 				log.Printf("Error selecting episode for new anime: %v", err)
 				continue
@@ -137,7 +139,7 @@ func HandleSeries(anime *models.Anime, episodes []models.Episode, totalEpisodes 
 			}
 
 			// Select initial episode for the new anime
-			selectedEpisodeURL, episodeNumberStr, selectedEpisodeNum, err = SelectInitialEpisode(episodes)
+			selectedEpisodeURL, episodeNumberStr, selectedEpisodeNum, err = SelectInitialEpisode(anime, episodes)
 			if err != nil {
 				log.Printf("Error selecting episode for new anime: %v", err)
 				continue
@@ -149,7 +151,7 @@ func HandleSeries(anime *models.Anime, episodes []models.Episode, totalEpisodes 
 
 		// Handle episode selection
 		if userInput == "e" {
-			selectedEpisodeURL, episodeNumberStr, selectedEpisodeNum, err = SelectInitialEpisode(episodes)
+			selectedEpisodeURL, episodeNumberStr, selectedEpisodeNum, err = SelectInitialEpisode(anime, episodes)
 			if err != nil {
 				// If user selected back, just continue without changing episode
 				if errors.Is(err, player.ErrBackRequested) {
@@ -171,20 +173,39 @@ func HandleSeries(anime *models.Anime, episodes []models.Episode, totalEpisodes 
 	return nil
 }
 
-func SelectInitialEpisode(episodes []models.Episode) (string, string, int, error) {
-	selectedEpisodeURL, episodeNumberStr, err := player.SelectEpisodeWithFuzzyFinder(episodes)
-	if err != nil {
-		// Propagate back request error
-		if errors.Is(err, player.ErrBackRequested) {
-			return "", "", -1, player.ErrBackRequested
+func SelectInitialEpisode(anime *models.Anime, episodes []models.Episode) (string, string, int, error) {
+	for {
+		url, numStr, err := player.SelectEpisodeWithFuzzyFinder(episodes)
+		if err != nil {
+			if errors.Is(err, player.ErrFollowRequested) {
+				// Handle follow request
+				tracker := tracking.GetGlobalTracker()
+				if tracker != nil {
+					wm := watchlist.NewWatchlistManager(tracker)
+					media := &models.Media{
+						URL:           anime.URL,
+						Name:          anime.Name,
+						AnilistID:     anime.AnilistID,
+						MediaType:     anime.MediaType,
+						TotalEpisodes: len(episodes),
+						ImageURL:      anime.ImageURL,
+						Episodes:      nil, // Not needed for followed_media table basic entry
+					}
+					_ = wm.FollowMedia(media, "watching")
+				}
+				// After following, stay in this loop to let user select an episode
+				continue
+			}
+			// Propagate other errors
+			return "", "", -1, err
 		}
-		return "", "", 0, err
+		selectedEpisodeNum, err := strconv.Atoi(player.ExtractEpisodeNumber(numStr))
+		if err != nil {
+			// If it's a movie/single episode, ExtractEpisodeNumber returns "1"
+			return url, numStr, 1, nil
+		}
+		return url, numStr, selectedEpisodeNum, nil
 	}
-	selectedEpisodeNum, err := strconv.Atoi(player.ExtractEpisodeNumber(episodeNumberStr))
-	if err != nil {
-		return "", "", 0, err
-	}
-	return selectedEpisodeURL, episodeNumberStr, selectedEpisodeNum, nil
 }
 
 func handleUserNavigation(input string, episodes []models.Episode, currentNum, totalEpisodes int) (string, string, int) {

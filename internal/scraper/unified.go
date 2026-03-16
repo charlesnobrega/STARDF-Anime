@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/charlesnobrega/STARDF-Anime/internal/models"
+	"github.com/charlesnobrega/STARDF-Anime/internal/tracking"
 	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 )
 
@@ -297,16 +298,27 @@ func (sm *ScraperManager) searchWithTimeout(ctx context.Context, st ScraperType,
 	select {
 	case result := <-done:
 		timer.Stop()
+		tracker := tracking.GetGlobalTracker()
 		if result.err == nil {
 			util.PerfCount("search_success:" + sourceName)
+			if tracker != nil {
+				_ = tracker.TrackScraperAction(sourceName, true, "")
+			}
 		} else {
 			util.PerfCount("search_error:" + sourceName)
+			if tracker != nil {
+				_ = tracker.TrackScraperAction(sourceName, false, result.err.Error())
+			}
 		}
 		return result
 	case <-scraperCtx.Done():
 		timer.Stop()
 		util.PerfCount("search_timeout:" + sourceName)
 		util.Debug("Search timeout", "source", sourceName)
+		tracker := tracking.GetGlobalTracker()
+		if tracker != nil {
+			_ = tracker.TrackScraperAction(sourceName, false, "timeout")
+		}
 		return searchResult{
 			scraperType: st,
 			results:     nil,

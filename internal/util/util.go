@@ -64,7 +64,25 @@ var (
 	ErrUpdateRequested   = errors.New("update requested")
 	ErrDownloadRequested = errors.New("download requested")
 	ErrBackToMainMenu    = errors.New("back to main menu")
+	ErrExitRequested     = errors.New("exit requested")
 )
+
+// MenuAction defines possible actions from the main menu
+type MenuAction int
+
+const (
+	ActionSearch MenuAction = iota
+	ActionWatchlist
+	ActionContinue
+	ActionHealth
+	ActionExit
+)
+
+// MenuResult holds the result of the interactive menu selection
+type MenuResult struct {
+	Action     MenuAction
+	SearchTerm string
+}
 
 // DownloadRequest holds download command parameters
 type DownloadRequest struct {
@@ -169,34 +187,71 @@ func ParseFlags() (string, error) {
 	return animeName, err
 }
 
-// PromptInteractive handles the interactive selection of media type and name
-func PromptInteractive() (string, error) {
-	var mediaTypeChoice string
-	var err error
-
-	mediaTypeChoice, err = selectMediaType()
-	if err != nil {
-		return "", err
-	}
-	GlobalMediaType = mediaTypeChoice
-
-	animeName, err := getUserInput("Enter name")
-	if err != nil {
-		return "", err
+// PromptInteractive shows the main menu and returns the user's choice
+func PromptInteractive() (MenuResult, error) {
+	items := []huh.Option[MenuAction]{
+		huh.NewOption("🔍 Buscar Novo Conteúdo", ActionSearch),
+		huh.NewOption("📂 Minha Lista (Watchlist)", ActionWatchlist),
+		huh.NewOption("🕒 Continuar Assistindo", ActionContinue),
+		huh.NewOption("📊 Relatório de Plugins", ActionHealth),
+		huh.NewOption("❌ Sair", ActionExit),
 	}
 
-	return TreatingAnimeName(animeName), nil
+	var action MenuAction
+	form := huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[MenuAction]().
+				Title("StarDF-Anime - Menu Principal").
+				Description("Escolha uma opção:").
+				Options(items...).
+				Value(&action),
+		),
+	)
+
+	if err := form.Run(); err != nil {
+		return MenuResult{}, err
+	}
+
+	switch action {
+	case ActionSearch:
+		mediaType, err := selectMediaType()
+		if err != nil {
+			return MenuResult{}, err
+		}
+		GlobalMediaType = mediaType
+
+		searchTerm, err := getUserInput("Digite o nome da obra")
+		if err != nil {
+			return MenuResult{}, err
+		}
+		return MenuResult{Action: ActionSearch, SearchTerm: TreatingAnimeName(searchTerm)}, nil
+
+	case ActionWatchlist:
+		return MenuResult{Action: ActionWatchlist}, nil
+
+	case ActionContinue:
+		return MenuResult{Action: ActionContinue}, nil
+
+	case ActionHealth:
+		return MenuResult{Action: ActionHealth}, nil
+
+	case ActionExit:
+		return MenuResult{}, ErrExitRequested
+
+	default:
+		return MenuResult{}, fmt.Errorf("opção inválida")
+	}
 }
 
 // FlagParser (Legacy/Deprecated) - now just calls ParseFlags and PromptInteractive if needed
-func FlagParser() (string, error) {
+func FlagParser() (MenuResult, error) {
 	name, err := ParseFlags()
 	if err != nil {
-		return "", err
+		return MenuResult{}, err
 	}
 
 	if name != "" {
-		return name, nil
+		return MenuResult{Action: ActionSearch, SearchTerm: name}, nil
 	}
 
 	return PromptInteractive()
