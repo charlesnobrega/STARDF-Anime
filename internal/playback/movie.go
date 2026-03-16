@@ -166,7 +166,7 @@ func createUpdater(anime *models.Anime, isPaused *bool, animeMutex *sync.Mutex, 
 // getSocketPath retorna o caminho do socket MPV baseado no sistema operacional
 func getSocketPath() string {
 	if runtime.GOOS == "windows" {
-		return `\\.\pipe\goanime_mpvsocket`
+		return `\\.\pipe\stardf-anime_mpvsocket`
 	}
 	// Use os.TempDir() for macOS compatibility
 	return filepath.Join(os.TempDir(), "mpvsocket")

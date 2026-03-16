@@ -13,8 +13,8 @@
 }:
 
 buildGoApplication {
-  pname = "goanime";
-  version = "1.3";
+  pname = "stardf-anime";
+  version = "1.6.4";
   go = pkgs.go;
   pwd = ./.;
   src = ./.;

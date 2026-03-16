@@ -1,6 +1,6 @@
-# GoAnime Enhanced Web Scraping Integration
+# StarDF-Anime Enhanced Web Scraping Integration
 
-This integration adds powerful web scraping capabilities to GoAnime, inspired by the popular `ani-cli` script. It supports multiple anime streaming sources with automatic fallback and enhanced download features.
+This integration adds powerful web scraping capabilities to StarDF-Anime, inspired by the popular `ani-cli` script. It supports multiple anime streaming sources with automatic fallback and enhanced download features.
 
 ##  New Features
 
@@ -27,28 +27,28 @@ This integration adds powerful web scraping capabilities to GoAnime, inspired by
 ### Basic Usage
 ```bash
 # Search all sources
-goanime "naruto"
+stardf-anime "naruto"
 
 # Download with specific source
-goanime -d --source allanime "one piece" 1
+stardf-anime -d --source allanime "one piece" 1
 
 # Download with quality preference
-goanime -d --quality 720p "attack on titan" 5
+stardf-anime -d --quality 720p "attack on titan" 5
 
 # Download range with specific source and quality
-goanime -d -r --source animefire --quality best "demon slayer" 1-12
+stardf-anime -d -r --source animefire --quality best "demon slayer" 1-12
 ```
 
 ### Advanced Usage
 ```bash
 # Use AllAnime for high-quality content
-goanime -d --source allanime --quality 1080p "jujutsu kaisen" 10
+stardf-anime -d --source allanime --quality 1080p "jujutsu kaisen" 10
 
 # Use AnimeFire for Portuguese content
-goanime -d --source animefire "naruto" 25
+stardf-anime -d --source animefire "naruto" 25
 
 # Let the system choose the best source automatically
-goanime -d --quality best "bleach" 100
+stardf-anime -d --quality best "bleach" 100
 ```
 
 ##  Technical Implementation
@@ -88,16 +88,16 @@ type UnifiedScraper interface {
 
 ### Command Equivalents
 ```bash
-# ani-cli examples -> GoAnime equivalents
+# ani-cli examples -> StarDF-Anime equivalents
 
 # ani-cli -d "anime name" episode
-goanime -d "anime name" episode
+stardf-anime -d "anime name" episode
 
 # ani-cli -d -r "anime name" 1-5
-goanime -d -r "anime name" 1-5
+stardf-anime -d -r "anime name" 1-5
 
 # ani-cli -q 720p "anime name"
-goanime -d --quality 720p "anime name" 1
+stardf-anime -d --quality 720p "anime name" 1
 ```
 
 ##  Configuration
@@ -105,13 +105,13 @@ goanime -d --quality 720p "anime name" 1
 ### Environment Variables
 ```bash
 # Set default quality
-export GOANIME_DEFAULT_QUALITY=720p
+export STARDF_ANIME_DEFAULT_QUALITY=720p
 
 # Set default source
-export GOANIME_DEFAULT_SOURCE=allanime
+export STARDF_ANIME_DEFAULT_SOURCE=allanime
 
 # Set download directory
-export GOANIME_DOWNLOAD_DIR=/path/to/downloads
+export STARDF_ANIME_DOWNLOAD_DIR=/path/to/downloads
 ```
 
 ### Source Priority
@@ -126,25 +126,25 @@ When no source is specified, the system tries sources in this order:
 **No results found**
 ```bash
 # Try different sources
-goanime -d --source animefire "your anime" 1
+stardf-anime -d --source animefire "your anime" 1
 ```
 
 **Stream URL not found**
 ```bash
 # Try different quality
-goanime -d --quality worst "your anime" 1
+stardf-anime -d --quality worst "your anime" 1
 ```
 
 **Download fails**
 ```bash
 # Enable debug mode
-goanime --debug -d "your anime" 1
+stardf-anime --debug -d "your anime" 1
 ```
 
 ### Debug Mode
 Enable verbose logging to troubleshoot issues:
 ```bash
-goanime --debug -d --source allanime "your anime" 1
+stardf-anime --debug -d --source allanime "your anime" 1
 ```
 
 ##  Future Enhancements

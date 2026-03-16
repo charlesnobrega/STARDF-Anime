@@ -1,6 +1,6 @@
 # Auto-Update Functionality
 
-GoAnime now includes built-in auto-update functionality that allows users to
+StarDF-Anime now includes built-in auto-update functionality that allows users to
 update to the latest version without manually downloading and installing.
 
 ## Features
@@ -18,7 +18,7 @@ update to the latest version without manually downloading and installing.
 ### Check for Updates
 
 ```bash
-goanime --update
+stardf-anime --update
 ```
 
 This command will:
@@ -36,7 +36,7 @@ When an update is available, you'll see a beautiful menu like this:
 
 ```text
 ┃ Update Available!
-┃ A new version of GoAnime is available.
+┃ A new version of StarDF-Anime is available.
 ┃
 ┃ Current: v1.0.0
 ┃ Latest:  v1.1.0 (4.0 MB)
@@ -115,41 +115,41 @@ If automatic update fails, the system provides:
 ### Successful Update
 
 ```bash
-$ goanime --update
-INFO  GoAnime  : Checking for updates...
-INFO  GoAnime  : Update available: v1.0.0 → v1.1.0
+$ stardf-anime --update
+INFO  StarDF-Anime  : Checking for updates...
+INFO  StarDF-Anime  : Update available: v1.0.0 → v1.1.0
 # Interactive menu appears
-INFO  GoAnime  : Downloading GoAnime v1.1.0...
-INFO  GoAnime  : Downloading update...
-INFO  GoAnime  : Successfully updated to GoAnime v1.1.0!
-INFO  GoAnime  : The update has been installed. Please restart GoAnime to use
+INFO  StarDF-Anime  : Downloading StarDF-Anime v1.1.0...
+INFO  StarDF-Anime  : Downloading update...
+INFO  StarDF-Anime  : Successfully updated to StarDF-Anime v1.1.0!
+INFO  StarDF-Anime  : The update has been installed. Please restart StarDF-Anime to use
                    the new version.
 ```
 
 ### No Updates Available
 
 ```bash
-$ goanime --update
-INFO  GoAnime  : Checking for updates...
-INFO  GoAnime  : You're already running the latest version of GoAnime (v1.1.0)!
+$ stardf-anime --update
+INFO  StarDF-Anime  : Checking for updates...
+INFO  StarDF-Anime  : You're already running the latest version of StarDF-Anime (v1.1.0)!
 ```
 
 ### Update Declined
 
 ```bash
-$ goanime --update
-INFO  GoAnime  : Checking for updates...
-INFO  GoAnime  : Update available: v1.0.0 → v1.1.0
+$ stardf-anime --update
+INFO  StarDF-Anime  : Checking for updates...
+INFO  StarDF-Anime  : Update available: v1.0.0 → v1.1.0
 # User selects "No, maybe later"
-INFO  GoAnime  : Update skipped. You can update later by running: goanime --update
+INFO  StarDF-Anime  : Update skipped. You can update later by running: stardf-anime --update
 ```
 
 ## Integration with Help System
 
-The auto-update feature is fully integrated with GoAnime's help system:
+The auto-update feature is fully integrated with StarDF-Anime's help system:
 
 ```bash
-goanime --help
+stardf-anime --help
 ```
 
 Shows the `--update` flag in the options section with a clear description.

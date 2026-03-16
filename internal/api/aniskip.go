@@ -131,7 +131,7 @@ func WriteAniSkipSidecar(videoPath string, ep *models.Episode) error {
 		EDEnd:   ep.SkipTimes.Ed.End,
 		Updated: time.Now().Format(time.RFC3339),
 		Episode: ep.Number,
-		Source:  "GoAnime",
+		Source:  "StarDF-Anime",
 	}
 
 	b, _ := json.MarshalIndent(payload, "", "  ")

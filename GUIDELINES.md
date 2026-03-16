@@ -1,7 +1,7 @@
 # Operational Guidelines & Lessons Learned
 
 ## 🛠 Operational Rules
-1. **Clean Environment First**: Always run `taskkill /F /IM goanime.exe` before any build or execution to avoid file-in-use errors.
+1. **Clean Environment First**: Always run `taskkill /F /IM stardf-anime.exe` before any build or execution to avoid file-in-use errors.
 2. **2-Minute Rule**: Never allow a command to run for more than 2 minutes without progress. If it hangs, terminate and investigate immediately.
 3. **No log.Fatal**: Replace all `log.Fatalln` or `log.Fatal` with proper error returns to prevent the TUI from crashing abruptly.
 4. **Safe Selection**: Always validate slices/arrays length before accessing indices from user input (Fuzzy Finder).

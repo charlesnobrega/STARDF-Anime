@@ -45,7 +45,7 @@ func NewEpisodeDownloader(episodes []models.Episode, animeURL string) *EpisodeDo
 func NewEpisodeDownloaderWithAnime(episodes []models.Episode, animeURL string, anime *models.Anime) *EpisodeDownloader {
 	userHome, _ := os.UserHomeDir()
 	safeAnimeName := strings.ReplaceAll(player.DownloadFolderFormatter(animeURL), " ", "_")
-	outputDir := filepath.Join(userHome, ".local", "goanime", "downloads", "anime", safeAnimeName)
+	outputDir := filepath.Join(userHome, ".local", "stardf-anime", "downloads", "anime", safeAnimeName)
 
 	return &EpisodeDownloader{
 		config: DownloadConfig{

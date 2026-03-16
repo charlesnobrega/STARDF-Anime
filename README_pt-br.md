@@ -18,15 +18,16 @@
 
 # StarDF-Anime
 
-StarDF-Anime é uma interface de usuário baseada em texto (TUI) poderosa, desenvolvida em Go, evoluindo do StarDF-Anime original. Ele permite aos usuários procurar animes, filmes e séries, e reproduzir ou baixar conteúdos diretamente no mpv. É especificamente otimizado para scraping de alta performance e enriquecimento de metadados para conteúdos em português e inglês.
+StarDF-Anime é uma interface de terminal (TUI) poderosa para navegar, assistir e acompanhar seus animes e filmes. Conta com sincronização em tempo real com o AniList, busca de alta performance e metadados enriquecidos para conteúdos em português e inglês.
 
 ### Versão Mobile (Em breve)
 
 Uma versão mobile do StarDF-Anime está planejada para dispositivos Android.
 
-### Comunidade (Em breve)
+### Comunidade
 
-Um servidor oficial no Discord está nos planos para suporte e novidades.
+Entre na nossa comunidade oficial para suporte, atualizações e feedbacks:
+[![Discord](https://img.shields.io/discord/1234567890?color=5865F2&label=Discord&logo=discord&logoColor=white)](https://discord.gg/stardf-anime)
 
 ## Recursos
 
@@ -81,7 +82,11 @@ go run cmd/stardf-anime/main.go
 
 ## Filmes e Séries
 
-StarDF-Anime agora suporta filmes e séries através da fonte FlixHQ. Use a flag `--source flixhq` para buscar filmes e séries. Você também pode filtrar por tipo usando o parâmetro `--type` (por exemplo `--type movie` para buscar somente filmes).
+StarDF-Anime agora suporta filmes e séries através da fonte FlixHQ. 
+
+### Como usar:
+- Use a flag `--source flixhq` para buscar filmes e séries.
+- Você também pode filtrar por tipo usando o parâmetro `--type` (ex: `--type movie` para filmes ou `--type tv` para séries).
 
 ```bash
 # Buscar filmes/séries
@@ -107,20 +112,20 @@ stardf-anime --source flixhq --subs "Avatar"
 Usando Yay:
 
 ```bash
-yay -S StarDF-Anime
+yay -S stardf-anime
 ```
 
 ou usando Paru:
 
 ```bash
-paru -S StarDF-Anime
+paru -S stardf-anime
 ```
 
 Ou, para clonar e instalar manualmente:
 
 ```bash
-git clone https://aur.archlinux.org/StarDF-Anime.git
-cd StarDF-Anime
+git clone https://aur.archlinux.org/stardf-anime.git
+cd stardf-anime
 makepkg -si
 sudo pacman -S mpv
 ```
@@ -134,7 +139,7 @@ sudo pacman -S mpv
 sudo apt update
 sudo apt install mpv
 
-# Para sistemas x86_64 (Em breve):
+# Para sistemas x86_64:
 # curl -Lo stardf-anime https://github.com/charlesnobrega/STARDF-Anime/releases/latest/download/stardf-anime-linux
 ```
 
@@ -147,7 +152,7 @@ sudo apt install mpv
 sudo dnf update
 sudo dnf install mpv
 
-# Para sistemas x86_64 (Em breve):
+# Para sistemas x86_64:
 # curl -Lo stardf-anime https://github.com/charlesnobrega/STARDF-Anime/releases/latest/download/stardf-anime-linux
 ```
 
@@ -173,11 +178,11 @@ sudo zypper install mpv
 
 > **Altamente Recomendado:** Use o instalador para a melhor experiência no Windows.
 
-Opção 1: Usando o instalador (Em breve)
+Opção 1: Usando o instalador
 
 - Um instalador Windows estará disponível na próxima versão.
 
-Opção 2: Executável independente (Em breve)
+Opção 2: Executável independente
 
 - Executáveis estarão disponíveis na seção de [releases](https://github.com/charlesnobrega/STARDF-Anime/releases) em breve.
 
@@ -197,7 +202,7 @@ Primeiro, instale o mpv usando o Homebrew:
 # Instale o mpv
 brew install mpv
 
-# Baixe e instale o StarDF-Anime (Em breve)
+# Baixe e instale o stardf-anime
 # curl -Lo stardf-anime https://github.com/charlesnobrega/STARDF-Anime/releases/latest/download/stardf-anime-apple-darwin
 ```
 
@@ -213,75 +218,34 @@ sudo port install mpv
 
 </details>
 
-### Passos de Configuração Adicionais
+### Uso
 
-# Instalação no NixOS (Flakes)
+Para iniciar a aplicação, basta executar:
 
-## Execução Temporária
-
-```shell
-nix github:charlesnobrega/STARDF-Anime
-```
-
-## Instalação
-
-Adicione no seu `flake.nix`:
-
-```nix
- inputs.StarDF-Anime.url = "github:charlesnobrega/STARDF-Anime";
-```
-
-Passe as entradas para seus módulos usando `specialArgs` e então no `configuration.nix`:
-
-```nix
-environment.systemPackages = [
-  inputs.StarDF-Anime.packages.${pkgs.system}.StarDF-Anime
-];
-```
-
-### Uso no Linux e macOS
-
-```shell
-go-anime
-```
-
-### Uso no Windows
-
-```shell
-StarDF-Anime
+```bash
+stardf-anime
 ```
 
 ### Uso Avançado
 
-Você também pode usar parâmetros para procurar e reproduzir anime diretamente. Aqui estão alguns exemplos:
+Você pode buscar e reproduzir conteúdos diretamente pela linha de comando:
 
-- Para procurar e reproduzir um anime diretamente, use o seguinte comando:
-
-```shell
-StarDF-Anime  "nome do anime"
+- Buscar e reproduzir:
+```bash
+stardf-anime "One Piece"
 ```
 
-- Para atualizar o StarDF-Anime para a versão mais recente, use a flag de atualização:
-
-```shell
-StarDF-Anime --update
+- Atualizar para a versão mais recente:
+```bash
+stardf-anime --update
 ```
 
-Este comando irá automaticamente baixar e instalar a versão mais recente do StarDF-Anime usando o mecanismo de atualização integrado do Go.
-
-Você pode usar a opção `-h` ou `--help` para exibir informações de ajuda sobre como usar o comando `StarDF-Anime`.
-
-```shell
-StarDF-Anime -h
+- Ajuda e opções:
+```bash
+stardf-anime --help
 ```
 
-O programa solicitará que você insira o nome de um anime. Digite o nome do anime que deseja assistir.
-
-O programa apresentará uma lista de animes que correspondem à sua entrada. Navegue pela lista usando as setas do teclado e pressione enter para selecionar um anime.
-
-Em seguida, o programa apresentará uma lista de episódios do anime selecionado. Novamente, navegue pela lista usando as setas do teclado e pressione enter para selecionar um episódio.
-
-O episódio selecionado será então reproduzido no MPV.
+O programa oferece uma TUI totalmente interativa. Você pode navegar pelos resultados, telas de seleção e controles de reprodução usando seu teclado.
 
 # Agradecimentos
 

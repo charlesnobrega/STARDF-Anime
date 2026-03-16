@@ -1,8 +1,8 @@
-# GoAnime Library Integration Guide
+# StarDF Library Integration Guide
 
 ## 📦 O que foi criado
 
-Foi criada uma estrutura completa em `pkg/goanime` que expõe as funcionalidades de scraping e busca do GoAnime como uma biblioteca pública para ser usada em outros projetos Go.
+Foi criada uma estrutura completa em `pkg/stardf` que expõe as funcionalidades de scraping e busca do StarDF-Anime como uma biblioteca pública para ser usada em outros projetos Go.
 
 ## 🎯 Estrutura Criada
 
@@ -10,7 +10,7 @@ Foi criada uma estrutura completa em `pkg/goanime` que expõe as funcionalidades
 pkg/
 ├── README.md                                 # Documentação principal da biblioteca
 ├── PACKAGE_INFO.md                          # Informações sobre a estrutura do pacote
-└── goanime/                                 # Pacote principal
+└── stardf/                                 # Pacote principal
     ├── client.go                            # Cliente principal da API
     ├── client_test.go                       # Testes unitários e de integração
     ├── doc.go                               # Documentação do pacote
@@ -41,12 +41,12 @@ package main
 import (
     "fmt"
     "log"
-    "github.com/charlesnobrega/STARDF-Anime/pkg/goanime"
+    "github.com/charlesnobrega/STARDF-Anime/pkg/stardf"
 )
 
 func main() {
     // Criar cliente
-    client := goanime.NewClient()
+    client := stardf.NewClient()
     
     // Buscar anime
     results, err := client.SearchAnime("Naruto", nil)
@@ -64,9 +64,9 @@ func main() {
 ### 3. Busca em Fonte Específica
 
 ```go
-import "github.com/charlesnobrega/STARDF-Anime/pkg/goanime/types"
+import "github.com/charlesnobrega/STARDF-Anime/pkg/stardf/types"
 
-client := goanime.NewClient()
+client := stardf.NewClient()
 
 // Buscar apenas no AllAnime
 source := types.SourceAllAnime
@@ -136,13 +136,13 @@ for key, value := range headers {
 
 ```bash
 # Executar todos os testes
-go test ./pkg/goanime/...
+go test ./pkg/stardf/...
 
 # Apenas testes unitários (sem integração)
-go test -short ./pkg/goanime/...
+go test -short ./pkg/stardf/...
 
 # Com verbose
-go test -v ./pkg/goanime/...
+go test -v ./pkg/stardf/...
 ```
 
 **Resultado:** ✅ Todos os testes passando
@@ -151,16 +151,16 @@ go test -v ./pkg/goanime/...
 
 ```bash
 # Exemplo de busca
-go build -o search ./pkg/goanime/examples/search/
+go build -o search ./pkg/stardf/examples/search/
 
 # Exemplo de episódios
-go build -o episodes ./pkg/goanime/examples/episodes/
+go build -o episodes ./pkg/stardf/examples/episodes/
 
 # Exemplo de stream
-go build -o stream ./pkg/goanime/examples/stream/
+go build -o stream ./pkg/stardf/examples/stream/
 
 # Exemplo de fonte específica
-go build -o source ./pkg/goanime/examples/source_specific/
+go build -o source ./pkg/stardf/examples/source_specific/
 ```
 
 ## ✅ Verificações
@@ -175,8 +175,8 @@ go build -o source ./pkg/goanime/examples/source_specific/
 ## 📖 Documentação
 
 1. **[pkg/README.md](pkg/README.md)** - Visão geral e início rápido
-2. **[pkg/goanime/README.md](pkg/goanime/README.md)** - Documentação detalhada da API
-3. **[pkg/goanime/examples/](pkg/goanime/examples/)** - Exemplos práticos de uso
+2. **[pkg/stardf/README.md](pkg/stardf/README.md)** - Documentação detalhada da API
+3. **[pkg/stardf/examples/](pkg/stardf/examples/)** - Exemplos práticos de uso
 4. **[pkg/PACKAGE_INFO.md](pkg/PACKAGE_INFO.md)** - Informações sobre o pacote
 
 ## 🎓 Exemplos de Integração
@@ -253,8 +253,8 @@ MIT License - veja [LICENSE](../LICENSE)
 ## 🔗 Links Úteis
 
 - Repositório principal: https://github.com/charlesnobrega/STARDF-Anime
-- Documentação completa: [pkg/goanime/README.md](pkg/goanime/README.md)
-- Exemplos: [pkg/goanime/examples/](pkg/goanime/examples/)
+- Documentação completa: [pkg/stardf/README.md](pkg/stardf/README.md)
+- Exemplos: [pkg/stardf/examples/](pkg/stardf/examples/)
 - Issues: https://github.com/charlesnobrega/STARDF-Anime/issues
 
 ---

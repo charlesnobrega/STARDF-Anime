@@ -1,7 +1,7 @@
 # Developer's Guide
 
-Welcome to the GoAnime development guide! This document outlines the development
-workflow, coding standards, and best practices for contributing to the GoAnime
+Welcome to the StarDF-Anime development guide! This document outlines the development
+workflow, coding standards, and best practices for contributing to the StarDF-Anime
 project.
 
 ## Table of Contents
@@ -42,7 +42,7 @@ project.
 ```bash
 # Clone the repository
 git clone https://github.com/charlesnobrega/STARDF-Anime.git
-cd GoAnime
+cd STARDF-Anime
 
 # Switch to dev branch
 git checkout dev
@@ -138,7 +138,7 @@ if exists := checkLocalCache(animeID); exists {
 ### Example Code Style
 
 ```go
-// Package player provides video playback functionality for GoAnime.
+// Package player provides video playback functionality for StarDF-Anime.
 package player
 
 import (
@@ -275,10 +275,10 @@ func TestPlayer_Play(t *testing.T) {
 
 ```bash
 # Build for current platform
-go build -o bin/goanime cmd/goanime/main.go
+go build -o bin/stardf-anime cmd/stardf-anime/main.go
 
 # Run the application
-./bin/goanime
+./bin/stardf-anime
 ```
 
 ### Cross-Platform Builds
@@ -357,7 +357,7 @@ docs(readme): update installation instructions
 
 ### Project Structure
 
-Understanding the GoAnime project structure will help you navigate and contribute
+Understanding the StarDF-Anime project structure will help you navigate and contribute
 effectively:
 
 **Key Directories Explained:**

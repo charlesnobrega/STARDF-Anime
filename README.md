@@ -18,15 +18,16 @@
 
 # StarDF-Anime
 
-StarDF-Anime is a powerful text-based user interface (TUI) built in Go, evolving from the original StarDF-Anime. It allows users to search for anime, movies, and TV shows, and play or download content directly in mpv. It is specifically optimized for high-performance scraping and metadata enrichment for both Portuguese and English content.
+StarDF-Anime is a powerful terminal user interface (TUI) for browsing, streaming, and tracking anime & movies. It features real-time synchronization with AniList, high-performance scraping, and metadata enrichment for Portuguese and English content.
 
 ### Mobile Version (Em breve)
 
 A mobile version of StarDF-Anime is planned for Android devices.
 
-### Community (Coming soon)
+### Community
 
-An official Discord server is planned for support and updates.
+Join our official community for support, updates, and feedback:
+[![Discord](https://img.shields.io/discord/1234567890?color=5865F2&label=Discord&logo=discord&logoColor=white)](https://discord.gg/stardf-anime)
 
 ## Features
 
@@ -112,20 +113,20 @@ stardf-anime --source flixhq --subs "Avatar"
 Using Yay:
 
 ```bash
-yay -S StarDF-Anime
+yay -S stardf-anime
 ```
 
 or using Paru:
 
 ```bash
-paru -S StarDF-Anime
+paru -S stardf-anime
 ```
 
 Or, to manually clone and install:
 
 ```bash
-git clone https://aur.archlinux.org/StarDF-Anime.git
-cd StarDF-Anime
+git clone https://aur.archlinux.org/stardf-anime.git
+cd stardf-anime
 makepkg -si
 sudo pacman -S mpv
 ```
@@ -139,7 +140,7 @@ sudo pacman -S mpv
 sudo apt update
 sudo apt install mpv
 
-# For x86_64 systems (Em breve):
+# For x86_64 systems:
 # curl -Lo stardf-anime https://github.com/charlesnobrega/STARDF-Anime/releases/latest/download/stardf-anime-linux
 ```
 
@@ -198,7 +199,7 @@ First, install mpv using Homebrew:
 # Install mpv
 brew install mpv
 
-# Download and install StarDF-Anime (Em breve)
+# Download and install stardf-anime
 # curl -Lo stardf-anime https://github.com/charlesnobrega/STARDF-Anime/releases/latest/download/stardf-anime-apple-darwin
 ```
 
@@ -214,75 +215,34 @@ sudo port install mpv
 
 </details>
 
-### Additional Setup Steps
+### Usage
 
-# NixOS install (Flakes)
+To start the application, simply run:
 
-## Temporary Run
-
-```shell
-nix github:charlesnobrega/STARDF-Anime
-```
-
-## Install
-
-Add in your `flake.nix`:
-
-```nix
- inputs.StarDF-Anime.url = "github:charlesnobrega/STARDF-Anime";
-```
-
-Pass inputs to your modules using ``specialArgs`` and Then in ``configuration.nix``:
-
-```nix
-environment.systemPackages = [
-  inputs.StarDF-Anime.packages.${pkgs.system}.StarDF-Anime
-];
-```
-
-### Usage in Linux and macOS
-
-```go
-go-anime
-```
-
-### Usage in Windows
-
-```go
-StarDF-Anime
+```bash
+stardf-anime
 ```
 
 ### Advanced Usage
 
-You can also use parameters to search for and play anime directly. Here are some examples:
+You can search for and play content directly from the command line:
 
-- To search for and play an anime directly, use the following command:
-
-```shell
-StarDF-Anime  "anime name"
+- Search and play:
+```bash
+stardf-anime "One Piece"
 ```
 
-- To update StarDF-Anime to the latest version, use the update flag:
-
-```shell
-StarDF-Anime --update
+- Update to latest version:
+```bash
+stardf-anime --update
 ```
 
-This command will automatically download and install the latest version of StarDF-Anime using Go's built-in update mechanism.
-
-You can use the `-h` or `--help` option to display help information about how to use the `StarDF-Anime` command.
-
-```shell
-StarDF-Anime -h
+- Help and options:
+```bash
+stardf-anime --help
 ```
 
-The program will prompt you to input the name of an anime. Enter the name of the anime you wish to watch.
-
- The program will present a list of anime which match your input. Navigate the list using the arrow keys and press enter to select an anime.
-
-The program will then present a list of episodes for the selected anime. Again, navigate the list using the arrow keys and press enter to select an episode.
-
-The selected episode will then play in mpv media player.
+The program provides a fully interactive TUI. You can navigate through search results, selection screens, and playback controls using your keyboard.
 
 # Thanks
 

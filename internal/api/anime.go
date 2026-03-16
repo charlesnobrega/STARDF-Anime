@@ -411,7 +411,7 @@ func httpPost(url string, body []byte) (*http.Response, error) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "GoAnime/1.0")
+	req.Header.Set("User-Agent", "StarDF-Anime/1.0")
 	return util.GetSharedClient().Do(req)
 }
 
@@ -423,7 +423,7 @@ func httpPostFast(url string, body []byte) (*http.Response, error) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "GoAnime/1.0")
+	req.Header.Set("User-Agent", "StarDF-Anime/1.0")
 	return util.GetFastClient().Do(req)
 }
 

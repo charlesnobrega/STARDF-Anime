@@ -451,9 +451,9 @@ func getCurrentEpisode(episodes []models.Episode, num int) (*models.Episode, err
 
 // 	var dbPath string
 // 	if runtime.GOOS == "windows" {
-// 		dbPath = filepath.Join(os.Getenv("LOCALAPPDATA"), "GoAnime", "tracking", "progress.db")
+// 		dbPath = filepath.Join(os.Getenv("LOCALAPPDATA"), "StarDF-Anime", "tracking", "progress.db")
 // 	} else {
-// 		dbPath = filepath.Join(currentUser.HomeDir, ".local", "goanime", "tracking", "progress.db")
+// 		dbPath = filepath.Join(currentUser.HomeDir, ".local", "stardf-anime", "tracking", "progress.db")
 // 	}
 
 // 	tracker := tracking.NewLocalTracker(dbPath)
@@ -491,9 +491,9 @@ func getTrackerDBPath() string {
 	}
 
 	if runtime.GOOS == "windows" {
-		cachedDBPath = filepath.Join(os.Getenv("LOCALAPPDATA"), "GoAnime", "tracking", "progress.db")
+		cachedDBPath = filepath.Join(os.Getenv("LOCALAPPDATA"), "stardf-anime", "tracking", "progress.db")
 	} else {
-		cachedDBPath = filepath.Join(currentUser.HomeDir, ".local", "goanime", "tracking", "progress.db")
+		cachedDBPath = filepath.Join(currentUser.HomeDir, ".local", "stardf-anime", "tracking", "progress.db")
 	}
 
 	return cachedDBPath
@@ -852,7 +852,7 @@ func syncAniListProgress(anilistID, episodeNum int) {
 func showPlayerMenu(animeName string, currentEpisodeNum int, isMovieOrTV bool) (string, error) {
 	var choice string
 
-	title := "GoAnime Player Controls"
+	title := "StarDF-Anime Player Controls"
 	if animeName != "" {
 		title = fmt.Sprintf("Now playing: %s - Episode %d", animeName, currentEpisodeNum)
 	}

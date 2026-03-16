@@ -1,5 +1,5 @@
 {
-  description = "A basic gomod2nix flake";
+  description = "A terminal tool to browse, play, and track anime & movies with AniList sync.";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   inputs.flake-utils.url = "github:numtide/flake-utils";

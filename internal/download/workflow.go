@@ -60,7 +60,7 @@ func HandleDownloadRequest(request *util.DownloadRequest) error {
 
 // ExampleSingleDownload demonstrates single episode download
 func ExampleSingleDownload() {
-	// Command: goanime -d "My Hero Academia" 15
+	// Command: stardf-anime -d "My Hero Academia" 15
 	// This would create a DownloadRequest like:
 	request := &util.DownloadRequest{
 		AnimeName:  "My Hero Academia",
@@ -75,7 +75,7 @@ func ExampleSingleDownload() {
 
 // ExampleRangeDownload demonstrates episode range download
 func ExampleRangeDownload() {
-	// Command: goanime -d -r "Attack on Titan" 1-5
+	// Command: stardf-anime -d -r "Attack on Titan" 1-5
 	// This would create a DownloadRequest like:
 	request := &util.DownloadRequest{
 		AnimeName:    "Attack on Titan",

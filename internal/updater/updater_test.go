@@ -24,12 +24,12 @@ var mockRelease = GitHubRelease{
 		Name               string `json:"name"`
 		BrowserDownloadURL string `json:"browser_download_url"`
 	}{
-		{Name: "goanime-linux-amd64", BrowserDownloadURL: "http://example.com/goanime-linux-amd64"},
-		{Name: "goanime-windows-amd64.exe", BrowserDownloadURL: "http://example.com/goanime-windows-amd64.exe"},
-		{Name: "goanime-darwin-amd64", BrowserDownloadURL: "http://example.com/goanime-darwin-amd64"},
-		{Name: "goanime-darwin-arm64", BrowserDownloadURL: "http://example.com/goanime-darwin-arm64"},
-		{Name: "goanime-darwin-universal", BrowserDownloadURL: "http://example.com/goanime-darwin-universal"},
-		{Name: "goanime-darwin", BrowserDownloadURL: "http://example.com/goanime-darwin"},
+		{Name: "stardf-anime-linux-amd64", BrowserDownloadURL: "http://example.com/stardf-anime-linux-amd64"},
+		{Name: "stardf-anime-windows-amd64.exe", BrowserDownloadURL: "http://example.com/stardf-anime-windows-amd64.exe"},
+		{Name: "stardf-anime-darwin-amd64", BrowserDownloadURL: "http://example.com/stardf-anime-darwin-amd64"},
+		{Name: "stardf-anime-darwin-arm64", BrowserDownloadURL: "http://example.com/stardf-anime-darwin-arm64"},
+		{Name: "stardf-anime-darwin-universal", BrowserDownloadURL: "http://example.com/stardf-anime-darwin-universal"},
+		{Name: "stardf-anime-darwin", BrowserDownloadURL: "http://example.com/stardf-anime-darwin"},
 	},
 }
 
@@ -123,25 +123,25 @@ func TestFindAssetForPlatform(t *testing.T) {
 		{
 			name:         "linux amd64",
 			platform:     PlatformInfo{OS: "linux", Arch: "amd64"},
-			expectedName: "goanime-linux-amd64",
+			expectedName: "stardf-anime-linux-amd64",
 			hasError:     false,
 		},
 		{
 			name:         "windows amd64",
 			platform:     PlatformInfo{OS: "windows", Arch: "amd64"},
-			expectedName: "goanime-windows-amd64.exe",
+			expectedName: "stardf-anime-windows-amd64.exe",
 			hasError:     false,
 		},
 		{
 			name:         "darwin amd64",
 			platform:     PlatformInfo{OS: "darwin", Arch: "amd64"},
-			expectedName: "goanime-darwin-amd64",
+			expectedName: "stardf-anime-darwin-amd64",
 			hasError:     false,
 		},
 		{
 			name:         "darwin arm64",
 			platform:     PlatformInfo{OS: "darwin", Arch: "arm64"},
-			expectedName: "goanime-darwin-arm64",
+			expectedName: "stardf-anime-darwin-arm64",
 			hasError:     false,
 		},
 	}
@@ -335,7 +335,7 @@ func TestDownloadAsset_MockServer(t *testing.T) {
 
 	// Verify file exists in temp directory
 	assert.True(t, strings.Contains(tempFile, os.TempDir()))
-	assert.True(t, strings.Contains(tempFile, "goanime-update-"))
+	assert.True(t, strings.Contains(tempFile, "stardf-anime-update-"))
 }
 
 func TestDownloadAsset_ServerError(t *testing.T) {
@@ -696,9 +696,9 @@ func TestFindAssetForPlatform_CaseSensitivity(t *testing.T) {
 			Name               string `json:"name"`
 			BrowserDownloadURL string `json:"browser_download_url"`
 		}{
-			{Name: "GoAnime-Linux-amd64", BrowserDownloadURL: "http://example.com/GoAnime-Linux-amd64"},
-			{Name: "GOANIME-WINDOWS-AMD64.EXE", BrowserDownloadURL: "http://example.com/GOANIME-WINDOWS-AMD64.EXE"},
-			{Name: "goanime-darwin-amd64", BrowserDownloadURL: "http://example.com/goanime-darwin-amd64"},
+			{Name: "StarDF-Anime-Linux-amd64", BrowserDownloadURL: "http://example.com/StarDF-Anime-Linux-amd64"},
+			{Name: "STARDF-ANIME-WINDOWS-AMD64.EXE", BrowserDownloadURL: "http://example.com/STARDF-ANIME-WINDOWS-AMD64.EXE"},
+			{Name: "stardf-anime-darwin-amd64", BrowserDownloadURL: "http://example.com/stardf-anime-darwin-amd64"},
 		},
 	}
 
@@ -711,19 +711,19 @@ func TestFindAssetForPlatform_CaseSensitivity(t *testing.T) {
 		{
 			name:         "linux case insensitive match",
 			platform:     PlatformInfo{OS: "linux", Arch: "amd64"},
-			expectedName: "GoAnime-Linux-amd64",
+			expectedName: "StarDF-Anime-Linux-amd64",
 			shouldFind:   true,
 		},
 		{
 			name:         "windows case insensitive match",
 			platform:     PlatformInfo{OS: "windows", Arch: "amd64"},
-			expectedName: "GOANIME-WINDOWS-AMD64.EXE",
+			expectedName: "STARDF-ANIME-WINDOWS-AMD64.EXE",
 			shouldFind:   true,
 		},
 		{
 			name:         "darwin exact match",
 			platform:     PlatformInfo{OS: "darwin", Arch: "amd64"},
-			expectedName: "goanime-darwin-amd64",
+			expectedName: "stardf-anime-darwin-amd64",
 			shouldFind:   true,
 		},
 	}
@@ -854,22 +854,22 @@ func TestFindAssetForPlatform_AllCombinations(t *testing.T) {
 			BrowserDownloadURL string `json:"browser_download_url"`
 		}{
 			// Linux assets
-			{Name: "goanime-linux-amd64", BrowserDownloadURL: "http://example.com/goanime-linux-amd64"},
-			{Name: "goanime-linux-386", BrowserDownloadURL: "http://example.com/goanime-linux-386"},
-			{Name: "goanime-linux-arm64", BrowserDownloadURL: "http://example.com/goanime-linux-arm64"},
+			{Name: "stardf-anime-linux-amd64", BrowserDownloadURL: "http://example.com/stardf-anime-linux-amd64"},
+			{Name: "stardf-anime-linux-386", BrowserDownloadURL: "http://example.com/stardf-anime-linux-386"},
+			{Name: "stardf-anime-linux-arm64", BrowserDownloadURL: "http://example.com/stardf-anime-linux-arm64"},
 
 			// Windows assets
-			{Name: "goanime-windows-amd64.exe", BrowserDownloadURL: "http://example.com/goanime-windows-amd64.exe"},
-			{Name: "goanime-windows-386.exe", BrowserDownloadURL: "http://example.com/goanime-windows-386.exe"},
+			{Name: "stardf-anime-windows-amd64.exe", BrowserDownloadURL: "http://example.com/stardf-anime-windows-amd64.exe"},
+			{Name: "stardf-anime-windows-386.exe", BrowserDownloadURL: "http://example.com/stardf-anime-windows-386.exe"},
 
 			// macOS assets
-			{Name: "goanime-darwin-amd64", BrowserDownloadURL: "http://example.com/goanime-darwin-amd64"},
-			{Name: "goanime-darwin-arm64", BrowserDownloadURL: "http://example.com/goanime-darwin-arm64"},
-			{Name: "goanime-darwin-universal", BrowserDownloadURL: "http://example.com/goanime-darwin-universal"},
-			{Name: "goanime-darwin", BrowserDownloadURL: "http://example.com/goanime-darwin"},
+			{Name: "stardf-anime-darwin-amd64", BrowserDownloadURL: "http://example.com/stardf-anime-darwin-amd64"},
+			{Name: "stardf-anime-darwin-arm64", BrowserDownloadURL: "http://example.com/stardf-anime-darwin-arm64"},
+			{Name: "stardf-anime-darwin-universal", BrowserDownloadURL: "http://example.com/stardf-anime-darwin-universal"},
+			{Name: "stardf-anime-darwin", BrowserDownloadURL: "http://example.com/stardf-anime-darwin"},
 
 			// Alternative naming patterns
-			{Name: "goanime-macos-amd64", BrowserDownloadURL: "http://example.com/goanime-macos-amd64"},
+			{Name: "stardf-anime-macos-amd64", BrowserDownloadURL: "http://example.com/stardf-anime-macos-amd64"},
 		},
 	}
 
@@ -878,13 +878,13 @@ func TestFindAssetForPlatform_AllCombinations(t *testing.T) {
 		arch         string
 		expectedName string
 	}{
-		{"linux", "amd64", "goanime-linux-amd64"},
-		{"linux", "386", "goanime-linux-386"},
-		{"linux", "arm64", "goanime-linux-arm64"},
-		{"windows", "amd64", "goanime-windows-amd64.exe"},
-		{"windows", "386", "goanime-windows-386.exe"},
-		{"darwin", "amd64", "goanime-darwin-amd64"},
-		{"darwin", "arm64", "goanime-darwin-arm64"},
+		{"linux", "amd64", "stardf-anime-linux-amd64"},
+		{"linux", "386", "stardf-anime-linux-386"},
+		{"linux", "arm64", "stardf-anime-linux-arm64"},
+		{"windows", "amd64", "stardf-anime-windows-amd64.exe"},
+		{"windows", "386", "stardf-anime-windows-386.exe"},
+		{"darwin", "amd64", "stardf-anime-darwin-amd64"},
+		{"darwin", "arm64", "stardf-anime-darwin-arm64"},
 	}
 
 	for _, tt := range platformTests {
@@ -907,11 +907,11 @@ func TestFindAssetForPlatform_UniversalBinaryFallback(t *testing.T) {
 			Name               string `json:"name"`
 			BrowserDownloadURL string `json:"browser_download_url"`
 		}{
-			{Name: "goanime-linux-amd64", BrowserDownloadURL: "http://example.com/goanime-linux-amd64"},
-			{Name: "goanime-windows-amd64.exe", BrowserDownloadURL: "http://example.com/goanime-windows-amd64.exe"},
+			{Name: "stardf-anime-linux-amd64", BrowserDownloadURL: "http://example.com/stardf-anime-linux-amd64"},
+			{Name: "stardf-anime-windows-amd64.exe", BrowserDownloadURL: "http://example.com/stardf-anime-windows-amd64.exe"},
 			// Only universal binaries for macOS
-			{Name: "goanime-darwin-universal", BrowserDownloadURL: "http://example.com/goanime-darwin-universal"},
-			{Name: "goanime-darwin", BrowserDownloadURL: "http://example.com/goanime-darwin"},
+			{Name: "stardf-anime-darwin-universal", BrowserDownloadURL: "http://example.com/stardf-anime-darwin-universal"},
+			{Name: "stardf-anime-darwin", BrowserDownloadURL: "http://example.com/stardf-anime-darwin"},
 		},
 	}
 
@@ -924,13 +924,13 @@ func TestFindAssetForPlatform_UniversalBinaryFallback(t *testing.T) {
 		{
 			name:         "amd64_falls_back_to_universal",
 			platform:     PlatformInfo{OS: "darwin", Arch: "amd64"},
-			expectedName: "goanime-darwin-universal",
+			expectedName: "stardf-anime-darwin-universal",
 			description:  "Intel Mac should use universal binary when arch-specific not available",
 		},
 		{
 			name:         "arm64_falls_back_to_universal",
 			platform:     PlatformInfo{OS: "darwin", Arch: "arm64"},
-			expectedName: "goanime-darwin-universal",
+			expectedName: "stardf-anime-darwin-universal",
 			description:  "Apple Silicon Mac should use universal binary when arch-specific not available",
 		},
 	}
@@ -951,10 +951,10 @@ func TestFindAssetForPlatform_UniversalBinaryFallback(t *testing.T) {
 			Name               string `json:"name"`
 			BrowserDownloadURL string `json:"browser_download_url"`
 		}{
-			{Name: "goanime-linux-amd64", BrowserDownloadURL: "http://example.com/goanime-linux-amd64"},
-			{Name: "goanime-windows-amd64.exe", BrowserDownloadURL: "http://example.com/goanime-windows-amd64.exe"},
+			{Name: "stardf-anime-linux-amd64", BrowserDownloadURL: "http://example.com/stardf-anime-linux-amd64"},
+			{Name: "stardf-anime-windows-amd64.exe", BrowserDownloadURL: "http://example.com/stardf-anime-windows-amd64.exe"},
 			// Only generic universal binary for macOS
-			{Name: "goanime-darwin", BrowserDownloadURL: "http://example.com/goanime-darwin"},
+			{Name: "stardf-anime-darwin", BrowserDownloadURL: "http://example.com/stardf-anime-darwin"},
 		},
 	}
 
@@ -963,7 +963,7 @@ func TestFindAssetForPlatform_UniversalBinaryFallback(t *testing.T) {
 		url, name, err := findAssetForPlatformWithInfo(genericOnlyRelease, platform)
 
 		assert.NoError(t, err)
-		assert.Equal(t, "goanime-darwin", name)
+		assert.Equal(t, "stardf-anime-darwin", name)
 		assert.Contains(t, url, "http://example.com/")
 	})
 }

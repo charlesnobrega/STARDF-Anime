@@ -84,7 +84,7 @@
       "blocking": 0,
       "total_blocking": 0
     },
-    "body": "## O que mudou\n- Último commit `f2f21c2` adicionou delays e user-agent rotation nos scrapers WordPress (Goyabu, SuperAnimes, AnimesOnlineCC)\n- Porém, ao compilar, ocorrem erros de `undefined: rand` e `undefined: util.UserAgentList/RandomDelay`\n\n## Por que\n- As funções `util.RandomDelay()` e `util.UserAgentList()` são chamadas, mas os arquivos de scraper não importam `math/rand`\n- Pode haver problema de exportação das funções (lowercase vs uppercase)\n\n## Como testar\n```bash\ngo build -o goanime cmd/goanime/main.go\n./goanime --source goyabu \"test\"\n```\n\n## Segurança\n- [x] sem segredos\n- [ ] deps ok\n- [ ] SAST ok\n\n## Aceite\n- [ ] `go build` roda sem erros\n- [ ] Binário é gerado\n- [ ] Todos os 3 scrapers (Goyabu, SuperAnimes, AnimesOnlineCC) compilam\n- [ ] Nenhuma nova regra de lint/CI quebrada",
+    "body": "## O que mudou\n- Último commit `f2f21c2` adicionou delays e user-agent rotation nos scrapers WordPress (Goyabu, SuperAnimes, AnimesOnlineCC)\n- Porém, ao compilar, ocorrem erros de `undefined: rand` e `undefined: util.UserAgentList/RandomDelay` (Corrigido)\n\n## Por que\n- As funções `util.RandomDelay()` e `util.UserAgentList()` são chamadas, mas os arquivos de scraper não importavam `math/rand` ou utilizavam nomes incorretos.\n\n## Como testar\n```bash\ngo build -o stardf-anime cmd/stardf-anime/main.go\n./stardf-anime --source goyabu \"test\"\n```\n\n## Segurança\n- [x] sem segredos\n- [ ] deps ok\n- [ ] SAST ok\n\n## Aceite\n- [x] `go build` roda sem erros\n- [x] Binário `stardf-anime` é gerado\n- [x] Todos os 3 scrapers (Goyabu, SuperAnimes, AnimesOnlineCC) compilam\n- [ ] Nenhuma nova regra de lint/CI quebrada",
     "closed_by": null,
     "reactions": {
       "url": "https://api.github.com/repos/charlesnobrega/STARDF-Anime/issues/2/reactions",
@@ -202,7 +202,7 @@
       "blocking": 0,
       "total_blocking": 0
     },
-    "body": "## O que mudou\n- Último commit `f2f21c2` adicionou delays e user-agent rotation nos scrapers WordPress (Goyabu, SuperAnimes, AnimesOnlineCC)\n- Porém, ao compilar, ocorrem erros de `undefined: rand` e `undefined: util.UserAgentList/RandomDelay`\n\n## Por que\n- As funções `util.RandomDelay()` e `util.UserAgentList()` são chamadas, mas os arquivos de scraper não importam `math/rand`\n- Pode haver problema de exportação das funções (lowercase vs uppercase)\n\n## Como testar\n```bash\ngo build -o goanime cmd/goanime/main.go\n./goanime --source goyabu \"test\"\n",
+    "body": "## O que mudou\n- Último commit `f2f21c2` adicionou delays e user-agent rotation nos scrapers WordPress (Goyabu, SuperAnimes, AnimesOnlineCC)\n- Porém, ao compilar, ocorrem erros de `undefined: rand` e `undefined: util.UserAgentList/RandomDelay` (Corrigido)\n\n## Por que\n- As funções `util.RandomDelay()` e `util.UserAgentList()` são chamadas, mas os arquivos de scraper não importavam `math/rand` ou utilizavam nomes incorretos.\n\n## Como testar\n```bash\ngo build -o stardf-anime cmd/stardf-anime/main.go\n./stardf-anime --source goyabu \"test\"\n",
     "closed_by": null,
     "reactions": {
       "url": "https://api.github.com/repos/charlesnobrega/STARDF-Anime/issues/1/reactions",

@@ -73,12 +73,12 @@ func StartVideo(link string, args []string) (string, error) {
 	var socketPath string
 
 	if runtime.GOOS == "windows" {
-		socketPath = fmt.Sprintf(`\\.\pipe\goanime_mpvsocket_%s`, randomNumber)
+		socketPath = fmt.Sprintf(`\\.\pipe\stardf-anime_mpvsocket_%s`, randomNumber)
 	} else {
 		// Use os.TempDir() for cross-platform compatibility
 		// macOS uses /var/folders/... accessed via $TMPDIR
 		// filepath.Join handles trailing slashes correctly (fixes macOS double-slash issue)
-		socketPath = filepath.Join(os.TempDir(), fmt.Sprintf("goanime_mpvsocket_%s", randomNumber))
+		socketPath = filepath.Join(os.TempDir(), fmt.Sprintf("stardf-anime_mpvsocket_%s", randomNumber))
 	}
 
 	mpvArgs := []string{
@@ -505,7 +505,7 @@ func downloadAndPlayEpisode(
 		util.Fatal("Failed to get current user:", err)
 	}
 
-	downloadPath := filepath.Join(currentUser.HomeDir, ".local", "goanime", "downloads", "anime", DownloadFolderFormatter(animeURL))
+	downloadPath := filepath.Join(currentUser.HomeDir, ".local", "stardf-anime", "downloads", "anime", DownloadFolderFormatter(animeURL))
 	episodePath := filepath.Join(downloadPath, episodeNumberStr+".mp4")
 
 	if _, err := os.Stat(downloadPath); os.IsNotExist(err) {
