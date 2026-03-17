@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/app_colors.dart';
 import '../../../models/anime.dart';
-import '../../widgets/glass_card.dart';
 import 'details_bloc.dart';
 import '../player/player_screen.dart';
 

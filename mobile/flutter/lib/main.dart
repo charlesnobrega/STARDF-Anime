@@ -23,7 +23,6 @@ class StarDFAnimeApp extends StatelessWidget {
           primary: AppColors.primary,
           secondary: AppColors.accent,
           surface: AppColors.surface,
-          background: AppColors.background,
         ),
         textTheme: GoogleFonts.outfitTextTheme(
           ThemeData.dark().textTheme,
