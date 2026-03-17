@@ -13,10 +13,10 @@ class PlayerScreen extends StatefulWidget {
   const PlayerScreen({Key? key, required this.anime, required this.episode}) : super(key: key);
 
   @override
-  _PlayerScreenState createState() => _PlayerScreenState();
+  PlayerScreenState createState() => PlayerScreenState();
 }
 
-class _PlayerScreenState extends State<PlayerScreen> {
+class PlayerScreenState extends State<PlayerScreen> {
   VideoPlayerController? _videoPlayerController;
   ChewieController? _chewieController;
   bool _isLoading = true;

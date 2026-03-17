@@ -97,7 +97,7 @@ class SearchScreen extends StatelessWidget {
             return ListView.builder(
               itemCount: state.results.length,
               itemBuilder: (context, index) {
-                return _buildAnimeCard(state.results[index]);
+                return _buildAnimeCard(context, state.results[index]);
               },
             );
           }
@@ -107,7 +107,7 @@ class SearchScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAnimeCard(Anime anime) {
+  Widget _buildAnimeCard(BuildContext context, Anime anime) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       height: 120,
