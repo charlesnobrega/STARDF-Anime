@@ -68,6 +68,7 @@ var (
 	ErrExitRequested     = errors.New("exit requested")
 	ErrAniListLoginRequested  = errors.New("anilist login requested")
 	ErrAniListLogoutRequested = errors.New("anilist logout requested")
+	ErrBackRequested          = errors.New("back requested")
 )
 
 // MenuAction defines possible actions from the main menu
@@ -97,7 +98,6 @@ type DownloadRequest struct {
 	EndEpisode    int
 	Source        string // Added source field for specifying anime source
 	Quality       string // Added quality field for video quality
-	AllAnimeSmart bool   // Enable AllAnime Smart Range (auto-skip intros/credits and preferred mirrors)
 }
 
 // Global variable to store download request
@@ -118,9 +118,8 @@ func ParseFlags() (string, error) {
 		updateFlag := flag.Bool("update", false, "check for updates and update if available")
 		downloadFlag := flag.Bool("d", false, "download mode")
 		rangeFlag := flag.Bool("r", false, "download episode range (use with -d)")
-		sourceFlag := flag.String("source", "", "specify anime source (allanime, animefire)")
+		sourceFlag := flag.String("source", "", "specify media source (animefire, betteranime, topanimes/animesdigital, flixhq, cinegratis)")
 		qualityFlag := flag.String("quality", "best", "specify video quality (best, worst, 720p, 1080p, etc.)")
-		allanimeSmartFlag := flag.Bool("allanime-smart", false, "enable AllAnime Smart Range: auto-skip intros/outros and use priority mirrors")
 		mediaTypeFlag := flag.String("type", "", "specify media type (anime, movie, tv)")
 		subsLanguageFlag := flag.String("subs", "english", "specify subtitle language for movies/TV (FlixHQ only)")
 		audioLanguageFlag := flag.String("audio", "pt-BR,pt,english", "specify preferred audio language for movies/TV (FlixHQ only)")
@@ -177,7 +176,7 @@ func ParseFlags() (string, error) {
 
 		// Handle download mode
 		if *downloadFlag {
-			animeName, err = handleDownloadModeWithSmart(*rangeFlag, *sourceFlag, *qualityFlag, *allanimeSmartFlag)
+			animeName, err = handleDownloadMode(*rangeFlag, *sourceFlag, *qualityFlag)
 			return
 		}
 
@@ -240,12 +239,18 @@ func PromptInteractive() (MenuResult, error) {
 	case ActionSearch:
 		mediaType, err := selectMediaType()
 		if err != nil {
+			if errors.Is(err, ErrBackRequested) {
+				return PromptInteractive()
+			}
 			return MenuResult{}, err
 		}
 		GlobalMediaType = mediaType
 
 		searchTerm, err := getUserInput("Digite o nome da obra")
 		if err != nil {
+			if errors.Is(err, ErrBackRequested) {
+				return PromptInteractive()
+			}
 			return MenuResult{}, err
 		}
 		return MenuResult{Action: ActionSearch, SearchTerm: TreatingAnimeName(searchTerm)}, nil
@@ -294,6 +299,7 @@ func selectMediaType() (string, error) {
 				Options(
 					huh.NewOption("Animes (PT-BR)", "anime"),
 					huh.NewOption("Filmes e Séries (PT-BR/Multi)", "movie"),
+					huh.NewOption("<< Voltar", "back"),
 					// huh.NewOption("Canais de TV (Em breve)", "tv"),
 				).
 				Value(&choice),
@@ -302,6 +308,9 @@ func selectMediaType() (string, error) {
 
 	if err := form.Run(); err != nil {
 		return "", err
+	}
+	if choice == "back" {
+		return "", ErrBackRequested
 	}
 	return choice, nil
 }
@@ -314,20 +323,23 @@ func getUserInput(label string) (string, error) {
 		huh.NewGroup(
 			huh.NewInput().
 				Title(label).
-				Description("Type the anime title and press Enter").
-				Value(&animeName).
-				Validate(func(v string) error {
-					if len(strings.TrimSpace(v)) < minNameLength {
-						return fmt.Errorf("name must have at least %d characters", minNameLength)
-					}
-					return nil
-				}),
+				Description("Digite o nome e pressione Enter (vazio para voltar)").
+				Value(&animeName),
 		),
 	)
 
 	if err := form.Run(); err != nil {
 		return "", err
 	}
+
+	if strings.TrimSpace(animeName) == "" {
+		return "", ErrBackRequested
+	}
+
+	if len(strings.TrimSpace(animeName)) < minNameLength {
+		return "", fmt.Errorf("o nome deve ter pelo menos %d caracteres", minNameLength)
+	}
+
 	return animeName, nil
 }
 
@@ -337,8 +349,7 @@ func TreatingAnimeName(animeName string) string {
 	return strings.ReplaceAll(loweredName, " ", "-")
 }
 
-// handleDownloadModeWithSmart processes download args with AllAnime Smart option
-func handleDownloadModeWithSmart(isRange bool, source, quality string, allanimeSmart bool) (string, error) {
+func handleDownloadMode(isRange bool, source, quality string) (string, error) {
 	args := flag.Args()
 
 	if len(args) == 0 {
@@ -386,7 +397,6 @@ func handleDownloadModeWithSmart(isRange bool, source, quality string, allanimeS
 			EndEpisode:    endEp,
 			Source:        source,
 			Quality:       quality,
-			AllAnimeSmart: allanimeSmart,
 		}
 
 		return TreatingAnimeName(animeName), ErrDownloadRequested
@@ -416,7 +426,6 @@ func handleDownloadModeWithSmart(isRange bool, source, quality string, allanimeS
 			IsRange:       false,
 			Source:        source,
 			Quality:       quality,
-			AllAnimeSmart: allanimeSmart,
 		}
 
 		return TreatingAnimeName(animeName), ErrDownloadRequested

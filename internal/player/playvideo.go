@@ -555,14 +555,19 @@ func initTracking(anilistID int, episode *models.Episode, episodeNum int) (*trac
 // InitTrackerAsync initializes the tracker in the background.
 // Call this early in the application lifecycle to avoid delays later.
 func InitTrackerAsync() {
-	if !tracking.IsCgoEnabled {
-		return
-	}
-
 	go func() {
 		dbPath := getTrackerDBPath()
 		if dbPath != "" {
-			tracking.NewLocalTracker(dbPath)
+			tracker := tracking.NewLocalTracker(dbPath)
+			if tracker != nil {
+				// Carregar tema salvo
+				if themeName, err := tracker.GetConfig("theme"); err == nil && themeName != "" {
+					if t, ok := util.GetThemeByName(themeName); ok {
+						util.SetTheme(t)
+						util.InitLogger()
+					}
+				}
+			}
 		}
 	}()
 }

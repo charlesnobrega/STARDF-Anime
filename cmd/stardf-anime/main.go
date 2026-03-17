@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"errors"
-	"log"
+	"fmt"
 	"os"
 	"os/signal"
 	"strings"
@@ -58,32 +58,33 @@ func main() {
 		// Handle special requests
 		if errors.Is(err, util.ErrUpdateRequested) {
 			if updateErr := handlers.HandleUpdateRequest(); updateErr != nil {
-				log.Fatalln(util.ErrorHandler(updateErr))
+				fmt.Println(util.ErrorHandler(updateErr))
 			}
 			return
 		}
 		if errors.Is(err, util.ErrDownloadRequested) {
 			if downloadErr := handlers.HandleDownloadRequest(); downloadErr != nil {
-				log.Fatalln(util.ErrorHandler(downloadErr))
+				fmt.Println(util.ErrorHandler(downloadErr))
 			}
 			return
 		}
 		if errors.Is(err, util.ErrAniListLoginRequested) {
 			if loginErr := handlers.HandleAniListLogin(); loginErr != nil {
-				log.Fatalln(util.ErrorHandler(loginErr))
+				fmt.Println(util.ErrorHandler(loginErr))
 			}
 			return
 		}
 		if errors.Is(err, util.ErrAniListLogoutRequested) {
 			if logoutErr := handlers.HandleAniListLogout(); logoutErr != nil {
-				log.Fatalln(util.ErrorHandler(logoutErr))
+				fmt.Println(util.ErrorHandler(logoutErr))
 			}
 			return
 		}
 		if errors.Is(err, util.ErrHelpRequested) {
 			return
 		}
-		log.Fatalln(util.ErrorHandler(err))
+		fmt.Println(util.ErrorHandler(err))
+		return
 	}
 
 	// Setup AniList user display
@@ -112,7 +113,8 @@ func main() {
 				if errors.Is(promptErr, context.Canceled) || errors.Is(promptErr, util.ErrExitRequested) || strings.Contains(promptErr.Error(), "user") {
 					return
 				}
-				log.Fatalln(util.ErrorHandler(promptErr))
+				fmt.Println(util.ErrorHandler(promptErr))
+				return
 			}
 		}
 
@@ -139,7 +141,8 @@ func main() {
 				menuResult = util.MenuResult{} // Reset to force interactive prompt
 				continue
 			}
-			log.Fatalln(util.ErrorHandler(err))
+			fmt.Println(util.ErrorHandler(err))
+			return
 		}
 		
 		// If we reached here without error, we might want to return to menu or exit

@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 
+	"github.com/charlesnobrega/STARDF-Anime/internal/tracking"
 	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 	"github.com/charmbracelet/huh"
 )
@@ -41,6 +42,11 @@ func HandleThemeMode() error {
 		util.SetTheme(t)
 		util.InitLogger() // Re-initialize logger with new theme colors
 		util.Infof("✨ Tema aplicado: %s", t.Name)
+
+		// Persist theme choice
+		if tracker := tracking.GetGlobalTracker(); tracker != nil {
+			_ = tracker.SetConfig("theme", t.Name)
+		}
 	}
 
 	return util.ErrBackToMainMenu

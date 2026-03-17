@@ -104,9 +104,8 @@ func ShowBeautifulHelp() {
 	addOption(&helpContent, "--update", "Check for updates and update automatically to the latest version.")
 	addOption(&helpContent, "-d", "Download mode - download specific episodes for offline viewing.")
 	addOption(&helpContent, "-r", "Range download mode - download multiple episodes (use with -d).")
-	addOption(&helpContent, "--source", "Specify anime source (allanime, animefire). Default: search all sources.")
+	addOption(&helpContent, "--source", "Specify media source (animefire, betteranime, topanimes, animesdigital, flixhq, cinegratis). Default: search all active sources.")
 	addOption(&helpContent, "--quality", "Specify video quality (best, worst, 720p, 1080p, etc.). Default: best.")
-	addOption(&helpContent, "--allanime-smart", "AllAnime Smart Range: auto-skip intros/outros via AniSkip and use priority mirrors.")
 	addOption(&helpContent, "--type", "Specify media type (anime, movie, tv). Default: anime.")
 	addOption(&helpContent, "--subs", "Specify subtitle language for movies/TV shows (FlixHQ only: english, spanish, portuguese, etc.).")
 	addOption(&helpContent, "--audio", "Specify preferred audio language for movies/TV (FlixHQ only: pt-BR,english,spanish).")
@@ -118,7 +117,7 @@ func ShowBeautifulHelp() {
 	helpContent.WriteString(sectionTitleStyle.Render("Features:"))
 	helpContent.WriteString("\n")
 
-	addFeature(&helpContent, "Multi-Source Support", "Stream from AllAnime, AnimeFire, and FlixHQ (movies/TV) with automatic fallback.")
+	addFeature(&helpContent, "Multi-Source Support", "Stream from AnimeFire, BetterAnime, TopAnimes, AnimesDigital, and FlixHQ with automatic fallback.")
 	addFeature(&helpContent, "Movies & TV Shows", "Watch movies and TV series alongside anime using FlixHQ integration.")
 	addFeature(&helpContent, "Smart Search", "Intelligent search with fuzzy matching and suggestions.")
 	addFeature(&helpContent, "Quality Selection", "Choose video quality from multiple available sources.")
@@ -129,7 +128,6 @@ func ShowBeautifulHelp() {
 	addFeature(&helpContent, "Skip Intros", "Automatically skip anime intros and outros.")
 	addFeature(&helpContent, "Subtitle Support", "Multilingual subtitle support for movies and TV shows.")
 	addFeature(&helpContent, "Audio Track Selection", "Select preferred audio language for movies/TV during playback (FlixHQ only).")
-	addFeature(&helpContent, "AllAnime Smart Range", "Exclusive: For AllAnime, download a range with mirror priority and optional intro/outro trimming.")
 	helpContent.WriteString("\n")
 
 	// Examples section

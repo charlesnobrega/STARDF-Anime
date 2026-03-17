@@ -823,13 +823,6 @@ func HandleBatchDownloadRange(episodes []models.Episode, animeURL string, startN
 					return
 				}
 
-				// Optional: write AniSkip sidecar when AllAnime Smart is enabled
-				if util.GlobalDownloadRequest != nil && util.GlobalDownloadRequest.AllAnimeSmart {
-					// Basic heuristic for AllAnime
-					if strings.Contains(strings.ToLower(animeURL), "allanime") || (len(animeURL) < 30 && !strings.Contains(animeURL, "http")) {
-						_ = api.WriteAniSkipSidecar(episodePath, &episode)
-					}
-				}
 			}(epNum)
 		}
 		wg.Wait()

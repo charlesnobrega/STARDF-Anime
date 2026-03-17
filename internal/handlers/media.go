@@ -48,11 +48,7 @@ func (mh *MediaHandler) SearchMedia(query string, contentType models.MediaType) 
 	case models.MediaTypeAnime:
 		return mh.mediaManager.SearchAnimeOnly(query)
 	case models.MediaTypeMovie, models.MediaTypeTV:
-		media, err := mh.mediaManager.SearchMoviesAndTV(query)
-		if err != nil {
-			return nil, err
-		}
-		return scraper.ConvertFlixHQToAnime(media), nil
+		return mh.mediaManager.SearchAll(query)
 	default:
 		return mh.mediaManager.SearchAll(query)
 	}

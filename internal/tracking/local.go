@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 // IsCgoEnabled indicates whether CGO is enabled for SQLite support
@@ -181,7 +181,7 @@ func newLocalTrackerImpl(dbPath string) *LocalTracker {
 		)
 	}
 
-	db, err := sql.Open("sqlite3", dsn)
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		fmt.Printf("Error opening database: %v\n", err)
 		return nil
@@ -268,6 +268,10 @@ func initializeDatabase(db *sql.DB) error {
 		failed_searches INTEGER DEFAULT 0,
 		last_failure    TEXT,
 		last_update     INTEGER NOT NULL
+	);
+	CREATE TABLE IF NOT EXISTS user_config (
+		key    TEXT PRIMARY KEY NOT NULL,
+		value  TEXT NOT NULL
 	);`
 
 	if _, err := db.Exec(schema); err != nil {
@@ -803,3 +807,29 @@ func init() {
 
 // The implementation of isCgoEnabled is defined in local_cgo.go and local_nocgo.go
 // based on build tags. We don't define it here to avoid duplicate declarations.
+// SetConfig saves a simple key/value pair in the database
+func (t *LocalTracker) SetConfig(key, value string) error {
+	if t == nil || t.db == nil {
+		return ErrTrackerNotInited
+	}
+	query := `INSERT INTO user_config (key, value) VALUES (?, ?)
+	          ON CONFLICT(key) DO UPDATE SET value = excluded.value`
+	_, err := t.db.Exec(query, key, value)
+	return err
+}
+
+// GetConfig retrieves a value from the database
+func (t *LocalTracker) GetConfig(key string) (string, error) {
+	if t == nil || t.db == nil {
+		return "", ErrTrackerNotInited
+	}
+	var value string
+	err := t.db.QueryRow("SELECT value FROM user_config WHERE key = ?", key).Scan(&value)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil
+		}
+		return "", err
+	}
+	return value, nil
+}

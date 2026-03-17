@@ -68,8 +68,8 @@ func NewScraperManager() *ScraperManager {
 	manager.scrapers[BetterAnimeType] = &BetterAnimeAdapter{client: NewBetterAnimeClient()}
 	manager.scrapers[TopAnimesType] = &TopAnimesAdapter{client: NewTopAnimesClient()}
 	manager.scrapers[AnimesDigitalType] = &AnimesDigitalAdapter{client: NewAnimesDigitalClient()}
-	// manager.scrapers[CinebyType] = &CinebyAdapter{client: NewCinebyClient()}
-	// manager.scrapers[CineGratisType] = &CineGratisAdapter{client: NewCineGratisClient()}
+	manager.scrapers[CinebyType] = &CinebyAdapter{client: NewCinebyClient()}
+	manager.scrapers[CineGratisType] = &CineGratisAdapter{client: NewCineGratisClient()}
 	manager.scrapers[FlixHQType] = &FlixHQAdapter{client: NewFlixHQClient()}
 	
 	// Re-evaluated (2026-03-16): Goyabu and SuperAnimes are currently OFFLINE (500/No results)
@@ -392,8 +392,8 @@ func (sm *ScraperManager) getScraperDisplayName(scraperType ScraperType) string 
 		return "Goyabu"
 	case SuperAnimesType:
 		return "SuperAnimes"
-	// case CinebyType:
-	// 	return "Cineby"
+	case CinebyType:
+		return "Cineby"
 	case CineGratisType:
 		return "CineGratis"
 	case FlixHQType:

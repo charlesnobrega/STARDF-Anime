@@ -50,6 +50,7 @@ func findMPVPath() (string, error) {
 	if programFiles != "" {
 		possiblePaths = append(possiblePaths,
 			filepath.Join(programFiles, "stardf-anime", "bin", "mpv.exe"),
+			filepath.Join(programFiles, "GoAnime", "bin", "mpv.exe"),
 			filepath.Join(programFiles, "mpv", "mpv.exe"),
 			filepath.Join(programFiles, "mpv.net", "mpv.exe"),
 		)
@@ -57,6 +58,7 @@ func findMPVPath() (string, error) {
 	if programFilesX86 != "" {
 		possiblePaths = append(possiblePaths,
 			filepath.Join(programFilesX86, "stardf-anime", "bin", "mpv.exe"),
+			filepath.Join(programFilesX86, "GoAnime", "bin", "mpv.exe"),
 			filepath.Join(programFilesX86, "mpv", "mpv.exe"),
 		)
 	}
