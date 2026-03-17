@@ -3,11 +3,11 @@ import 'package:http/http.dart' as http;
 import 'package:html/parser.dart' as html_parser;
 
 /// Pure Dart implementation of the anime scrapers.
-/// This replaces the Go bridge approach which fails due to
-/// incompatible TUI dependencies in the Go dependency tree.
+/// Updated to use animefire.io and robust CSS selectors.
 class ScraperService {
+  static const _baseUrl = 'https://animefire.io';
   static const _userAgent =
-      'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36';
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
   static final _client = http.Client();
 
@@ -20,8 +20,8 @@ class ScraperService {
   // ─── AnimeFire Scraper ─────────────────────────────────────────────
 
   static Future<List<Map<String, dynamic>>> searchAnimeFire(String query) async {
-    final encoded = Uri.encodeComponent(query.toLowerCase().replaceAll(' ', '-'));
-    final url = 'https://animefire.plus/pesquisar/$encoded';
+    final searchParam = query.toLowerCase().replaceAll(' ', '-');
+    final url = '$_baseUrl/pesquisar/$searchParam';
 
     try {
       final response = await _client
@@ -33,13 +33,20 @@ class ScraperService {
       final document = html_parser.parse(response.body);
       final results = <Map<String, dynamic>>[];
 
-      final cards = document.querySelectorAll('.row.ml-1.mr-1 a');
+      // Select columns containing the anime cards
+      final cards = document.querySelectorAll('.divCardUltimosEps');
+      
       for (final card in cards) {
-        final title = card.querySelector('.animeTitle')?.text.trim() ?? '';
-        final href = card.attributes['href'] ?? '';
-        final img = card.querySelector('img');
-        final imageUrl =
-            img?.attributes['data-src'] ?? img?.attributes['src'] ?? '';
+        final linkElement = card.querySelector('article > a');
+        final titleElement = card.querySelector('h3.animeTitle');
+        final imgElement = card.querySelector('img.card-img-top');
+
+        final title = titleElement?.text.trim() ?? '';
+        final href = linkElement?.attributes['href'] ?? '';
+        
+        // Handle lazy loading image attributes
+        final imageUrl = imgElement?.attributes['data-src'] ?? 
+                         imgElement?.attributes['src'] ?? '';
 
         if (title.isNotEmpty && href.isNotEmpty) {
           results.add({
@@ -60,8 +67,11 @@ class ScraperService {
   static Future<List<Map<String, dynamic>>> getAnimeFireEpisodes(
       String animeUrl) async {
     try {
+      // Ensure the URL is absolute
+      final targetUrl = animeUrl.startsWith('http') ? animeUrl : '$_baseUrl$animeUrl';
+      
       final response = await _client
-          .get(Uri.parse(animeUrl), headers: _headers)
+          .get(Uri.parse(targetUrl), headers: _headers)
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) return [];
@@ -69,7 +79,9 @@ class ScraperService {
       final document = html_parser.parse(response.body);
       final results = <Map<String, dynamic>>[];
 
-      final episodes = document.querySelectorAll('.div_video_list a');
+      // Episode links usually have class .lEp.epT
+      final episodes = document.querySelectorAll('.div_video_list a.lEp');
+      
       for (int i = 0; i < episodes.length; i++) {
         final ep = episodes[i];
         final href = ep.attributes['href'] ?? '';
@@ -92,36 +104,34 @@ class ScraperService {
 
   static Future<String?> getAnimeFireStreamUrl(String episodeUrl) async {
     try {
+      final targetUrl = episodeUrl.startsWith('http') ? episodeUrl : '$_baseUrl$episodeUrl';
+      
       final response = await _client
-          .get(Uri.parse(episodeUrl), headers: _headers)
+          .get(Uri.parse(targetUrl), headers: _headers)
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) return null;
 
       final body = response.body;
 
-      // Look for video data-video-src
-      final videoRegex = RegExp(r'data-video-src="([^"]+)"');
-      final match = videoRegex.firstMatch(body);
+      // 1. Look for the iframe/video source page link (data-video-src)
+      final videoPageRegex = RegExp(r'data-video-src="([^"]+)"');
+      final match = videoPageRegex.firstMatch(body);
+      
       if (match != null) {
         final videoPageUrl = match.group(1)!;
         final videoResponse = await _client
             .get(Uri.parse(videoPageUrl), headers: _headers)
             .timeout(const Duration(seconds: 10));
 
-        // Look for .m3u8 URLs
-        final m3u8Regex = RegExp(r'(https?://[^\s"]+\.m3u8[^\s"]*)');
-        final m3u8Match = m3u8Regex.firstMatch(videoResponse.body);
-        if (m3u8Match != null) return m3u8Match.group(1);
-
-        // Look for .mp4 URLs
-        final mp4Regex = RegExp(r'(https?://[^\s"]+\.mp4[^\s"]*)');
-        final mp4Match = mp4Regex.firstMatch(videoResponse.body);
-        if (mp4Match != null) return mp4Match.group(1);
+        // 2. Look for .m3u8 or .mp4 in the video source page
+        final streamRegex = RegExp(r'(https?://[^\s"]+\.(?:m3u8|mp4)[^\s"]*)');
+        final streamMatch = streamRegex.firstMatch(videoResponse.body);
+        if (streamMatch != null) return streamMatch.group(1);
       }
 
-      // Alternative: direct video URLs in page
-      final directRegex = RegExp(r"""(https?://[^\s"']+\.m3u8[^\s"']*)""");
+      // 3. Fallback: direct video URLs in the main page body
+      final directRegex = RegExp(r"""(https?://[^\s"']+\.(?:m3u8|mp4)[^\s"']*)""");
       final directMatch = directRegex.firstMatch(body);
       if (directMatch != null) return directMatch.group(1);
 

@@ -30,31 +30,38 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Create Flutter project scaffold
+      - name: Repair and Build Flutter Project
         run: |
-          # Create a temporary Flutter project for android/ scaffolding
-          flutter create --org com.stardf --project-name stardf_anime_mobile /tmp/scaffold
-
-          # Remove our incomplete android/ and use the generated one
-          rm -rf mobile/flutter/android
-          cp -r /tmp/scaffold/android mobile/flutter/android
+          cd mobile/flutter
+          # Backup our clean code and config
+          cp pubspec.yaml pubspec.bak
+          cp -r lib lib_bak
+          
+          # Regenerate platform folders
+          flutter create . --org com.stardf --project-name stardf_anime_mobile
+          
+          # Restore our code and config
+          mv pubspec.bak pubspec.yaml
+          rm -rf lib
+          mv lib_bak lib
 
           # Ensure internet permission is in the manifest
-          MANIFEST=mobile/flutter/android/app/src/main/AndroidManifest.xml
-          if ! grep -q "android.permission.INTERNET" "$MANIFEST"; then
-            sed -i '/<manifest/a\    <uses-permission android:name="android.permission.INTERNET"/>' "$MANIFEST"
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          if [ -f "$MANIFEST" ]; then
+            if ! grep -q "android.permission.INTERNET" "$MANIFEST"; then
+              sed -i '/<manifest/a\    <uses-permission android:name="android.permission.INTERNET"/>' "$MANIFEST"
+            fi
           fi
 
           # Set minSdkVersion to 21 (required by video_player, chewie, etc.)
-          sed -i 's/minSdkVersion .*/minSdkVersion 21/' mobile/flutter/android/app/build.gradle
+          if [ -f "android/app/build.gradle" ]; then
+            sed -i 's/minSdkVersion .*/minSdkVersion 21/' android/app/build.gradle
+          fi
 
-      - name: Install dependencies
-        working-directory: mobile/flutter
-        run: flutter pub get
+          # Fetch dependencies and build
+          flutter pub get
+          flutter build apk --debug
 
-      - name: Build APK (debug)
-        working-directory: mobile/flutter
-        run: flutter build apk --debug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
