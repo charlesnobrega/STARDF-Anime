@@ -26,49 +26,39 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.13.0'
+          flutter-version: '3.19.0'
           channel: 'stable'
           cache: true
 
-      - name: Create Flutter scaffold and merge our code
+      - name: Create Flutter project scaffold
         run: |
-          # 1. Create a proper Flutter project in a temp dir
-          flutter create --org com.stardf --project-name stardf_anime_mobile /tmp/flutter_app
-          
-          # 2. Copy the generated android/ scaffolding into our project
-          #    (this has proper gradlew, gradle wrapper, build files etc.)
-          rm -rf mobile/flutter/android
-          cp -r /tmp/flutter_app/android mobile/flutter/android
-          
-          # 3. Copy our lib/ code over the generated one
-          rm -rf /tmp/flutter_app/lib
-          cp -r mobile/flutter/lib /tmp/flutter_app/lib
-          
-          # 4. Use our pubspec.yaml
-          cp mobile/flutter/pubspec.yaml /tmp/flutter_app/pubspec.yaml
-          
-          # 5. Update AndroidManifest for internet permission
-          MANIFEST=/tmp/flutter_app/android/app/src/main/AndroidManifest.xml
-          sed -i 's|<manifest|<manifest xmlns:android="http://schemas.android.com/apk/res/android"|' $MANIFEST 2>/dev/null || true
-          # Add internet permission if not present
-          grep -q "android.permission.INTERNET" $MANIFEST || \
-            sed -i '/<application/i\    <uses-permission android:name="android.permission.INTERNET"/>' $MANIFEST
-          
-          # 6. Move the fully assembled project back
-          rm -rf mobile/flutter_build
-          mv /tmp/flutter_app mobile/flutter_build
+          # Create a temporary Flutter project for android/ scaffolding
+          flutter create --org com.stardf --project-name stardf_anime_mobile /tmp/scaffold
 
-      - name: Flutter pub get
-        working-directory: mobile/flutter_build
+          # Remove our incomplete android/ and use the generated one
+          rm -rf mobile/flutter/android
+          cp -r /tmp/scaffold/android mobile/flutter/android
+
+          # Ensure internet permission is in the manifest
+          MANIFEST=mobile/flutter/android/app/src/main/AndroidManifest.xml
+          if ! grep -q "android.permission.INTERNET" "$MANIFEST"; then
+            sed -i '/<manifest/a\    <uses-permission android:name="android.permission.INTERNET"/>' "$MANIFEST"
+          fi
+
+          # Set minSdkVersion to 21 (required by video_player, chewie, etc.)
+          sed -i 's/minSdkVersion .*/minSdkVersion 21/' mobile/flutter/android/app/build.gradle
+
+      - name: Install dependencies
+        working-directory: mobile/flutter
         run: flutter pub get
 
       - name: Build APK (debug)
-        working-directory: mobile/flutter_build
+        working-directory: mobile/flutter
         run: flutter build apk --debug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: stardf-anime-debug
-          path: mobile/flutter_build/build/app/outputs/flutter-apk/app-debug.apk
+          path: mobile/flutter/build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 14

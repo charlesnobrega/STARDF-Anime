@@ -116,7 +116,7 @@ class PlayerScreenState extends State<PlayerScreen> {
         children: [
           const Icon(Icons.error_outline, color: AppColors.error, size: 60),
           const SizedBox(height: 20),
-          Text(
+          const Text(
             "Erro ao carregar vídeo",
             style: TextStyle(color: AppColors.textMain, fontSize: 18, fontWeight: FontWeight.bold),
           ),
@@ -126,7 +126,7 @@ class PlayerScreenState extends State<PlayerScreen> {
             child: Text(
               _errorMessage!,
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textMuted),
+              style: const TextStyle(color: AppColors.textMuted),
             ),
           ),
           const SizedBox(height: 30),
