@@ -7,7 +7,8 @@ on:
     paths:
       - 'mobile/**'
       - 'pkg/stardf/**'
-      - 'internal/scraper/**'
+      - 'internal/**'
+      - '.github/workflows/mobile_build.yml'
 
 jobs:
   build:
@@ -15,25 +16,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Search Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.21'
+          go-version: '1.25'
           cache: true
-
-      - name: Install Gomobile
-        run: |
-          go install golang.org/x/mobile/cmd/gomobile@latest
-          gomobile init
 
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK
+        run: |
+          sdkmanager --install "ndk;25.2.9519653"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+
+      - name: Install Gomobile
+        run: |
+          go install golang.org/x/mobile/cmd/gomobile@latest
+          go install golang.org/x/mobile/cmd/gobind@latest
+          gomobile init
+
+      - name: Build Go Core Binding (AAR)
+        run: |
+          mkdir -p mobile/android
+          gomobile bind -v -target=android/arm64,android/arm -androidapi 21 -o mobile/android/stardf_core.aar github.com/charlesnobrega/STARDF-Anime/mobile
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -42,11 +57,20 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Build Go Core Binding (AAR)
+      - name: Create Flutter Android resources
         run: |
-          cd mobile
-          mkdir -p android
-          gomobile bind -v -target=android -o ./android/stardf_core.aar ./bridge.go
+          mkdir -p mobile/flutter/android/app/src/main/res/values
+          cat > mobile/flutter/android/app/src/main/res/values/styles.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+                  <item name="android:windowBackground">@android:color/black</item>
+              </style>
+              <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
+                  <item name="android:windowBackground">@android:color/black</item>
+              </style>
+          </resources>
+          EOF
 
       - name: Build APK
         run: |
