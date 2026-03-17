@@ -29,8 +29,6 @@ class DetailsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildInfoSection(),
-                    const SizedBox(height: 25),
-                    _buildDescription(),
                     const SizedBox(height: 30),
                     _buildEpisodesHeader(),
                     const SizedBox(height: 15),
@@ -57,6 +55,10 @@ class DetailsScreen extends StatelessWidget {
             CachedNetworkImage(
               imageUrl: anime.imageUrl,
               fit: BoxFit.cover,
+              errorWidget: (context, url, error) => Container(
+                color: AppColors.surface,
+                child: const Icon(Icons.broken_image, color: Colors.white38, size: 64),
+              ),
             ),
             Container(
               decoration: const BoxDecoration(
@@ -92,50 +94,20 @@ class DetailsScreen extends StatelessWidget {
         const SizedBox(height: 8),
         Row(
           children: [
-            Text(
-              anime.source.toUpperCase(),
-              style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                anime.source.toUpperCase(),
+                style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 12),
+              ),
             ),
-            if (anime.details?.status != "") ...[
-              const SizedBox(width: 10),
-              const CircleAvatar(radius: 2, backgroundColor: Colors.white24),
-              const SizedBox(width: 10),
-              Text(
-                anime.details?.status ?? "",
-                style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
-              ),
-            ],
-            const Spacer(),
-            if (anime.details?.averageScore != 0)
-              Row(
-                children: [
-                  const Icon(Icons.star, color: Colors.amber, size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    "${anime.details?.averageScore}%",
-                    style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
           ],
         ),
       ],
-    );
-  }
-
-  Widget _buildDescription() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        anime.details?.description.replaceAll(RegExp(r'<[^>]*>'), '') ?? "Sem descrição disponível.",
-        maxLines: 4,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: AppColors.textMuted, height: 1.5),
-      ),
     );
   }
 
@@ -157,15 +129,31 @@ class DetailsScreen extends StatelessWidget {
           return const SliverFillRemaining(child: Center(child: CircularProgressIndicator()));
         }
         if (state is DetailsError) {
-          return SliverToBoxAdapter(child: Center(child: Text(state.message)));
+          return SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  const SizedBox(height: 16),
+                  Text(state.message, style: const TextStyle(color: AppColors.textMuted)),
+                ],
+              ),
+            ),
+          );
         }
         if (state is DetailsSuccess) {
+          if (state.episodes.isEmpty) {
+            return const SliverFillRemaining(
+              child: Center(child: Text("Nenhum episódio encontrado", style: TextStyle(color: AppColors.textMuted))),
+            );
+          }
           return SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final ep = state.episodes[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                   child: InkWell(
                     onTap: () {
                       Navigator.push(
@@ -175,8 +163,13 @@ class DetailsScreen extends StatelessWidget {
                         ),
                       );
                     },
-                    child: GlassCard(
+                    child: Container(
                       padding: const EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white10),
+                      ),
                       child: Row(
                         children: [
                           Container(
@@ -188,23 +181,16 @@ class DetailsScreen extends StatelessWidget {
                             ),
                             child: Center(
                               child: Text(
-                                ep.number,
+                                '${ep.number}',
                                 style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ),
                           const SizedBox(width: 15),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  ep.title ?? "Episódio ${ep.number}",
-                                  style: const TextStyle(color: AppColors.textMain, fontWeight: FontWeight.w600),
-                                ),
-                                if (ep.isFiller)
-                                  const Text("Filler", style: TextStyle(color: Colors.orange, fontSize: 10)),
-                              ],
+                            child: Text(
+                              ep.title.isNotEmpty ? ep.title : "Episódio ${ep.number}",
+                              style: const TextStyle(color: AppColors.textMain, fontWeight: FontWeight.w600),
                             ),
                           ),
                           const Icon(Icons.play_arrow_rounded, color: AppColors.accent),

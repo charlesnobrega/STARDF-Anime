@@ -1,39 +1,43 @@
-import 'package:flutter/services.dart';
-import 'dart:convert';
+import 'scraper_service.dart';
 
+/// Bridge abstraction layer.
+/// Previously used MethodChannel to communicate with Go core.
+/// Now uses pure Dart scrapers (ScraperService) for Android compatibility.
 class GoBridge {
-  static const MethodChannel _channel = MethodChannel('com.stardf.anime/bridge');
-
   static Future<List<dynamic>> search(String query) async {
-    final String jsonResponse = await _channel.invokeMethod('search', {'query': query});
-    final Map<String, dynamic> response = jsonDecode(jsonResponse);
-    if (response.containsKey('error')) {
-      throw Exception(response['error']);
-    }
-    return response['data'];
+    return await ScraperService.searchAll(query);
   }
 
   static Future<List<dynamic>> getEpisodes(String animeUrl, String source) async {
-    final String jsonResponse = await _channel.invokeMethod('getEpisodes', {
-      'animeURL': animeUrl,
-      'source': source,
-    });
-    final Map<String, dynamic> response = jsonDecode(jsonResponse);
-    if (response.containsKey('error')) {
-      throw Exception(response['error']);
+    // Route to the correct scraper based on source
+    switch (source) {
+      case 'AnimeFire':
+        return await ScraperService.getAnimeFireEpisodes(animeUrl);
+      default:
+        return await ScraperService.getAnimeFireEpisodes(animeUrl);
     }
-    return response['data'];
   }
 
-  static Future<Map<String, dynamic>> getStream(Map<String, dynamic> anime, Map<String, dynamic> episode) async {
-    final String jsonResponse = await _channel.invokeMethod('getStream', {
-      'animeJSON': jsonEncode(anime),
-      'episodeJSON': jsonEncode(episode),
-    });
-    final Map<String, dynamic> response = jsonDecode(jsonResponse);
-    if (response.containsKey('error')) {
-      throw Exception(response['error']);
+  static Future<Map<String, dynamic>> getStream(
+      Map<String, dynamic> anime, Map<String, dynamic> episode) async {
+    final source = anime['source'] ?? 'AnimeFire';
+    String? url;
+
+    switch (source) {
+      case 'AnimeFire':
+        url = await ScraperService.getAnimeFireStreamUrl(episode['url'] ?? '');
+        break;
+      default:
+        url = await ScraperService.getAnimeFireStreamUrl(episode['url'] ?? '');
     }
-    return response['data'];
+
+    if (url == null) {
+      throw Exception('Não foi possível obter a URL do stream');
+    }
+
+    return {
+      'url': url,
+      'metadata': {'source': source},
+    };
   }
 }
