@@ -13,7 +13,6 @@ import (
 
 const (
 	CineGratisBase = "https://cinegratis.tv"
-	CineGratisUA   = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
 
 type CineGratisClient struct {
@@ -39,7 +38,8 @@ func (c *CineGratisClient) Search(query string) ([]*models.Anime, error) {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("User-Agent", CineGratisUA)
+	req.Header.Set("User-Agent", util.UserAgentList())
+	req.Header.Set("Referer", c.baseURL+"/")
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -68,7 +68,7 @@ func (c *CineGratisClient) Search(query string) ([]*models.Anime, error) {
 			}
 			
 			mediaType := models.MediaTypeMovie
-			if strings.Contains(href, "/series/") {
+			if strings.Contains(href, "/series/") || strings.Contains(href, "/series") || strings.Contains(href, "tv/") {
 				mediaType = models.MediaTypeTV
 			}
 
@@ -90,7 +90,8 @@ func (c *CineGratisClient) GetStreamURL(pageURL string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	req.Header.Set("User-Agent", CineGratisUA)
+	req.Header.Set("User-Agent", util.UserAgentList())
+	req.Header.Set("Referer", c.baseURL+"/")
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -140,7 +141,8 @@ func (c *CineGratisClient) GetEpisodes(seriesURL string) ([]models.Episode, erro
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", CineGratisUA)
+	req.Header.Set("User-Agent", util.UserAgentList())
+	req.Header.Set("Referer", c.baseURL+"/")
 
 	resp, err := c.client.Do(req)
 	if err != nil {

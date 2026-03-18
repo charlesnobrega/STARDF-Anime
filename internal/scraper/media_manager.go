@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/charlesnobrega/STARDF-Anime/internal/models"
-	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 )
 
 // MediaManager provides a unified interface for all media types
@@ -21,9 +20,12 @@ func NewMediaManager() *MediaManager {
 
 	// Get the FlixHQ client from the adapter
 	var flixhqClient *FlixHQClient
-	if adapter, ok := sm.scrapers[FlixHQType].(*FlixHQAdapter); ok {
-		flixhqClient = adapter.client
-	} else {
+	if s, exists := sm.scrapers[FlixHQType]; exists {
+		if adapter, ok := s.(*FlixHQAdapter); ok {
+			flixhqClient = adapter.client
+		}
+	}
+	if flixhqClient == nil {
 		flixhqClient = NewFlixHQClient()
 	}
 
@@ -38,43 +40,25 @@ func (mm *MediaManager) SearchAll(query string) ([]*models.Anime, error) {
 	return mm.scraperManager.SearchAnime(query, nil)
 }
 
-// SearchAnimeOnly searches only anime sources
+// SearchAnimeOnly searches only anime sources (dynamically)
 func (mm *MediaManager) SearchAnimeOnly(query string) ([]*models.Anime, error) {
-	var allResults []*models.Anime
-
-	// Search AnimesOnlineCC
-	animesonlineType := AnimesOnlineCCTYPE
-	animesResults, err := mm.scraperManager.SearchAnime(query, &animesonlineType)
-	if err == nil {
-		allResults = append(allResults, animesResults...)
+	results, err := mm.scraperManager.SearchAnime(query, nil)
+	if err != nil {
+		return nil, err
 	}
 
-	// Search Goyabu
-	goyabuType := GoyabuType
-	goyabuResults, err := mm.scraperManager.SearchAnime(query, &goyabuType)
-	if err == nil {
-		allResults = append(allResults, goyabuResults...)
+	var filtered []*models.Anime
+	for _, a := range results {
+		if !strings.Contains(a.Name, "[Movies/TV]") {
+			filtered = append(filtered, a)
+		}
 	}
 
-	// Search SuperAnimes
-	superanimesType := SuperAnimesType
-	superanimesResults, err := mm.scraperManager.SearchAnime(query, &superanimesType)
-	if err == nil {
-		allResults = append(allResults, superanimesResults...)
+	if len(filtered) == 0 {
+		return nil, fmt.Errorf("no results found for: %s", query)
 	}
 
-	// Search AnimeFire
-	animefireType := AnimefireType
-	animefireResults, err := mm.scraperManager.SearchAnime(query, &animefireType)
-	if err == nil {
-		allResults = append(allResults, animefireResults...)
-	}
-
-	if len(allResults) == 0 {
-		return nil, fmt.Errorf("no anime found with name: %s", query)
-	}
-
-	return allResults, nil
+	return filtered, nil
 }
 
 // SearchMoviesAndTV searches only FlixHQ for movies and TV shows
@@ -109,95 +93,44 @@ func (mm *MediaManager) GetTVEpisodes(seasonID string) ([]FlixHQEpisode, error) 
 
 // GetMovieStreamInfo gets stream information for a movie
 func (mm *MediaManager) GetMovieStreamInfo(mediaID, provider, quality, subsLanguage string) (*FlixHQStreamInfo, error) {
-	if provider == "" {
-		provider = "Vidcloud"
-	}
-	if quality == "" {
-		quality = "1080"
-	}
-	if subsLanguage == "" {
-		subsLanguage = "english"
-	}
+	if provider == "" { provider = "Vidcloud" }
+	if quality == "" { quality = "1080" }
+	if subsLanguage == "" { subsLanguage = "english" }
 
 	episodeID, err := mm.flixhqClient.GetMovieServerID(mediaID, provider)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get movie server: %w", err)
-	}
+	if err != nil { return nil, err }
 
 	embedLink, err := mm.flixhqClient.GetEmbedLink(episodeID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get embed link: %w", err)
-	}
+	if err != nil { return nil, err }
 
 	return mm.flixhqClient.ExtractStreamInfo(embedLink, quality, subsLanguage)
 }
 
 // GetTVEpisodeStreamInfo gets stream information for a TV episode
 func (mm *MediaManager) GetTVEpisodeStreamInfo(dataID, provider, quality, subsLanguage string) (*FlixHQStreamInfo, error) {
-	if provider == "" {
-		provider = "Vidcloud"
-	}
-	if quality == "" {
-		quality = "1080"
-	}
-	if subsLanguage == "" {
-		subsLanguage = "english"
-	}
+	if provider == "" { provider = "Vidcloud" }
+	if quality == "" { quality = "1080" }
+	if subsLanguage == "" { subsLanguage = "english" }
 
 	episodeID, err := mm.flixhqClient.GetEpisodeServerID(dataID, provider)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get episode server: %w", err)
-	}
+	if err != nil { return nil, err }
 
 	embedLink, err := mm.flixhqClient.GetEmbedLink(episodeID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get embed link: %w", err)
-	}
+	if err != nil { return nil, err }
 
 	return mm.flixhqClient.ExtractStreamInfo(embedLink, quality, subsLanguage)
 }
 
-// GetAnimeStreamURL gets stream URL for anime episodes
-func (mm *MediaManager) GetAnimeStreamURL(anime *models.Anime, episodeNum string, quality, mode string) (string, map[string]string, error) {
-	source := strings.ToLower(anime.Source)
-
-	util.Debug("Getting stream URL", "source", source, "anime", anime.Name, "episode", episodeNum)
-
-	switch {
-	case strings.Contains(source, "animesonlinecc"):
-		scraper, err := mm.scraperManager.GetScraper(AnimesOnlineCCTYPE)
-		if err != nil {
-			return "", nil, err
-		}
-		return scraper.GetStreamURL(anime.URL, episodeNum, quality, mode)
-
-	case strings.Contains(source, "goyabu"):
-		scraper, err := mm.scraperManager.GetScraper(GoyabuType)
-		if err != nil {
-			return "", nil, err
-		}
-		return scraper.GetStreamURL(anime.URL, episodeNum, quality, mode)
-
-	case strings.Contains(source, "superanimes"):
-		scraper, err := mm.scraperManager.GetScraper(SuperAnimesType)
-		if err != nil {
-			return "", nil, err
-		}
-		return scraper.GetStreamURL(anime.URL, episodeNum, quality, mode)
-
-	case strings.Contains(source, "cineby"):
-		scraper, err := mm.scraperManager.GetScraper(CinebyType)
-		if err != nil {
-			return "", nil, err
-		}
-		return scraper.GetStreamURL(anime.URL, episodeNum, quality, mode)
-
-	default:
-		return "", nil, fmt.Errorf("unknown source: %s", anime.Source)
+// GetAnimeStreamURL gets stream URL for anime episodes dynamically
+func (mm *MediaManager) GetAnimeStreamURL(anime *models.Anime, episodeURL string, options ...interface{}) (string, map[string]string, error) {
+	scraper, err := mm.scraperManager.FindScraperByName(anime.Source)
+	if err != nil {
+		return "", nil, err
 	}
+	return scraper.GetStreamURL(anime.URL, options...)
 }
 
-// ConvertFlixHQToAnime converts FlixHQ media list to Anime models for unified handling
+// ConvertFlixHQToAnime converts FlixHQ media list to Anime models
 func ConvertFlixHQToAnime(media []*FlixHQMedia) []*models.Anime {
 	var animes []*models.Anime
 	for _, m := range media {
@@ -222,12 +155,12 @@ func ConvertFlixHQEpisodesToEpisodes(episodes []FlixHQEpisode) []models.Episode 
 	return eps
 }
 
-// GetScraperManager returns the underlying scraper manager for advanced usage
+// GetScraperManager returns the underlying scraper manager
 func (mm *MediaManager) GetScraperManager() *ScraperManager {
 	return mm.scraperManager
 }
 
-// GetFlixHQClient returns the FlixHQ client for direct access
+// GetFlixHQClient returns the FlixHQ client
 func (mm *MediaManager) GetFlixHQClient() *FlixHQClient {
 	return mm.flixhqClient
 }

@@ -545,7 +545,7 @@ func CleanTitle(title string) string {
 	cleaned = strings.TrimSpace(reLangTags.ReplaceAllString(cleaned, ""))
 
 	// Remove source tags like 🔥[AnimeFire] or 🌐[AllAnime]
-	re1 := regexp.MustCompile(`(?i)[^\w\s]*\s*\[(?:animefire|allanime|animesonlinecc|goyabu|superanimes)\]\s*`)
+	re1 := regexp.MustCompile(`(?i)[^\w\s]*\s*\[(?:animefire|allanime|animesonlinecc|goyabu)\]\s*`)
 	cleaned = strings.TrimSpace(re1.ReplaceAllString(cleaned, ""))
 
 	// Remove everything after em-dash or en-dash (typically subtitles like "– Todos os Episódios")

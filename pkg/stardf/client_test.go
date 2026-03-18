@@ -64,7 +64,7 @@ func TestParseSource(t *testing.T) {
 		{"Cineby", types.SourceCineby, false},
 		{"cineby", types.SourceCineby, false},
 		{"cine", types.SourceCineby, false},
-		{"invalid", types.SourceSuperAnimes, true},
+		{"invalid", types.SourceAnimeFire, true},
 	}
 
 	for _, tt := range tests {

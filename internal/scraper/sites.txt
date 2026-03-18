@@ -104,20 +104,6 @@ movie\flixhq.go:	req, err := http.NewRequest("GET", sourcesURL, nil)
 movie\flixhq.go:	req, err := http.NewRequest("GET", apiURL, nil)
 movie\flixhq.go:func (c *FlixHQClient) decorateRequest(req *http.Request) {
 movie\flixhq.go:	if strings.HasPrefix(ref, "http") {
-superanimes.go:	"net/http"
-superanimes.go:	SuperAnimesBase      = "https://superanimes.in"
-superanimes.go:	SuperAnimesSearchURL = "https://superanimes.in/busca/?search_query=%s"
-superanimes.go:	client  *http.Client
-superanimes.go:	req, _ := http.NewRequest("GET", c.baseURL, nil)
-superanimes.go:	req, err := http.NewRequest("GET", searchURL, nil)
-superanimes.go:	if resp.StatusCode != http.StatusOK {
-superanimes.go:		if !strings.HasPrefix(href, "http") {
-superanimes.go:		if img != "" && !strings.HasPrefix(img, "http") {
-superanimes.go:	req, err := http.NewRequest("GET", animeURL, nil)
-superanimes.go:			if !strings.HasPrefix(href, "http") {
-superanimes.go:	req, err := http.NewRequest("GET", episodeURL, nil)
-superanimes.go:		if src, ok := s.Attr("src"); ok && strings.HasPrefix(src, "http") {
-superanimes.go:		if dataSrc, ok := s.Attr("data-src"); ok && strings.HasPrefix(dataSrc, "http") {
 unified_test.go:				{Name: "Naruto", URL: "https://animefire.io/anime/naruto"},
 unified_test.go:				{Name: "Naruto Classico", URL: "https://animefire.io/anime/naruto-classico"},
 unified_test.go:				{Name: "Naruto", URL: "https://animefire.io/anime/naruto"},

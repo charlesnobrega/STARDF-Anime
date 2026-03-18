@@ -134,6 +134,9 @@ func (c *Client) GetEpisodeStreamURL(anime *types.Anime, episode *types.Episode,
 func (c *Client) GetAvailableSources() []types.Source {
 	return []types.Source{
 		types.SourceAnimeFire,
-		types.SourceSuperAnimes,
+		types.SourceFlixHQ,
+		types.SourceCineby,
+		types.SourceAnimesOnlineCC,
+		types.SourceGoyabu,
 	}
 }

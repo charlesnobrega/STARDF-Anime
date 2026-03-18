@@ -2,7 +2,7 @@
 
 ## Mission Overview
 
-**Objective**: Restore functionality to Goyabu, SuperAnimes, and AnimesOnlineCC scrapers which were previously marked as OFFLINE or returning empty results.
+**Objective**: Restore functionality to Goyabu, SuperAnimes, CineGratis and AnimesOnlineCC scrapers.
 
 ---
 
@@ -10,49 +10,39 @@
 
 ### 1. Goyabu (Status: ✅ FIXED)
 
-- **Problem**: 
-  - Direct DOM parsing for episodes and streams failed because data is now dynamically injected via JavaScript.
-  - Captcha/Bot protection triggered by inconsistent headers.
-- **Root Cause**: The site moved episode data to a `const allEpisodes` JSON array and stream options to `var playersData` inside `<script>` tags.
-- **Solution**:
-  - **Regex Extraction**: Switched from `goquery` DOM parsing to regex-based JSON extraction from the page source.
-  - **Header Optimization**: Removed hardcoded `Accept-Encoding: gzip, deflate, br` which was causing decompression issues in the Go client.
-  - **Re-enabled**: Un-commented in `internal/scraper/unified.go`.
-- **Validation**: Verified with `debug/fix_goyabu.go`. Found 5 results, 8 episodes for "One Piece: A Série", and extracted m3u8 stream URL.
+- **Problem**: DOM parsing failed due to dynamic content. Bot protection.
+- **Solution**: 
+  - Switched to regex JSON extraction (`const allEpisodes`, `var playersData`).
+  - Optimized headers (removed `Accept-Encoding`).
+- **Validation**: Verified. Found 5 results and extracted streams for One Piece.
 
-### 2. SuperAnimes (Status: 🚧 IN PROGRESS)
+### 2. AnimesOnlineCC (Status: ✅ FIXED)
 
-- **Problem**: 
-  - Search results are obfuscated (titles show as "i" or "I").
-  - Aggressive anti-bot (ADEX captcha) detected on episode/player pages.
-- **Observations**: The site seems to detect non-browser patterns quickly. DOM selectors have been updated but data returned is still garbled or blocked.
-- **Next Steps**: 
-  - Analyze the `i` / `I` redirection logic.
-  - Test cookie persistence to see if visiting Home first bypasses protection.
+- **Problem**: 403 Forbidden or empty results.
+- **Solution**: 
+  - Standardized headers with modern Chrome fingerprint.
+  - Removed `Accept-Encoding`.
+  - Updated selectors: Results (`article.item`), Episodes (`ul.episodios li`).
+- **Validation**: Verified. 500 episodes found for Naruto Shippuden.
 
-### 3. AnimesOnlineCC (Status: ✅ FIXED)
+### 3. CineGratis (Status: ✅ FIXED*)
 
-- **Problem**: 
-  - Basic `curl`/`http.Client` requests returned 0 results or empty bodies.
-- **Root Cause**: Aggressive header checks and problematic `Accept-Encoding: gzip, deflate, br` header preventing proper decompression in the Go client.
-- **Solution**:
-  - **Header Synchronization**: Updated headers to match modern Chrome (`Sec-Fetch-*`, `Accept` string).
-  - **Header Cleanup**: Removed the problematic `Accept-Encoding` header.
-  - **Selector Update**: Implemented confirmed selectors: Results (`article.item`), Episodes (`ul.episodios li`), Video (`iframe.metaframe`).
-  - **Re-enabled**: Un-commented in `internal/scraper/unified.go`.
-- **Validation**: Verified with `debug/fix_animesonlinecc.go`. Found results and episodes for "Naruto Shippuden".
+- **Problem**: Outdated selectors and basic headers.
+- **Solution**: 
+  - Fixed `MediaType` detection (now includes `/series-hd-online/`).
+  - Updated headers to use `util.UserAgentList()`.
+- **Note**: Series episode list is handled internally by the player iframe, which remains a limitation for the external selector-based list.
 
----
+### 4. SuperAnimes (Status: ❌ DEPRECATED/BLOCKED)
 
-## 📝 Technical Decisions (Akita Style)
-
-1. **Prefer Data over DOM**: When sites hide data in JS variables (JSON), we use regex extraction instead of fragile CSS selectors.
-2. **Minimal Headers**: We only send essential headers (`User-Agent`, `Referer`, `Accept-Language`) to avoid triggering fingerprinting mismatches.
-3. **Debug First**: Every fix is validated by a standalone script in `debug/` before being committed to the main codebase.
+- **Problem**: Search results return obfuscated "i" titles and 404 links even in browsers. 
+- **Cause**: Sophisticated anti-bot/obfuscation system currently blocking automated search results.
+- **Action**: Remaining OFFLINE in `internal/scraper/unified.go` until a bypass is found.
 
 ---
 
 ## 📅 Timeline
 
-- **2026-03-17**: Mission started. Goyabu fixed. Documentation established.
-- **2026-03-17**: AnimesOnlineCC fixed. SuperAnimes still in progress.
+- **2026-03-17**: Goyabu fixed.
+- **2026-03-17**: AnimesOnlineCC and CineGratis fixed. SuperAnimes search obfuscation confirmed.
+- **2026-03-17**: Debug scripts organized into subdirectories to fix IDE "main redeclared" errors.

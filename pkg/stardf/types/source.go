@@ -21,8 +21,6 @@ const (
 	SourceAnimesOnlineCC
 	// SourceGoyabu represents the Goyabu source
 	SourceGoyabu
-	// SourceSuperAnimes represents the SuperAnimes source
-	SourceSuperAnimes
 )
 
 // String returns the string representation of the source
@@ -38,8 +36,6 @@ func (s Source) String() string {
 		return "AnimesOnlineCC"
 	case SourceGoyabu:
 		return "Goyabu"
-	case SourceSuperAnimes:
-		return "SuperAnimes"
 	default:
 		return "Unknown"
 	}
@@ -57,8 +53,6 @@ func (s Source) ToScraperType() scraper.ScraperType {
 		return scraper.AnimesOnlineCCTYPE
 	case SourceGoyabu:
 		return scraper.GoyabuType
-	case SourceSuperAnimes:
-		return scraper.SuperAnimesType
 	default:
 		return scraper.CinebyType
 	}
@@ -77,9 +71,7 @@ func ParseSource(s string) (Source, error) {
 		return SourceAnimesOnlineCC, nil
 	case "goyabu", "goy":
 		return SourceGoyabu, nil
-	case "superanimes", "super":
-		return SourceSuperAnimes, nil
 	default:
-		return SourceSuperAnimes, fmt.Errorf("unknown source: %s", s)
+		return SourceAnimeFire, fmt.Errorf("unknown source: %s", s)
 	}
 }
