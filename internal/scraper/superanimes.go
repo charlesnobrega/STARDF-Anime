@@ -16,7 +16,7 @@ import (
 
 const (
 	SuperAnimesBase      = "https://superanimes.in"
-	SuperAnimesSearchURL = "https://superanimes.in/busca/?search_query=%s"
+	SuperAnimesSearchURL = "https://superanimes.in/busca/?search_query=%s&btn-busca="
 )
 
 type SuperAnimesClient struct {
@@ -35,13 +35,15 @@ func (c *SuperAnimesClient) visitHome() {
 	req, _ := http.NewRequest("GET", c.baseURL, nil)
 	ua := util.UserAgentList()
 	req.Header.Set("User-Agent", ua)
-	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
 	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
-	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 	req.Header.Set("DNT", "1")
 	req.Header.Set("Connection", "keep-alive")
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
-	req.Header.Set("Cache-Control", "max-age=0")
+	req.Header.Set("Sec-Fetch-Dest", "document")
+	req.Header.Set("Sec-Fetch-Mode", "navigate")
+	req.Header.Set("Sec-Fetch-Site", "none")
+	req.Header.Set("Sec-Fetch-User", "?1")
 	resp, err := c.client.Do(req)
 	if err == nil {
 		resp.Body.Close()
@@ -60,14 +62,16 @@ func (c *SuperAnimesClient) SearchAnime(query string) ([]*models.Anime, error) {
 	}
 	ua := util.UserAgentList()
 	req.Header.Set("User-Agent", ua)
-	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
 	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
-	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 	req.Header.Set("DNT", "1")
 	req.Header.Set("Connection", "keep-alive")
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
-	req.Header.Set("Cache-Control", "max-age=0")
-	req.Header.Set("Referer", c.baseURL)
+	req.Header.Set("Sec-Fetch-Dest", "document")
+	req.Header.Set("Sec-Fetch-Mode", "navigate")
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Sec-Fetch-User", "?1")
+	req.Header.Set("Referer", c.baseURL+"/")
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -85,11 +89,16 @@ func (c *SuperAnimesClient) SearchAnime(query string) ([]*models.Anime, error) {
 	}
 
 	var results []*models.Anime
-	doc.Find("div.box-anime").Each(func(i int, s *goquery.Selection) {
+	doc.Find("div.box-anime, div.box-pgn-anime div.content div.box-anime").Each(func(i int, s *goquery.Selection) {
 		titleEl := s.Find("a.tt")
 		title := strings.TrimSpace(titleEl.Text())
 		href, _ := titleEl.Attr("href")
 		img, _ := s.Find("img").First().Attr("src")
+
+		// Skip obfuscated results
+		if title == "i" || title == "I" || strings.Contains(href, "/videos/i") {
+			return
+		}
 
 		if title == "" || href == "" {
 			return
@@ -123,13 +132,15 @@ func (c *SuperAnimesClient) GetEpisodes(animeURL string) ([]models.Episode, erro
 	}
 	ua := util.UserAgentList()
 	req.Header.Set("User-Agent", ua)
-	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
 	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
-	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 	req.Header.Set("DNT", "1")
 	req.Header.Set("Connection", "keep-alive")
 	req.Header.Set("Upgrade-Insecure-Requests", "1")
-	req.Header.Set("Referer", c.baseURL)
+	req.Header.Set("Sec-Fetch-Dest", "document")
+	req.Header.Set("Sec-Fetch-Mode", "navigate")
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Referer", c.baseURL+"/")
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -143,9 +154,13 @@ func (c *SuperAnimesClient) GetEpisodes(animeURL string) ([]models.Episode, erro
 	}
 
 	var episodes []models.Episode
-	doc.Find(".episodios-list a, .episode-list a").Each(func(i int, s *goquery.Selection) {
-		href, _ := s.Attr("href")
-		title := strings.TrimSpace(s.Text())
+	doc.Find("div.box-anime, .episodios-list a, .episode-list a").Each(func(i int, s *goquery.Selection) {
+		linkEl := s.Find("a.tt")
+		if linkEl.Length() == 0 {
+			linkEl = s
+		}
+		href, _ := linkEl.Attr("href")
+		title := strings.TrimSpace(linkEl.Text())
 		num := i + 1
 
 		if re := regexp.MustCompile(`[^\d]*(\d+)[^\d]*`); re.MatchString(title) {
@@ -199,7 +214,7 @@ func (c *SuperAnimesClient) GetStreamURL(episodeURL string) (string, map[string]
 	}
 
 	var videoURL string
-	doc.Find("iframe, video, .player, .video-container, .embed").Each(func(i int, s *goquery.Selection) {
+	doc.Find("#player iframe, iframe, video, .player, .video-container, .embed").Each(func(i int, s *goquery.Selection) {
 		if src, ok := s.Attr("src"); ok && strings.HasPrefix(src, "http") {
 			videoURL = src
 		}
