@@ -65,21 +65,63 @@ func handleSearch(w http.ResponseWriter, r *http.Request) {
 
 func handleGetEpisodes(w http.ResponseWriter, r *http.Request) {
 	animeURL := r.URL.Query().Get("url")
-	
-	if animeURL == "" {
-		http.Error(w, "Parameter 'url' is required", http.StatusBadRequest)
+	sourceName := r.URL.Query().Get("source")
+
+	if animeURL == "" || sourceName == "" {
+		http.Error(w, "Parameters 'url' and 'source' are required", http.StatusBadRequest)
 		return
 	}
 
-	// Logic to get episodes
-	// Since we don't have the source type passed directly yet from JS, 
-	// we'll need to detect it or pass it.
-	// For now, let's use GetAnimeEpisodesEnhanced with a dummy models.Anime
-	// or similar identification.
+	scraperManager := scraper.NewScraperManager()
+	s, err := scraperManager.FindScraperByName(sourceName)
+	if err != nil {
+		util.Errorf("Web API: Scraper not found: %s", sourceName)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	episodes, err := s.GetAnimeEpisodes(animeURL)
+	if err != nil {
+		util.Errorf("Web API: Get Episodes Error: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(episodes)
 }
 
 func handleGetStream(w http.ResponseWriter, r *http.Request) {
-	// Implementation for stream URL retrieval
+	episodeURL := r.URL.Query().Get("url")
+	sourceName := r.URL.Query().Get("source")
+
+	if episodeURL == "" || sourceName == "" {
+		http.Error(w, "Parameters 'url' and 'source' are required", http.StatusBadRequest)
+		return
+	}
+
+	scraperManager := scraper.NewScraperManager()
+	s, err := scraperManager.FindScraperByName(sourceName)
+	if err != nil {
+		util.Errorf("Web API: Scraper not found: %s", sourceName)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	url, metadata, err := s.GetStreamURL(episodeURL)
+	if err != nil {
+		util.Errorf("Web API: Get Stream Error: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"url":      url,
+		"metadata": metadata,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 // openBrowser opens the specified URL in the default browser of the user.

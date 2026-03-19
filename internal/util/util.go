@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -69,6 +70,7 @@ var (
 	ErrAniListLoginRequested  = errors.New("anilist login requested")
 	ErrAniListLogoutRequested = errors.New("anilist logout requested")
 	ErrBackRequested          = errors.New("back requested")
+	ErrWebRequested           = errors.New("web requested")
 )
 
 // MenuAction defines possible actions from the main menu
@@ -126,6 +128,8 @@ func ParseFlags() (string, error) {
 
 		anilistLoginFlag  := flag.Bool("anilist-login",  false, "connect your AniList account for automatic progress sync")
 		anilistLogoutFlag := flag.Bool("anilist-logout", false, "disconnect AniList account and remove saved token")
+		webFlag := flag.Bool("web", false, "start the premium web user interface")
+		portFlag := flag.Int("port", 8080, "specify the port for the web server (default 8080)")
 
 		// Parse the flags early
 		flag.Parse()
@@ -171,6 +175,13 @@ func ParseFlags() (string, error) {
 
 		if *anilistLogoutFlag {
 			err = ErrAniListLogoutRequested
+			return
+		}
+
+		if *webFlag {
+			err = ErrWebRequested
+			// We can store the port in a global variable if needed, but for now we'll use a local check in main
+			os.Setenv("STARDF_PORT", fmt.Sprintf("%d", *portFlag))
 			return
 		}
 

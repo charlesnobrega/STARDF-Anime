@@ -97,13 +97,121 @@ func (s *DynamicScraper) SearchAnime(query string, options ...interface{}) ([]*m
 }
 
 func (s *DynamicScraper) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
-	// For now, let's keep it simple. In a real scenario, the JSON should also 
-	// contain selectors for episodes.
-	return nil, fmt.Errorf("episodes not yet implemented in dynamic scraper")
+	resp, err := s.client.Get(animeURL)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	selector := s.Config.Selectors["episodes"]
+	if selector == "" {
+		selector = ".episodios li a, .episodes a, ul.episodes li a" // Fallback
+	}
+
+	var episodes []models.Episode
+	doc.Find(selector).Each(func(i int, sel *goquery.Selection) {
+		link, _ := sel.Attr("href")
+		if link == "" {
+			return
+		}
+		if !strings.HasPrefix(link, "http") {
+			link = s.Config.BaseURL + link
+		}
+
+		title := strings.TrimSpace(sel.Text())
+		if title == "" {
+			title = fmt.Sprintf("Episódio %d", i+1)
+		}
+
+		episodes = append(episodes, models.Episode{
+			Number: fmt.Sprintf("%d", i+1),
+			Num:    i + 1,
+			Title:  models.TitleDetails{English: title},
+			URL:    link,
+		})
+	})
+
+	return episodes, nil
 }
 
 func (s *DynamicScraper) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
-	return "", nil, fmt.Errorf("stream url not yet implemented in dynamic scraper")
+	resp, err := s.client.Get(episodeURL)
+	if err != nil {
+		return "", nil, err
+	}
+	defer resp.Body.Close()
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return "", nil, err
+	}
+
+	var streamURL string
+	selector := s.Config.Selectors["stream"]
+	if selector == "" {
+		selector = "iframe, video source" // Broad Fallback
+	}
+
+	// Try multiple common attributes for the URL
+	doc.Find(selector).Each(func(i int, sel *goquery.Selection) {
+		if streamURL != "" { return }
+		
+		attributes := []string{"src", "data-src", "data-video", "data-l"}
+		for _, attr := range attributes {
+			val, _ := sel.Attr(attr)
+			if val != "" && isValidStream(val) {
+				streamURL = val
+				break
+			}
+		}
+	})
+
+	if streamURL == "" {
+		// Final attempt: check for matches in script tags (dangerous but sometimes needed)
+		doc.Find("script").Each(func(i int, sel *goquery.Selection) {
+			if streamURL != "" { return }
+			content := sel.Text()
+			if strings.Contains(content, "var player") || strings.Contains(content, "const v =") {
+				// regex search for URL patterns starting with http could be done here if needed
+			}
+		})
+	}
+
+	if streamURL == "" {
+		return "", nil, fmt.Errorf("could not find stream URL with selector: %s", selector)
+	}
+
+	// Handle relative URLs
+	if !strings.HasPrefix(streamURL, "http") {
+		if strings.HasPrefix(streamURL, "//") {
+			streamURL = "https:" + streamURL
+		} else {
+			streamURL = strings.TrimSuffix(s.Config.BaseURL, "/") + "/" + strings.TrimPrefix(streamURL, "/")
+		}
+	}
+
+	metadata := map[string]string{
+		"source": s.Config.Name,
+	}
+
+	return streamURL, metadata, nil
+}
+
+// isValidStream checks if a URL is likely a valid stream and not an ad
+func isValidStream(u string) bool {
+	u = strings.ToLower(u)
+	blocked := []string{"google", "ads", "advertising", "banner", "analytics", "doubleclick"}
+	for _, b := range blocked {
+		if strings.Contains(u, b) {
+			return false
+		}
+	}
+	return strings.HasPrefix(u, "http") || strings.HasPrefix(u, "//") || strings.HasPrefix(u, "/")
 }
 
 func (s *DynamicScraper) GetType() ScraperType {

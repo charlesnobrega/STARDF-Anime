@@ -14,6 +14,7 @@ import (
 	"github.com/charlesnobrega/STARDF-Anime/internal/player"
 	"github.com/charlesnobrega/STARDF-Anime/internal/tracking"
 	"github.com/charlesnobrega/STARDF-Anime/internal/util"
+	"github.com/charlesnobrega/STARDF-Anime/internal/api"
 	"github.com/charlesnobrega/STARDF-Anime/internal/watchlist"
 	"time"
 )
@@ -77,6 +78,17 @@ func main() {
 		if errors.Is(err, util.ErrAniListLogoutRequested) {
 			if logoutErr := handlers.HandleAniListLogout(); logoutErr != nil {
 				fmt.Println(util.ErrorHandler(logoutErr))
+			}
+			return
+		}
+		if errors.Is(err, util.ErrWebRequested) {
+			port := 8080
+			portStr := os.Getenv("STARDF_PORT")
+			if portStr != "" {
+				fmt.Sscanf(portStr, "%d", &port)
+			}
+			if webErr := api.StartWebUI(port); webErr != nil {
+				fmt.Println(util.ErrorHandler(webErr))
 			}
 			return
 		}
