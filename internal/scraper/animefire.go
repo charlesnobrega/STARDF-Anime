@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -206,16 +207,85 @@ func (c *AnimefireClient) resolveURL(base, ref string) string {
 	return base + "/" + ref
 }
 
-// GetAnimeEpisodes - placeholder method, actual episodes are fetched by API layer
 func (c *AnimefireClient) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
-	return nil, fmt.Errorf("episodes should be fetched using API layer, not scraper")
+	req, err := http.NewRequest("GET", animeURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	c.decorateRequest(req)
+	
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	
+	var episodes []models.Episode
+	doc.Find(".div_episodes a").Each(func(i int, s *goquery.Selection) {
+		href, _ := s.Attr("href")
+		num := i + 1
+		title := strings.TrimSpace(s.Text())
+		
+		if href != "" {
+			episodes = append(episodes, models.Episode{
+				Number: fmt.Sprintf("%d", num),
+				Num:    num,
+				URL:    c.resolveURL(c.baseURL, href),
+				Title:  models.TitleDetails{English: title},
+			})
+		}
+	})
+	
+	return episodes, nil
 }
 
 // GetEpisodeStreamURL gets the streaming URL for a specific episode
 // This is specific to scraper functionality, not duplicated from API
 func (c *AnimefireClient) GetEpisodeStreamURL(episodeURL string) (string, error) {
-	// Implementation for getting stream URLs - specific to scraper
-	return "", fmt.Errorf("stream URL extraction not implemented")
+	req, err := http.NewRequest("GET", episodeURL, nil)
+	if err != nil {
+		return "", err
+	}
+	c.decorateRequest(req)
+	
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	
+	// Stream URL is often in a script or hidden in an iframe
+	var videoURL string
+	doc.Find("iframe").Each(func(i int, s *goquery.Selection) {
+		if src, ok := s.Attr("src"); ok && strings.Contains(src, "player") {
+			videoURL = src
+		}
+	})
+	
+	if videoURL == "" {
+		// Try searching for .m3u8 or .mp4 in scripts
+		html, _ := doc.Html()
+		re := regexp.MustCompile(`(https?://[^"']+\.(m3u8|mp4)[^"']*)`)
+		if matches := re.FindStringSubmatch(html); len(matches) > 1 {
+			videoURL = matches[1]
+		}
+	}
+	
+	if videoURL == "" {
+		return "", errors.New("no stream found on page")
+	}
+	
+	return videoURL, nil
 }
 
 // GetAnimeDetails - placeholder method, details are fetched by API layer

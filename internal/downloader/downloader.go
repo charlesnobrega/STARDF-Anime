@@ -86,7 +86,11 @@ func (d *EpisodeDownloader) DownloadSingleEpisode(episodeNum int) error {
 	}
 
 	// Download with progress
-	return d.downloadWithProgress(videoURL, episodePath, episodeNum)
+	err = d.downloadWithProgress(videoURL, episodePath, episodeNum)
+	if err == nil {
+		util.SyncMetadata(d.config.OutputDir, d.anime)
+	}
+	return err
 }
 
 // DownloadEpisodeRange downloads a range of episodes
@@ -124,7 +128,11 @@ func (d *EpisodeDownloader) DownloadEpisodeRange(startEp, endEp int) error {
 	fmt.Printf("Found %d episode(s) to download (episodes %d-%d)\n",
 		len(episodesToDownload), startEp, endEp)
 	// Download episodes concurrently with progress UI
-	return d.downloadConcurrentWithProgress(episodesToDownload)
+	err := d.downloadConcurrentWithProgress(episodesToDownload)
+	if err == nil {
+		util.SyncMetadata(d.config.OutputDir, d.anime)
+	}
+	return err
 }
 
 // downloadConcurrentWithProgress downloads multiple episodes with proper Bubble Tea progress UI

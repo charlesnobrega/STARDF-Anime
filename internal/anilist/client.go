@@ -88,3 +88,42 @@ func (c *Client) query(query string, variables map[string]interface{}, result in
 
 	return json.Unmarshal(respBody, result)
 }
+
+// GetTrendingSeason fetches trending anime for the current season.
+func (c *Client) GetTrendingSeason(page int) ([]MediaSearchResult, error) {
+	now := time.Now()
+	year := now.Year()
+	month := now.Month()
+
+	var season string
+	switch {
+	case month >= 1 && month <= 3:
+		season = "WINTER"
+	case month >= 4 && month <= 6:
+		season = "SPRING"
+	case month >= 7 && month <= 9:
+		season = "SUMMER"
+	default:
+		season = "FALL"
+	}
+
+	var resp struct {
+		Data struct {
+			Page struct {
+				Media []MediaSearchResult `json:"media"`
+			} `json:"Page"`
+		} `json:"data"`
+	}
+
+	err := c.query(queryGetTrendingSeason, map[string]interface{}{
+		"season":     season,
+		"seasonYear": year,
+		"page":       page,
+	}, &resp)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Data.Page.Media, nil
+}

@@ -82,6 +82,29 @@ query ($search: String, $type: MediaType) {
 }
 `
 
+const queryGetTrendingSeason = `
+query ($season: MediaSeason, $seasonYear: Int, $page: Int) {
+  Page(page: $page, perPage: 10) {
+    media(season: $season, seasonYear: $seasonYear, type: ANIME, sort: TRENDING_DESC) {
+      id
+      idMal
+      title {
+        romaji
+        english
+        native
+      }
+      coverImage {
+        large
+      }
+      episodes
+      status
+      format
+      averageScore
+    }
+  }
+}
+`
+
 const queryGetUserList = `
 query ($userId: Int, $type: MediaType) {
   MediaListCollection(userId: $userId, type: $type) {

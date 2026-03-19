@@ -14,7 +14,7 @@ import (
 	"github.com/charlesnobrega/STARDF-Anime/internal/player"
 	"github.com/charlesnobrega/STARDF-Anime/internal/tracking"
 	"github.com/charlesnobrega/STARDF-Anime/internal/util"
-	"github.com/charlesnobrega/STARDF-Anime/internal/api"
+	"github.com/charlesnobrega/STARDF-Anime/internal/webui"
 	"github.com/charlesnobrega/STARDF-Anime/internal/watchlist"
 	"time"
 )
@@ -87,7 +87,7 @@ func main() {
 			if portStr != "" {
 				fmt.Sscanf(portStr, "%d", &port)
 			}
-			if webErr := api.StartWebUI(port); webErr != nil {
+			if webErr := webui.StartWebUI(port); webErr != nil {
 				fmt.Println(util.ErrorHandler(webErr))
 			}
 			return

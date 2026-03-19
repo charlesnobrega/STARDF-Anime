@@ -8,10 +8,13 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"encoding/json"
 
 	"github.com/charlesnobrega/STARDF-Anime/internal/models"
 	"github.com/charlesnobrega/STARDF-Anime/internal/tracking"
 	"github.com/charlesnobrega/STARDF-Anime/internal/util"
+	"os"
+	"regexp"
 )
 
 // ScraperType represents different scraper types
@@ -74,10 +77,30 @@ func NewScraperManager() *ScraperManager {
 
 	// Register Static Scrapers (Special Logic)
 	manager.scrapers[FlixHQType] = &FlixHQAdapter{client: NewFlixHQClient()}
+	manager.scrapers[AnimefireType] = &AnimefireAdapter{client: NewAnimefireClient()}
+	manager.scrapers[AnimesOnlineCCTYPE] = &AnimesOnlineCCAdapter{client: NewAnimesOnlineCCClient()}
+	manager.scrapers[BetterAnimeType] = &BetterAnimeAdapter{client: NewBetterAnimeClient()}
+	manager.scrapers[TopAnimesType] = &TopAnimesAdapter{client: NewTopAnimesClient()}
+	manager.scrapers[AnimesDigitalType] = &AnimesDigitalAdapter{client: NewAnimesDigitalClient()}
 
 	// Load Dynamic Scrapers (JSON Manifest from Spider)
 	manifestURL := "http://localhost:3000/scrapers.json"
 	dynamicConfigs, err := LoadDynamicScrapers(manifestURL)
+	if err != nil {
+		util.Debug("Spider URL failed, trying local scrapers.json...", "error", err)
+		// Try local file fallback
+		localPath := "scrapers.json"
+		if _, statErr := os.Stat(localPath); statErr == nil {
+			f, _ := os.Open(localPath)
+			defer f.Close()
+			var manifest DynamicManifest
+			if decErr := json.NewDecoder(f).Decode(&manifest); decErr == nil {
+				dynamicConfigs = manifest.Scrapers
+				err = nil // Cleared error
+			}
+		}
+	}
+
 	if err == nil {
 		dynamicTypes := []ScraperType{
 			Dynamic1Type, Dynamic2Type, Dynamic3Type, Dynamic4Type, Dynamic5Type,
@@ -92,7 +115,7 @@ func NewScraperManager() *ScraperManager {
 			util.Debug("Dynamic source registered", "name", cfg.Name, "type", st)
 		}
 	} else {
-		util.Error("Failed to load dynamic scrapers", "error", err)
+		util.Error("Failed to load any dynamic scrapers", "error", err)
 	}
 
 	return manager
@@ -270,6 +293,21 @@ func (sm *ScraperManager) getScraperDisplayName(scraperType ScraperType) string 
 	if scraperType == FlixHQType {
 		return "FlixHQ"
 	}
+	if scraperType == AnimefireType {
+		return "AnimeFire"
+	}
+	if scraperType == AnimesOnlineCCTYPE {
+		return "AnimesOnlineCC"
+	}
+	if scraperType == BetterAnimeType {
+		return "BetterAnime"
+	}
+	if scraperType == TopAnimesType {
+		return "TopAnimes"
+	}
+	if scraperType == AnimesDigitalType {
+		return "AnimesDigital"
+	}
 	if s, exists := sm.scrapers[scraperType]; exists {
 		if ds, ok := s.(*DynamicScraper); ok {
 			return ds.Config.Name
@@ -309,13 +347,71 @@ func (a *FlixHQAdapter) SearchAnime(query string, options ...interface{}) ([]*mo
 }
 
 func (a *FlixHQAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
-	return nil, fmt.Errorf("use GetSeasons on client")
+	// Extract ID from URL
+	re := regexp.MustCompile(`-(\d+)$`)
+	matches := re.FindStringSubmatch(animeURL)
+	if len(matches) < 2 {
+		return nil, fmt.Errorf("could not extract media ID from URL")
+	}
+	mediaID := matches[1]
+
+	if strings.Contains(animeURL, "/movie/") {
+		// Movies are a single episode
+		return []models.Episode{
+			{Number: "1", Num: 1, URL: mediaID, Title: models.TitleDetails{English: "Movie"}},
+		}, nil
+	}
+
+	// TV Shows: Get seasons then episodes for season 1
+	seasons, err := a.client.GetSeasons(mediaID)
+	if err != nil {
+		return nil, err
+	}
+	if len(seasons) == 0 {
+		return nil, fmt.Errorf("no seasons found")
+	}
+
+	eps, err := a.client.GetEpisodes(seasons[0].ID)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []models.Episode
+	for _, e := range eps {
+		results = append(results, e.ToEpisodeModel())
+	}
+	return results, nil
 }
 
 func (a *FlixHQAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
-	embedLink, _ := a.client.GetEmbedLink(episodeURL)
+	var episodeID string
+	var err error
+
+	// Distinguish between movieID (passed as episodeURL for movies) and episodeDataID
+	if len(episodeURL) > 3 && !strings.Contains(episodeURL, "ajax") {
+		// If it's pure ID, it might be a movie or we need to find the server first
+		// In adapter, we try to get server first
+		episodeID, err = a.client.GetMovieServerID(episodeURL, "UpCloud")
+		if err != nil {
+			episodeID, err = a.client.GetEpisodeServerID(episodeURL, "Vidcloud")
+		}
+	} else {
+		episodeID = episodeURL
+	}
+
+	if err != nil && episodeID == "" {
+		episodeID = episodeURL // Fallback
+	}
+
+	embedLink, err := a.client.GetEmbedLink(episodeID)
+	if err != nil {
+		return "", nil, err
+	}
 	info, err := a.client.ExtractStreamInfo(embedLink, "1080", "english")
-	return info.VideoURL, map[string]string{"source": "flixhq"}, err
+	if err != nil {
+		return "", nil, err
+	}
+	return info.VideoURL, map[string]string{"source": "flixhq"}, nil
 }
 
 func (a *FlixHQAdapter) GetType() ScraperType {
@@ -326,3 +422,110 @@ func (a *FlixHQAdapter) GetType() ScraperType {
 func (a *FlixHQAdapter) GetClient() *FlixHQClient {
 	return a.client
 }
+
+// AnimefireAdapter adapts AnimefireClient
+type AnimefireAdapter struct {
+	client *AnimefireClient
+}
+
+func (a *AnimefireAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
+	return a.client.SearchAnime(query)
+}
+
+func (a *AnimefireAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
+	return a.client.GetAnimeEpisodes(animeURL)
+}
+
+func (a *AnimefireAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
+	url, err := a.client.GetEpisodeStreamURL(episodeURL)
+	return url, map[string]string{"source": "animefire"}, err
+}
+
+func (a *AnimefireAdapter) GetType() ScraperType {
+	return AnimefireType
+}
+
+// AnimesOnlineCCAdapter adapts AnimesOnlineCCClient
+type AnimesOnlineCCAdapter struct {
+	client *AnimesOnlineCCClient
+}
+
+func (a *AnimesOnlineCCAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
+	return a.client.SearchAnime(query)
+}
+
+func (a *AnimesOnlineCCAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
+	return a.client.GetEpisodes(animeURL)
+}
+
+func (a *AnimesOnlineCCAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
+	return a.client.GetStreamURL(episodeURL)
+}
+
+func (a *AnimesOnlineCCAdapter) GetType() ScraperType {
+	return AnimesOnlineCCTYPE
+}
+
+// BetterAnimeAdapter adapts BetterAnimeClient
+type BetterAnimeAdapter struct {
+	client *BetterAnimeClient
+}
+
+func (a *BetterAnimeAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
+	return a.client.SearchAnime(query)
+}
+
+func (a *BetterAnimeAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
+	return a.client.GetEpisodes(animeURL)
+}
+
+func (a *BetterAnimeAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
+	return a.client.GetStreamURL(episodeURL)
+}
+
+func (a *BetterAnimeAdapter) GetType() ScraperType {
+	return BetterAnimeType
+}
+
+// TopAnimesAdapter adapts TopAnimesClient
+type TopAnimesAdapter struct {
+	client *TopAnimesClient
+}
+
+func (a *TopAnimesAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
+	return a.client.SearchAnime(query)
+}
+
+func (a *TopAnimesAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
+	return a.client.GetEpisodes(animeURL)
+}
+
+func (a *TopAnimesAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
+	return a.client.GetStreamURL(episodeURL)
+}
+
+func (a *TopAnimesAdapter) GetType() ScraperType {
+	return TopAnimesType
+}
+
+// AnimesDigitalAdapter adapts AnimesDigitalClient
+type AnimesDigitalAdapter struct {
+	client *AnimesDigitalClient
+}
+
+func (a *AnimesDigitalAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
+	return a.client.SearchAnime(query)
+}
+
+func (a *AnimesDigitalAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
+	return a.client.GetEpisodes(animeURL)
+}
+
+func (a *AnimesDigitalAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
+	return a.client.GetStreamURL(episodeURL)
+}
+
+func (a *AnimesDigitalAdapter) GetType() ScraperType {
+	return AnimesDigitalType
+}
+

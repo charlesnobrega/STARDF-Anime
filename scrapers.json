@@ -1,0 +1,17 @@
+{
+  "scrapers": [
+    {
+      "name": "Mock Scraper",
+      "baseURL": "https://example.com",
+      "searchURL": "https://example.com/search/%s",
+      "parentSelector": ".list-item",
+      "selectors": {
+        "title": "h3",
+        "link": "a",
+        "image": "img",
+        "episodes": ".ep-list a",
+        "stream": "iframe"
+      }
+    }
+  ]
+}
