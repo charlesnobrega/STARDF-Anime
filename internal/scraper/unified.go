@@ -82,26 +82,25 @@ func NewScraperManager() *ScraperManager {
 	manager.scrapers[BetterAnimeType] = &BetterAnimeAdapter{client: NewBetterAnimeClient()}
 	manager.scrapers[TopAnimesType] = &TopAnimesAdapter{client: NewTopAnimesClient()}
 	manager.scrapers[AnimesDigitalType] = &AnimesDigitalAdapter{client: NewAnimesDigitalClient()}
+	manager.scrapers[CinebyType] = &CinebyAdapter{client: NewCinebyClient()}
+	manager.scrapers[GoyabuType] = &GoyabuAdapter{client: NewGoyabuClient()}
+	manager.scrapers[CineGratisType] = &CineGratisAdapter{client: NewCineGratisClient()}
 
-	// Load Dynamic Scrapers (JSON Manifest from Spider)
-	manifestURL := "http://localhost:3000/scrapers.json"
-	dynamicConfigs, err := LoadDynamicScrapers(manifestURL)
-	if err != nil {
-		util.Debug("Spider URL failed, trying local scrapers.json...", "error", err)
-		// Try local file fallback
-		localPath := "scrapers.json"
-		if _, statErr := os.Stat(localPath); statErr == nil {
-			f, _ := os.Open(localPath)
-			defer f.Close()
-			var manifest DynamicManifest
-			if decErr := json.NewDecoder(f).Decode(&manifest); decErr == nil {
-				dynamicConfigs = manifest.Scrapers
-				err = nil // Cleared error
-			}
+	// Load Dynamic Scrapers (Always local first as per requirements)
+	localPath := "scrapers.json"
+	var dynamicConfigs []DynamicScraperConfig
+	if f, err := os.Open(localPath); err == nil {
+		defer f.Close()
+		var manifest DynamicManifest
+		if decErr := json.NewDecoder(f).Decode(&manifest); decErr == nil {
+			dynamicConfigs = manifest.Scrapers
+			util.Infof("Loaded %d dynamic scrapers from local scrapers.json", len(dynamicConfigs))
 		}
+	} else {
+		util.Warn("Local scrapers.json not found, dynamic sources will be unavailable", "path", localPath)
 	}
 
-	if err == nil {
+	if len(dynamicConfigs) > 0 {
 		dynamicTypes := []ScraperType{
 			Dynamic1Type, Dynamic2Type, Dynamic3Type, Dynamic4Type, Dynamic5Type,
 			Dynamic6Type, Dynamic7Type, Dynamic8Type, Dynamic9Type, Dynamic10Type,
@@ -115,7 +114,7 @@ func NewScraperManager() *ScraperManager {
 			util.Debug("Dynamic source registered", "name", cfg.Name, "type", st)
 		}
 	} else {
-		util.Error("Failed to load any dynamic scrapers", "error", err)
+		util.Warn("No dynamic scrapers found in scrapers.json")
 	}
 
 	return manager
@@ -160,7 +159,7 @@ func (sm *ScraperManager) searchSpecificScraper(query string, scraperType Scrape
 
 	results, err := scraper.SearchAnime(query)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("busca falhou: %v", err)
 	}
 
 	sm.tagResults(results, scraperType)
@@ -249,8 +248,11 @@ func (sm *ScraperManager) searchAllScrapersConcurrent(query string) ([]*models.A
 	}
 
 done:
-	if len(allResults) == 0 && len(searchErrors) > 0 {
-		return nil, fmt.Errorf("no results found (errors: %s)", strings.Join(searchErrors, "; "))
+	if len(allResults) == 0 {
+		if len(searchErrors) > 0 {
+			return nil, fmt.Errorf("no results found (errors: %s)", strings.Join(searchErrors, "; "))
+		}
+		return nil, fmt.Errorf("no results found")
 	}
 	return allResults, nil
 }
@@ -293,6 +295,9 @@ func (sm *ScraperManager) getScraperDisplayName(scraperType ScraperType) string 
 	if scraperType == FlixHQType {
 		return "FlixHQ"
 	}
+	if scraperType == CinebyType {
+		return "Cineby"
+	}
 	if scraperType == AnimefireType {
 		return "AnimeFire"
 	}
@@ -308,6 +313,12 @@ func (sm *ScraperManager) getScraperDisplayName(scraperType ScraperType) string 
 	if scraperType == AnimesDigitalType {
 		return "AnimesDigital"
 	}
+	if scraperType == GoyabuType {
+		return "Goyabu"
+	}
+	if scraperType == CineGratisType {
+		return "CineGratis"
+	}
 	if s, exists := sm.scrapers[scraperType]; exists {
 		if ds, ok := s.(*DynamicScraper); ok {
 			return ds.Config.Name
@@ -317,7 +328,7 @@ func (sm *ScraperManager) getScraperDisplayName(scraperType ScraperType) string 
 }
 
 func (sm *ScraperManager) getLanguageTag(scraperType ScraperType) string {
-	if scraperType == FlixHQType {
+	if scraperType == FlixHQType || scraperType == CinebyType || scraperType == CineGratisType {
 		return "[Movies/TV]"
 	}
 	return "[Source]"
@@ -527,5 +538,73 @@ func (a *AnimesDigitalAdapter) GetStreamURL(episodeURL string, options ...interf
 
 func (a *AnimesDigitalAdapter) GetType() ScraperType {
 	return AnimesDigitalType
+}
+
+// CinebyAdapter adapts CinebyClient
+type CinebyAdapter struct {
+	client *CinebyClient
+}
+
+func (a *CinebyAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
+	return a.client.SearchMedia(query)
+}
+
+func (a *CinebyAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
+	return a.client.GetEpisodes(animeURL)
+}
+
+func (a *CinebyAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
+	urls, err := a.client.GetStreamURLs(episodeURL)
+	if err != nil || len(urls) == 0 {
+		return "", nil, err
+	}
+	return urls[0], map[string]string{"source": "cineby"}, nil
+}
+
+func (a *CinebyAdapter) GetType() ScraperType {
+	return CinebyType
+}
+
+// GoyabuAdapter adapts GoyabuClient
+type GoyabuAdapter struct {
+	client *GoyabuClient
+}
+
+func (a *GoyabuAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
+	return a.client.SearchAnime(query)
+}
+
+func (a *GoyabuAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
+	return a.client.GetEpisodes(animeURL)
+}
+
+func (a *GoyabuAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
+	return a.client.GetStreamURL(episodeURL)
+}
+
+func (a *GoyabuAdapter) GetType() ScraperType {
+	return GoyabuType
+}
+
+// CineGratisAdapter adapts CineGratisClient
+type CineGratisAdapter struct {
+	client *CineGratisClient
+}
+
+func (a *CineGratisAdapter) SearchAnime(query string, options ...interface{}) ([]*models.Anime, error) {
+	return a.client.Search(query)
+}
+
+func (a *CineGratisAdapter) GetAnimeEpisodes(animeURL string) ([]models.Episode, error) {
+	return a.client.GetEpisodes(animeURL)
+}
+
+func (a *CineGratisAdapter) GetStreamURL(episodeURL string, options ...interface{}) (string, map[string]string, error) {
+	url, err := a.client.GetStreamURL(episodeURL)
+	return url, map[string]string{"source": "cinegratis"}, err
+}
+
+func (a *CineGratisAdapter) GetType() ScraperType {
+	return CineGratisType
 }
 

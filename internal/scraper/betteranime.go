@@ -15,7 +15,7 @@ import (
 
 const (
 	BetterAnimeBase      = "https://betteranime.io"
-	BetterAnimeSearchURL = "https://betteranime.io/?s=%s"
+	BetterAnimeSearchURL = "https://betteranime.io/pesquisa?titulo=%s"
 )
 
 type BetterAnimeClient struct {
@@ -179,6 +179,7 @@ func (c *BetterAnimeClient) GetStreamURL(episodeURL string) (string, map[string]
 		return "", nil, err
 	}
 
+	htmlContent, _ := doc.Html()
 	var finalStreamURL string
 
 	// BetterAnime usually puts the stream source token in an iframe or a data attribute
@@ -191,7 +192,6 @@ func (c *BetterAnimeClient) GetStreamURL(episodeURL string) (string, map[string]
 
 	if finalStreamURL == "" {
 		// Try to find raw player scripts
-		htmlContent, _ := doc.Html()
 		// Search for base64 encoded strings typically near player instantiation
 		reSource := regexp.MustCompile(`(?:source|file|url)["']?\s*:\s*["']([^"']+)["']`)
 		matches := reSource.FindAllStringSubmatch(htmlContent, -1)
@@ -224,6 +224,19 @@ func (c *BetterAnimeClient) GetStreamURL(episodeURL string) (string, map[string]
 				decoded, err := base64.StdEncoding.DecodeString(sourceBase64)
 				if err == nil {
 					finalStreamURL = string(decoded)
+				}
+			}
+		}
+	}
+
+	if finalStreamURL == "" {
+		// Even more aggressive fallback for any stream URL
+		reGeneric := regexp.MustCompile(`https?://[^"']+\.(m3u8|mp4)[^"']*`)
+		if matches := reGeneric.FindAllString(htmlContent, -1); len(matches) > 0 {
+			for _, m := range matches {
+				if !strings.Contains(m, "placeholder") && !strings.Contains(m, "ad") {
+					finalStreamURL = m
+					break
 				}
 			}
 		}

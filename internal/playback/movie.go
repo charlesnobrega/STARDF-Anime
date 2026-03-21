@@ -19,6 +19,11 @@ import (
 
 // HandleMovie gerencia a reprodução de filmes/OVAs
 func HandleMovie(anime *models.Anime, episodes []models.Episode, discordEnabled bool) error {
+	if len(episodes) == 0 {
+		util.Errorf("Nenhum arquivo de vídeo encontrado para este filme.")
+		return player.ErrBackToAnimeSelection
+	}
+
 	for {
 		animeMutex := sync.Mutex{}
 		isPaused := false

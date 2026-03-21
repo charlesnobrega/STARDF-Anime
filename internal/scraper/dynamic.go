@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -44,6 +45,10 @@ func (s *DynamicScraper) SearchAnime(query string, options ...interface{}) ([]*m
 	ua := util.UserAgentList()
 	req.Header.Set("User-Agent", ua)
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7")
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("Pragma", "no-cache")
+	req.Header.Set("Referer", s.Config.BaseURL)
 
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -110,7 +115,7 @@ func (s *DynamicScraper) GetAnimeEpisodes(animeURL string) ([]models.Episode, er
 
 	selector := s.Config.Selectors["episodes"]
 	if selector == "" {
-		selector = ".episodios li a, .episodes a, ul.episodes li a" // Fallback
+		selector = ".episodios li a, .episodes a, ul.episodes li a, .lEp, .episodiotitle a" // Robust Fallback
 	}
 
 	var episodes []models.Episode
@@ -157,29 +162,39 @@ func (s *DynamicScraper) GetStreamURL(episodeURL string, options ...interface{})
 		selector = "iframe, video source" // Broad Fallback
 	}
 
-	// Try multiple common attributes for the URL
+	// Enhanced extraction logic for modern players
 	doc.Find(selector).Each(func(i int, sel *goquery.Selection) {
 		if streamURL != "" { return }
 		
-		attributes := []string{"src", "data-src", "data-video", "data-l"}
-		for _, attr := range attributes {
-			val, _ := sel.Attr(attr)
-			if val != "" && isValidStream(val) {
+		// 1. Check common attributes (src, data-src, link, etc)
+		for _, attr := range []string{"src", "data-src", "data-video", "value", "data-l"} {
+			if val, ok := sel.Attr(attr); ok && isValidStream(val) {
 				streamURL = val
-				break
+				return
 			}
 		}
+
+		// 2. Check for nested video/source elements if selector was a container
+		sel.Find("video, source, iframe").Each(func(j int, sub *goquery.Selection) {
+			if streamURL != "" { return }
+			for _, attr := range []string{"src", "data-src"} {
+				if val, ok := sub.Attr(attr); ok && isValidStream(val) {
+					streamURL = val
+					return
+				}
+			}
+		})
 	})
 
 	if streamURL == "" {
-		// Final attempt: check for matches in script tags (dangerous but sometimes needed)
-		doc.Find("script").Each(func(i int, sel *goquery.Selection) {
-			if streamURL != "" { return }
-			content := sel.Text()
-			if strings.Contains(content, "var player") || strings.Contains(content, "const v =") {
-				// regex search for URL patterns starting with http could be done here if needed
-			}
-		})
+		// 3. Fallback: Search the entire HTML for "link=" or "file=" patterns in strings/scripts
+		html, _ := doc.Html()
+		// Regex for searching video URLs in various script/attr contexts
+		re := regexp.MustCompile(`(?:link|file|src|url)\s*[:=]\s*["'](https?://[^"']+)["']`)
+		matches := re.FindStringSubmatch(html)
+		if len(matches) > 1 && isValidStream(matches[1]) {
+			streamURL = matches[1]
+		}
 	}
 
 	if streamURL == "" {

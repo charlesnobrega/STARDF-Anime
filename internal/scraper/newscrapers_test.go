@@ -19,4 +19,16 @@ func TestNewScrapers_LiveSearch(t *testing.T) {
 	adClient := scraper.NewAnimesDigitalClient()
 	adRes, err := adClient.SearchAnime(query)
 	t.Logf("AnimesDigital: err=%v, results=%d", err, len(adRes))
+
+	cbClient := scraper.NewCinebyClient()
+	cbRes, err := cbClient.SearchMedia(query)
+	t.Logf("Cineby: err=%v, results=%d", err, len(cbRes))
+
+	gbClient := scraper.NewGoyabuClient()
+	gbRes, err := gbClient.SearchAnime(query)
+	t.Logf("Goyabu: err=%v, results=%d", err, len(gbRes))
+
+	cgClient := scraper.NewCineGratisClient()
+	cgRes, err := cgClient.Search(query)
+	t.Logf("CineGratis: err=%v, results=%d", err, len(cgRes))
 }

@@ -1,15 +1,54 @@
 {
   "scrapers": [
     {
-      "name": "Mock Scraper",
-      "baseURL": "https://example.com",
-      "searchURL": "https://example.com/search/%s",
-      "parentSelector": ".list-item",
+      "name": "Anroll",
+      "baseURL": "https://anroll.tv",
+      "searchURL": "https://anroll.tv/busca?q=%s",
+      "parentSelector": ".item, .animes",
       "selectors": {
-        "title": "h3",
+        "title": ".title, h3",
         "link": "a",
         "image": "img",
-        "episodes": ".ep-list a",
+        "episodes": ".episodes-list a, .list-episodes a",
+        "stream": "video, iframe, #player"
+      }
+    },
+    {
+      "name": "AnimesOnline",
+      "baseURL": "https://animesonline.cc",
+      "searchURL": "https://animesonline.cc/search/%s",
+      "parentSelector": "article",
+      "selectors": {
+        "title": ".title",
+        "link": "a",
+        "image": "img",
+        "episodes": ".episodes-list a",
+        "stream": "iframe"
+      }
+    },
+    {
+      "name": "AniTube",
+      "baseURL": "https://www.anitube.news",
+      "searchURL": "https://www.anitube.news/?s=%s",
+      "parentSelector": ".aniItemNome",
+      "selectors": {
+        "title": ".aniItemNome",
+        "link": "a",
+        "image": "img",
+        "episodes": ".aniItemEpisodios a",
+        "stream": "iframe"
+      }
+    },
+    {
+      "name": "TopAnimes",
+      "baseURL": "https://topanimes.net",
+      "searchURL": "https://topanimes.net/?s=%s",
+      "parentSelector": ".item",
+      "selectors": {
+        "title": ".title a",
+        "link": "a",
+        "image": "img",
+        "episodes": ".episodiotitle a",
         "stream": "iframe"
       }
     }

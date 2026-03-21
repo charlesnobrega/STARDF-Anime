@@ -26,7 +26,7 @@ if ($ARCH -eq "AMD64") {
 New-Item -ItemType Directory -Force -Path $OUTPUT_DIR | Out-Null
 
 Write-Host "Compilando binário para Windows ($GOARCH)..."
-$env:CGO_ENABLED = "1"
+$env:CGO_ENABLED = "0"
 $env:GOOS = "windows"
 $env:GOARCH = $GOARCH
 

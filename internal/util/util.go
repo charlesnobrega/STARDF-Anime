@@ -23,6 +23,7 @@ var (
 	GlobalMediaType     string                         // Global variable to store media type (anime, movie, tv)
 	GlobalSubsLanguage  string                         // Global variable to store subtitle language
 	GlobalAudioLanguage string                         // Global variable to store preferred audio language
+	GlobalAutoSkip      bool                           // Global variable to store auto-skip setting
 	flagsOnce           sync.Once                      // Ensure flags are only defined/parsed once
 	flagsParsed         bool                           // Track if flags have been parsed
 	GetMenuSubtitleFunc func() string                  // Function to get the menu subtitle
@@ -125,6 +126,7 @@ func ParseFlags() (string, error) {
 		mediaTypeFlag := flag.String("type", "", "specify media type (anime, movie, tv)")
 		subsLanguageFlag := flag.String("subs", "english", "specify subtitle language for movies/TV (FlixHQ only)")
 		audioLanguageFlag := flag.String("audio", "pt-BR,pt,english", "specify preferred audio language for movies/TV (FlixHQ only)")
+		autoSkipFlag := flag.Bool("autoskip", true, "enable automatic skipping of intros and outros")
 
 		anilistLoginFlag  := flag.Bool("anilist-login",  false, "connect your AniList account for automatic progress sync")
 		anilistLogoutFlag := flag.Bool("anilist-logout", false, "disconnect AniList account and remove saved token")
@@ -150,6 +152,7 @@ func ParseFlags() (string, error) {
 		GlobalMediaType = *mediaTypeFlag
 		GlobalSubsLanguage = *subsLanguageFlag
 		GlobalAudioLanguage = *audioLanguageFlag
+		GlobalAutoSkip = *autoSkipFlag
 
 		if *versionFlag || version.HasVersionArg() {
 			version.ShowVersion()

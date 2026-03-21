@@ -20,6 +20,7 @@ require (
 	github.com/charmbracelet/log v0.4.2
 	github.com/lrstanley/go-ytdlp v1.2.7
 	github.com/tr1xem/go-discordrpc v1.0.0
+	modernc.org/sqlite v1.46.2
 )
 
 require (
@@ -41,7 +42,6 @@ require (
 	modernc.org/libc v1.70.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.46.2 // indirect
 )
 
 require (
@@ -64,7 +64,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
-	github.com/mattn/go-sqlite3 v1.14.33
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/termenv v0.16.0

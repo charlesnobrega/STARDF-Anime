@@ -2,6 +2,7 @@
 package scraper
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -157,15 +158,35 @@ func (c *AnimefireClient) isChallengePage(doc *goquery.Document) bool {
 func (c *AnimefireClient) extractSearchResults(doc *goquery.Document) []*models.Anime {
 	var animes []*models.Anime
 
-	doc.Find(".row.ml-1.mr-1 a").Each(func(i int, s *goquery.Selection) {
-		if urlPath, exists := s.Attr("href"); exists {
+	doc.Find(".divCardUltimosEps, .cardUltimosEps, .row.ml-1.mr-1 a").Each(func(i int, s *goquery.Selection) {
+		// If it's the direct link container
+		if s.Is("a") {
+			urlPath, exists := s.Attr("href")
 			name := strings.TrimSpace(s.Text())
-			if name != "" {
+			if exists && name != "" {
 				animes = append(animes, &models.Anime{
 					Name: name,
 					URL:  c.resolveURL(c.baseURL, urlPath),
 				})
 			}
+			return
+		}
+
+		// If it's the card container
+		linkElem := s.Find("a").First()
+		urlPath, exists := linkElem.Attr("href")
+		title := strings.TrimSpace(s.Find(".animeTitle, .ani_name, h3").Text())
+		if title == "" {
+			title = strings.TrimSpace(linkElem.Text())
+		}
+		
+		if exists && title != "" {
+			imgURL, _ := s.Find("img").Attr("src")
+			animes = append(animes, &models.Anime{
+				Name:     title,
+				URL:      c.resolveURL(c.baseURL, urlPath),
+				ImageURL: c.resolveURL(c.baseURL, imgURL),
+			})
 		}
 	})
 
@@ -219,6 +240,10 @@ func (c *AnimefireClient) GetAnimeEpisodes(animeURL string) ([]models.Episode, e
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, c.handleStatusError(resp)
+	}
 	
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
@@ -226,7 +251,7 @@ func (c *AnimefireClient) GetAnimeEpisodes(animeURL string) ([]models.Episode, e
 	}
 	
 	var episodes []models.Episode
-	doc.Find(".div_episodes a").Each(func(i int, s *goquery.Selection) {
+	doc.Find(".div_episodes a, a.lEp, .lEp").Each(func(i int, s *goquery.Selection) {
 		href, _ := s.Attr("href")
 		num := i + 1
 		title := strings.TrimSpace(s.Text())
@@ -240,12 +265,20 @@ func (c *AnimefireClient) GetAnimeEpisodes(animeURL string) ([]models.Episode, e
 			})
 		}
 	})
-	
+
+	// FALLBACK: If no episodes found on main page, try appending '-todos-os-episodios'
+	// First, clean the URL to avoid duplicates (remove trailing slash and existing suffix)
+	cleanURL := strings.TrimRight(animeURL, "/")
+	if len(episodes) == 0 && !strings.HasSuffix(cleanURL, "-todos-os-episodios") {
+		fallbackURL := cleanURL + "-todos-os-episodios"
+		util.Debug("AnimeFire: Empty episodes, trying fallback", "url", fallbackURL)
+		return c.GetAnimeEpisodes(fallbackURL)
+	}
+
 	return episodes, nil
 }
 
 // GetEpisodeStreamURL gets the streaming URL for a specific episode
-// This is specific to scraper functionality, not duplicated from API
 func (c *AnimefireClient) GetEpisodeStreamURL(episodeURL string) (string, error) {
 	req, err := http.NewRequest("GET", episodeURL, nil)
 	if err != nil {
@@ -264,28 +297,61 @@ func (c *AnimefireClient) GetEpisodeStreamURL(episodeURL string) (string, error)
 		return "", err
 	}
 	
-	// Stream URL is often in a script or hidden in an iframe
-	var videoURL string
-	doc.Find("iframe").Each(func(i int, s *goquery.Selection) {
-		if src, ok := s.Attr("src"); ok && strings.Contains(src, "player") {
-			videoURL = src
-		}
-	})
+	// NEW LOGIC: AnimeFire uses a dynamic JSON endpoint for video links
+	// 1. Try to find the JSON URL in the #my-video element's data-video-src attribute
+	videoJSONURL, _ := doc.Find("#my-video").Attr("data-video-src")
 	
-	if videoURL == "" {
-		// Try searching for .m3u8 or .mp4 in scripts
-		html, _ := doc.Html()
-		re := regexp.MustCompile(`(https?://[^"']+\.(m3u8|mp4)[^"']*)`)
-		if matches := re.FindStringSubmatch(html); len(matches) > 1 {
-			videoURL = matches[1]
+	// 2. Fallback: Construct JSON URL if not found (replace /animes/ with /video/)
+	if videoJSONURL == "" {
+		videoJSONURL = strings.Replace(episodeURL, "/animes/", "/video/", 1)
+		videoJSONURL = strings.Replace(videoJSONURL, "-todos-os-episodios", "", 1)
+		// Clean any trailing slashes before adding params
+		videoJSONURL = strings.TrimRight(videoJSONURL, "/")
+		videoJSONURL = fmt.Sprintf("%s?tempsubs=0&%d", videoJSONURL, time.Now().Unix())
+		util.Debug("AnimeFire: data-video-src not found, using constructed URL", "url", videoJSONURL)
+	}
+	
+	if videoJSONURL != "" {
+		reqJSON, err := http.NewRequest("GET", videoJSONURL, nil)
+		if err == nil {
+			c.decorateRequest(reqJSON)
+			respJSON, err := c.client.Do(reqJSON)
+			if err == nil && respJSON.StatusCode == http.StatusOK {
+				defer respJSON.Body.Close()
+				var result struct {
+					Data []struct {
+						Src   string `json:"src"`
+						Label string `json:"label"`
+					} `json:"data"`
+				}
+				if err := json.NewDecoder(respJSON.Body).Decode(&result); err == nil && len(result.Data) > 0 {
+					// Prefer HD if available
+					bestURL := result.Data[0].Src
+					for _, d := range result.Data {
+						if strings.EqualFold(d.Label, "HD") {
+							bestURL = d.Src
+							break
+						}
+					}
+					if bestURL != "" {
+						return bestURL, nil
+					}
+				}
+			}
+		}
+	}
+
+	// 3. Last Fallback: Try searching for .m3u8 or .mp4 in scripts (original logic)
+	html, _ := doc.Html()
+	re := regexp.MustCompile(`https?://[^"']+\.(m3u8|mp4)[^"']*`)
+	matches := re.FindAllString(html, -1)
+	for _, m := range matches {
+		if !strings.Contains(m, "placeholder") && !strings.Contains(m, "banner") {
+			return m, nil
 		}
 	}
 	
-	if videoURL == "" {
-		return "", errors.New("no stream found on page")
-	}
-	
-	return videoURL, nil
+	return "", errors.New("no stream found on page (dynamic JSON also failed or returned empty)")
 }
 
 // GetAnimeDetails - placeholder method, details are fetched by API layer

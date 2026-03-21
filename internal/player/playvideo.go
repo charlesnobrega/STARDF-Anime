@@ -288,6 +288,7 @@ func playVideo(
 		"--no-config",
 		"--video-latency-hacks=yes",
 		"--audio-display=no",
+		"--keep-open=always",
 	}
 
 	// Only apply audio/subtitle language preferences for movies/TV (FlixHQ)
@@ -317,9 +318,9 @@ func playVideo(
 	// Initialize tracking and check for resume time
 	tracker, resumeTime := initTracking(anilistID, currentEpisode, currentEpisodeNum)
 
-	// For HLS streams (.m3u8), we'll seek after playback starts instead of using --start
-	// because --start doesn't work reliably with HLS streams
-	isHLSStream := strings.Contains(videoURL, ".m3u8") || strings.Contains(videoURL, "m3u8")
+	// For HLS streams (.m3u8) or DASH (.mpd), we'll seek after playback starts instead of using --start
+	// because --start doesn't work reliably with these streams
+	isHLSStream := strings.Contains(videoURL, ".m3u8") || strings.Contains(videoURL, "m3u8") || strings.Contains(videoURL, ".mpd")
 	if resumeTime > 0 && !isHLSStream {
 		mpvArgs = append(mpvArgs, fmt.Sprintf("--start=+%d", resumeTime))
 	}
@@ -837,6 +838,31 @@ func updateTracking(tracker *tracking.LocalTracker, socketPath string, anilistID
 		if watchedPct >= 85 {
 			syncAniListProgress(anilistID, episodeNum)
 		}
+	}
+
+	// Auto-skip intros and outros if enabled
+	if util.GlobalAutoSkip {
+		skipIntroOrOutro(socketPath, position, episode)
+	}
+}
+
+// skipIntroOrOutro checks if current position is within a skip range and seeks if necessary
+func skipIntroOrOutro(socketPath string, position float64, episode *models.Episode) {
+	pos := int(position)
+
+	// Skip Intro (Opening)
+	if episode.SkipTimes.Op.End > 0 && pos >= episode.SkipTimes.Op.Start && pos < episode.SkipTimes.Op.End-1 {
+		util.Infof("Auto-skipping intro: %ds -> %ds", pos, episode.SkipTimes.Op.End)
+		_, _ = mpvSendCommand(socketPath, []interface{}{"seek", float64(episode.SkipTimes.Op.End), "absolute"})
+		return
+	}
+
+	// Skip Outro (Ending)
+	if episode.SkipTimes.Ed.End > 0 && pos >= episode.SkipTimes.Ed.Start && pos < episode.SkipTimes.Ed.End-1 {
+		// Only auto-skip ending if it's not the very end of the file (to allow seeing post-credit scenes if any, 
+		// but usually AniSkip ED covers the song)
+		util.Infof("Auto-skipping outro: %ds -> %ds", pos, episode.SkipTimes.Ed.End)
+		_, _ = mpvSendCommand(socketPath, []interface{}{"seek", float64(episode.SkipTimes.Ed.End), "absolute"})
 	}
 }
 

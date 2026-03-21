@@ -61,23 +61,25 @@ type MediaSearchResult struct {
 }
 
 // graphQL queries
-const querySearchMedia = `
-query ($search: String, $type: MediaType) {
-  Media(search: $search, type: $type) {
-    id
-    idMal
-    title {
-      romaji
-      english
-      native
+const querySearchAnimeList = `
+query ($search: String, $page: Int, $perPage: Int) {
+  Page(page: $page, perPage: $perPage) {
+    media(search: $search, type: ANIME) {
+      id
+      idMal
+      title {
+        romaji
+        english
+        native
+      }
+      coverImage {
+        large
+      }
+      episodes
+      status
+      format
+      averageScore
     }
-    coverImage {
-      large
-    }
-    episodes
-    status
-    format
-    averageScore
   }
 }
 `
@@ -150,26 +152,26 @@ query {
 }
 `
 
-// SearchAnimeByName searches for an anime by name. No auth required.
-func (c *Client) SearchAnimeByName(name string) (*MediaSearchResult, error) {
+// SearchAnimes searches for a list of animes by name.
+func (c *Client) SearchAnimes(name string, page, perPage int) ([]MediaSearchResult, error) {
 	var resp struct {
 		Data struct {
-			Media MediaSearchResult `json:"Media"`
+			Page struct {
+				Media []MediaSearchResult `json:"media"`
+			} `json:"Page"`
 		} `json:"data"`
 	}
 
-	err := c.query(querySearchMedia, map[string]interface{}{
-		"search": name,
-		"type":   "ANIME",
+	err := c.query(querySearchAnimeList, map[string]interface{}{
+		"search":  name,
+		"page":    page,
+		"perPage": perPage,
 	}, &resp)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.Data.Media.ID == 0 {
-		return nil, nil
-	}
-	return &resp.Data.Media, nil
+	return resp.Data.Page.Media, nil
 }
 
 // SaveProgress saves watch progress to AniList. Requires authentication.

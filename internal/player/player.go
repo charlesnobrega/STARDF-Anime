@@ -102,6 +102,28 @@ func StartVideo(link string, args []string) (string, error) {
 
 	// #nosec G204: mpvArgs are validated via filterMPVArgs and sanitizeMediaTarget
 	cmd := exec.Command(mpvPath, mpvArgs...)
+	
+	// FIX: Inject bundled bin directory into PATH so MPV can find the local yt-dlp.exe
+	execPath, _ := os.Executable()
+	binDir := filepath.Join(filepath.Dir(execPath), "bin")
+	// Use project root bin if we are running in dev mode (go run)
+	if _, err := os.Stat(binDir); os.IsNotExist(err) {
+		binDir = "./bin" // Fallback to current dir bin
+	}
+	
+	absBin, _ := filepath.Abs(binDir)
+	env := os.Environ()
+	pathKey := "PATH"
+	pathSep := ":"
+	if runtime.GOOS == "windows" {
+		pathKey = "PATH"
+		pathSep = ";"
+	}
+	
+	// Prepend local bin to PATH
+	newPath := fmt.Sprintf("%s=%s%s%s", pathKey, absBin, pathSep, os.Getenv(pathKey))
+	cmd.Env = append(env, newPath)
+
 	setProcessGroup(cmd) // Handle OS-specific process groups
 
 	// Capture stderr for better error reporting

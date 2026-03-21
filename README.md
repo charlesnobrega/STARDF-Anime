@@ -39,19 +39,12 @@ Join our official community for support, updates, and feedback:
 - Download single episodes
 - Discord RPC about the anime
 - Batch download multiple episodes
-- Resume playback from where you left off (in builds with SQLite support)
-- Track watched episodes (in builds with SQLite support)
+- **NEW:** Premium Web User Interface (Standalone)
 - **NEW:** Movies and TV Shows support via FlixHQ source
- - **NEW:** OMDb integration for movie/TV metadata (ratings, genres, runtime)
+- **NEW:** OMDb integration for movie/TV metadata (ratings, genres, runtime)
+- **NEW:** Universal SQLite tracking (100% Go, works on all platforms without CGO)
 
-> **Note:** StarDF-Anime can be built with or without SQLite support for tracking anime progress.  
-> [See the build options documentation](docs/BUILD_OPTIONS.md) for more details.
-
-> ⚠️ Warning: Portuguese (PT-BR) source availability
->
-> If you want to watch anime in Portuguese (PT-BR) and you are outside Brazil, you'll need a VPN, proxy, or any method to obtain a Brazilian IP address. The PT-BR provider blocks access from IPs outside Brazil.
-
-...existing code...
+> **Note:** StarDF-Anime now uses a pure Go SQLite implementation. All official release binaries include full tracking and watch history support by default, without requiring external CGO dependencies.
 
 # Demo
 
@@ -140,8 +133,7 @@ sudo pacman -S mpv
 sudo apt update
 sudo apt install mpv
 
-# For x86_64 systems:
-# curl -Lo stardf-anime https://github.com/charlesnobrega/STARDF-Anime/releases/latest/download/stardf-anime-linux
+# curl -Lo stardf-anime https://github.com/charlesnobrega/STARDF-Anime/releases/latest/download/stardf-anime-linux-amd64
 ```
 
 </details>
@@ -174,16 +166,15 @@ sudo zypper install mpv
 
 ## Windows
 
-<details>
-Option 1: Using the installer (Em breve)
+Option 1: Windows Executable (Standalone)
 
-- A Windows Installer will be available in the next release.
+- Download the latest `stardf-anime-windows.zip` from the [releases](https://github.com/charlesnobrega/STARDF-Anime/releases) section.
+- Extract and run `stardf-anime.exe`.
+- Use `stardf-anime.exe -web` to launch the Premium Web UI.
 
-Option 2: Standalone executable (Em breve)
+Option 2: Using the installer
 
-- Executables will be available in the [releases](https://github.com/charlesnobrega/STARDF-Anime/releases) section soon.
-
-</details>
+- An Inno Setup based installer is available for easier integration (shortcut and PATH setup).
 
 ## macOS
 
@@ -200,7 +191,7 @@ First, install mpv using Homebrew:
 brew install mpv
 
 # Download and install stardf-anime
-# curl -Lo stardf-anime https://github.com/charlesnobrega/STARDF-Anime/releases/latest/download/stardf-anime-apple-darwin
+# curl -Lo stardf-anime https://github.com/charlesnobrega/STARDF-Anime/releases/latest/download/stardf-anime-darwin-arm64
 ```
 
 Alternative installation using MacPorts:

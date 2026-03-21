@@ -17,6 +17,11 @@ import (
 )
 
 func HandleSeries(anime *models.Anime, episodes []models.Episode, totalEpisodes int, discordEnabled bool) error {
+	if len(episodes) == 0 {
+		util.Errorf("Nenhum episódio encontrado para esta série.")
+		return player.ErrBackToAnimeSelection
+	}
+
 	fmt.Printf("The selected anime is a series with %d episodes.\n", totalEpisodes)
 	animeMutex := sync.Mutex{}
 	isPaused := false

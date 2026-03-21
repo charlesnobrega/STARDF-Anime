@@ -31,23 +31,12 @@ Entre na nossa comunidade oficial para suporte, atualizações e feedbacks:
 
 ## Recursos
 
-- Buscar anime por nome
-- Navegar pelos episódios
-- Suporte a conteúdo legendado e dublado em inglês e português
-- Pular introdução do anime
-- Reproduzir online com seleção de qualidade
-- Baixar episódios únicos
-- Discord RPC sobre o anime
-- Download em lote de múltiplos episódios
-- Retomar reprodução de onde parou (em builds com suporte SQLite)
-- Rastrear episódios assistidos (em builds com suporte SQLite)
+- **NOVO:** Interface Web Premium (Standalone)
+- **NOVO:** Suporte a Filmes e Séries via FlixHQ
+- **NOVO:** Integração OMDb para metadados de filmes/séries
+- **NOVO:** Rastreamento SQLite Universal (100% Go, sem CGO)
 
-> **Nota:** StarDF-Anime pode ser compilado com ou sem suporte SQLite para rastreamento do progresso do anime.  
-> [Veja a documentação das opções de build](docs/BUILD_OPTIONS.md) para mais detalhes.
-
-> ⚠️ Aviso: disponibilidade da fonte em Português (PT-BR)
->
-> Se você deseja assistir animes em português (PT-BR) e está fora do Brasil, será necessário usar uma VPN, proxy ou qualquer método para obter um endereço de IP brasileiro. A fonte de animes em PT-BR bloqueia o acesso de IPs fora do Brasil.
+> **Nota:** O StarDF-Anime agora utiliza uma implementação SQLite em puro Go. Todos os binários oficiais de lançamento incluem suporte total a histórico e rastreamento por padrão, sem dependências externas de CGO.
 
 # Demo
 
@@ -178,13 +167,15 @@ sudo zypper install mpv
 
 > **Altamente Recomendado:** Use o instalador para a melhor experiência no Windows.
 
-Opção 1: Usando o instalador
+Opção 1: Executável Windows (Standalone)
 
-- Um instalador Windows estará disponível na próxima versão.
+- Baixe o `stardf-anime-windows.zip` mais recente na seção de [releases](https://github.com/charlesnobrega/STARDF-Anime/releases).
+- Extraia e execute `stardf-anime.exe`.
+- Use `stardf-anime.exe -web` para iniciar a Web UI Premium com um clique.
 
-Opção 2: Executável independente
+Opção 2: Instalador Inno Setup
 
-- Executáveis estarão disponíveis na seção de [releases](https://github.com/charlesnobrega/STARDF-Anime/releases) em breve.
+- Um instalador completo está disponível para facilitar a integração com o PATH e criar atalhos automaticamente.
 
 </details>
 

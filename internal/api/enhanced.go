@@ -3,12 +3,9 @@ package api
 
 import (
 	"errors"
-	"context"
 	"fmt"
 	"regexp"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/charlesnobrega/STARDF-Anime/internal/models"
 	"github.com/charlesnobrega/STARDF-Anime/internal/scraper"
@@ -124,13 +121,13 @@ func SearchAnimeEnhanced(name string, source string) (*models.Anime, error) {
 
 	// Create a special "back" options
 	backToSearch := &models.Anime{
-		Name:   "← Back (Search Again)",
+		Name:   "[BACK] Search Again",
 		URL:    "__back__",
 		Source: "__back__",
 	}
 
 	backToMenu := &models.Anime{
-		Name:   "🏠 Back to Main Menu",
+		Name:   "[HOME] Back to Main Menu",
 		URL:    "__back_to_menu__",
 		Source: "__back_to_menu__",
 	}
@@ -138,58 +135,9 @@ func SearchAnimeEnhanced(name string, source string) (*models.Anime, error) {
 	// Prepend back options to the list
 	animesWithBack := append([]*models.Anime{backToSearch, backToMenu}, animes...)
 
-	// Concurrent episode count fetching for top results (optimization)
-	util.Debug("Fetching episode counts for top results...")
-	var wg sync.WaitGroup
-	// Limit to top 20 results to prevent massive delays but cover most visible items
-	limit := len(animesWithBack)
-	if limit > 20 {
-		limit = 20
-	}
-
-	for i := 1; i < limit; i++ {
-		wg.Add(1)
-		go func(anime *models.Anime) {
-			defer wg.Done()
-			
-			// Use a reasonably long timeout (5s) to be reliable but not hang the search
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			
-			done := make(chan bool, 1)
-			go func() {
-				// We don't want to fail the whole search if one fetch fails
-				eps, err := GetAnimeEpisodesEnhanced(anime)
-				if err == nil && len(eps) > 0 {
-					anime.TotalEpisodes = len(eps)
-					
-					// Improved season detection for movie/TV sources
-					if anime.Source == "Cineby" || anime.Source == "FlixHQ" || anime.Source == "CineGratis" {
-						seasons := make(map[string]bool)
-						for _, ep := range eps {
-							if ep.SeasonID != "" {
-								seasons[ep.SeasonID] = true
-							}
-						}
-						if len(seasons) > 0 {
-							anime.SeasonCount = len(seasons)
-						} else if strings.Contains(strings.ToLower(anime.URL), "/tv/") || strings.Contains(strings.ToLower(anime.URL), "/series/") {
-							anime.SeasonCount = 1
-						}
-					}
-				}
-				done <- true
-			}()
-			
-			select {
-			case <-done:
-			case <-ctx.Done():
-				util.Debug("Timeout fetching episodes", "name", anime.Name)
-			}
-		}(animesWithBack[i])
-	}
-	// We proceed even if wg isn't complete yet? No, fuzzy finder needs the data for its display func.
-	wg.Wait()
+	// Skip background fetching for now to stabilize CLI selection
+	util.Debug("Skipping background episode fetching for CLI stability")
+	/* Removed background fetch block */
 
 	// Use fuzzy finder to let user select
 	var idx int

@@ -111,9 +111,9 @@ func TestSearchAnime_BothSourcesSucceed(t *testing.T) {
 		case "Cineby":
 			cinebyCount++
 			assert.Contains(t, anime.Name, "[Movies/TV]")
-		case "Animefire.io":
+		case "AnimeFire":
 			animefireCount++
-			assert.Contains(t, anime.Name, "[Portuguese]")
+			assert.Contains(t, anime.Name, "[Source]")
 		}
 	}
 	assert.Equal(t, 2, cinebyCount)
@@ -180,7 +180,7 @@ func TestSearchAnime_CinebyFails_AnimefireSucceeds(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Len(t, results, 1)
-	assert.Equal(t, "Animefire.io", results[0].Source)
+	assert.Equal(t, "AnimeFire", results[0].Source)
 }
 
 // =============================================================================
@@ -204,8 +204,9 @@ func TestSearchAnime_BothSourcesFail(t *testing.T) {
 
 	require.Error(t, err)
 	assert.Nil(t, results)
-	assert.Contains(t, err.Error(), "no anime found")
-	assert.Contains(t, err.Error(), "some sources failed")
+	assert.Contains(t, err.Error(), "no results found")
+	assert.Contains(t, err.Error(), "API rate limited")
+	assert.Contains(t, err.Error(), "challenge page detected")
 }
 
 // =============================================================================
@@ -231,9 +232,9 @@ func TestSearchAnime_BothSourcesReturnEmpty(t *testing.T) {
 	_, err := manager.SearchAnime("xyznonexistent", nil)
 
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "no anime found")
+	assert.Contains(t, err.Error(), "no results found")
 	// Should not mention failed sources since they didn't fail
-	assert.NotContains(t, err.Error(), "some sources failed")
+	assert.NotContains(t, err.Error(), "errors:")
 }
 
 // =============================================================================
@@ -262,7 +263,7 @@ func TestSearchAnime_OneSourceEmpty_OtherHasResults(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Len(t, results, 1)
-	assert.Equal(t, "Animefire.io", results[0].Source)
+	assert.Equal(t, "AnimeFire", results[0].Source)
 }
 
 // =============================================================================
@@ -379,7 +380,7 @@ func TestSearchAnime_SpecificScraper_AnimefireOnly(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.Len(t, results, 1)
-	assert.Equal(t, "Animefire.io", results[0].Source)
+	assert.Equal(t, "AnimeFire", results[0].Source)
 
 	// Apenas AnimeFire deve ser chamado
 	assert.Equal(t, int32(0), cinebyMock.searchCallCount.Load())
@@ -474,8 +475,7 @@ func TestSearchAnime_SourceTagsNotDuplicated(t *testing.T) {
 	for _, anime := range results {
 		// Conta ocorrências de tags
 		cinebyTagCount := countOccurrences(anime.Name, "[Movies/TV]")
-		animefireTagCount := countOccurrences(anime.Name, "[Portuguese]")
-
+		animefireTagCount := countOccurrences(anime.Name, "[Source]")
 		// Nunca deve ter mais de uma de cada tag
 		assert.LessOrEqual(t, cinebyTagCount, 1, "Cineby tag duplicada")
 		assert.LessOrEqual(t, animefireTagCount, 1, "AnimeFire tag duplicada")
