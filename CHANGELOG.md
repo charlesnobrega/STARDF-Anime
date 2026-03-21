@@ -1,30 +1,31 @@
-# StarDF-Anime Release Notes - Version 1.6.3
+# StarDF-Anime Release Notes - Version 1.6.3 (Final)
 
-Release date: 2026-03-16
+Release date: 2026-03-21
 
 ## Highlights
 
-- **Rebranding**: The project has been officially renamed from GoAnime to **StarDF-Anime**.
-- **New Identity**: Total migration of namespace to `charlesnobrega/STARDF-Anime`.
-- **Improved Stability**: Fixed compilation errors in WordPress scrapers and updated internal components to reflect the new identity.
+- **Premium Web UI Standalone**: The Web User Interface is now fully embedded in the binary. No external files required for `-web` mode.
+- **SQLite 100% Go Tracking**: Migrated from CGO-based `go-sqlite3` to pure Go `modernc.org/sqlite`. Tracking now works out-of-the-box on ALL platforms without CGO dependencies.
+- **Universal Portability**: Official binaries for Windows, Linux (amd64/arm64), and macOS (Apple Silicon/Intel) are now fully portable.
 
 ## Features
 
-- Updated all internal logs and help menus to reflect the new **StarDF-Anime** branding.
-- Migrated all repository links and references in the documentation.
-- Bumped version to `v1.6.3`.
+- **Embedded Assets**: Web assets (HTML/CSS/JS) are now bundled into the executable using Go's `embed`.
+- **Source Validation (2026)**: Comprehensive audit of anime sources with coverage scores (see `docs/SOURCES_VALIDATION.md`).
+- **Interactive Shortcuts**: Added Windows shortcuts and Linux/macOS launch scripts for easier access to Console and Web modes.
 
 ## Bug Fixes
 
-- Fixed "rand undefined" compilation errors in `Goyabu`, `SuperAnimes`, and `AnimesOnlineCC` scrapers.
-- Updated the auto-updater to correctly point to the new repository location at `charlesnobrega/STARDF-Anime`.
-- Resolved file locking issues during local builds on Windows.
+- **Movie/OVA Index Out of Range**: Fixed the critical panic occurring when selecting movies with empty episode lists.
+- **HLS Resume Logic**: Improved reliability of resume playback for `.m3u8` and `.mpd` streams.
+- **Branding Sync**: Completed the rebranding of all remaining internal logs and menu strings.
 
-## Scraper Status
+## Scraper Status (March 2026)
 
-- **AnimeFire**: Fully functional.
-- **FlixHQ**: Fully functional (Movies/TV).
-- **Goyabu/SuperAnimes**: Currently OFFLINE/Unstable (re-evaluated and kept disabled for stability).
+- **AnimeFire**: Fully functional (New `.lEp` selector).
+- **FlixHQ**: Fully functional (Movies/TV/Subtitles).
+- **9anime / AnimePahe**: Integrated via Web API for higher coverage.
+- **Goyabu / SuperAnimes**: Currently OFFLINE/Unstable (Disabled for stability).
 
 ---
 

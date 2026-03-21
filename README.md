@@ -6,7 +6,7 @@
 </h4>
 
 <p align="center">
-  <img src="docs/logo_stardf.png" alt="StarDF-Anime Logo" width="400"/>
+  <img src="docs/banner.png" alt="StarDF-Anime Banner" width="800"/>
 </p>
 
 [![GitHub license](https://img.shields.io/github/license/charlesnobrega/STARDF-Anime)](https://github.com/charlesnobrega/STARDF-Anime/blob/main/LICENSE)
@@ -46,9 +46,9 @@ Join our official community for support, updates, and feedback:
 
 > **Note:** StarDF-Anime now uses a pure Go SQLite implementation. All official release binaries include full tracking and watch history support by default, without requiring external CGO dependencies.
 
-# Demo
+# Web UI Demo
 
-<https://github.com/charlesnobrega/STARDF-Anime/assets/88117897/ffec6ad7-6ac1-464d-b048-c80082119836>
+![StarDF-Anime Web UI Demo](docs/web_demo.webp)
 
 ## Prerequisites
 
@@ -235,29 +235,3 @@ stardf-anime --help
 
 The program provides a fully interactive TUI. You can navigate through search results, selection screens, and playback controls using your keyboard.
 
-# Thanks
-
-[@KitsuneSemCalda](https://github.com/KitsuneSemCalda),[@RushikeshGaikwad](https://github.com/Wraient) and [@the-eduardo](https://github.com/the-eduardo) for help and improve this application
-
-# Alternatives
-
-If you're looking for more options, check out this alternative project by my friend [@KitsuneSemCalda](https://github.com/KitsuneSemCalda) called [Animatic-v2](https://github.com/KitsuneSemCalda/Animatic-v2), which was inspired by StarDF-Anime.
-
-## Contributing
-
-Contributions to improve or enhance are always welcome. Before contributing, please read our comprehensive development guide for detailed information about our workflow, coding standards, and project structure.
-
-📖 **[Development Guide](docs/Development.md)** - Essential reading for contributors
-
-**Quick Start for Contributors:**
-
-1. Fork the Project
-2. Read the [Development Guide](docs/Development.md) thoroughly
-3. Create your Feature Branch from `dev` (never from `main`)
-4. Follow our coding standards (use `go fmt`, add meaningful comments)
-5. Ensure all tests pass and add tests for new features
-6. Commit your Changes using conventional commit format
-7. Push to the Branch
-8. Open a Pull Request to the `dev` branch
-
-**Important:** Never commit directly to the `main` branch. All changes must go through the `dev` branch first.

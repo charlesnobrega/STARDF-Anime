@@ -6,7 +6,7 @@
 </h4>
 
 <p align="center">
-  <img src="docs/logo_stardf.png" alt="StarDF-Anime Logo" width="400"/>
+  <img src="docs/banner.png" alt="StarDF-Anime Banner" width="800"/>
 </p>
 
 [![GitHub license](https://img.shields.io/github/license/charlesnobrega/STARDF-Anime)](https://github.com/charlesnobrega/STARDF-Anime/blob/main/LICENSE)
@@ -38,9 +38,9 @@ Entre na nossa comunidade oficial para suporte, atualizações e feedbacks:
 
 > **Nota:** O StarDF-Anime agora utiliza uma implementação SQLite em puro Go. Todos os binários oficiais de lançamento incluem suporte total a histórico e rastreamento por padrão, sem dependências externas de CGO.
 
-# Demo
+# Demonstração Web UI
 
-<https://github.com/charlesnobrega/STARDF-Anime/assets/88117897/ffec6ad7-6ac1-464d-b048-c80082119836>
+![StarDF-Anime Web UI Demo](docs/web_demo.webp)
 
 ## Pré-requisitos
 
@@ -238,29 +238,3 @@ stardf-anime --help
 
 O programa oferece uma TUI totalmente interativa. Você pode navegar pelos resultados, telas de seleção e controles de reprodução usando seu teclado.
 
-# Agradecimentos
-
-[@KitsuneSemCalda](https://github.com/KitsuneSemCalda), [@RushikeshGaikwad](https://github.com/Wraient) e [@the-eduardo](https://github.com/the-eduardo) por ajudar e melhorar essa aplicação.
-
-# Alternativas
-
-Se você estiver procurando por mais opções, confira este projeto alternativo do meu amigo [@KitsuneSemCalda](https://github.com/KitsuneSemCalda) chamado [Animatic-v2](https://github.com/KitsuneSemCalda/Animatic-v2), que foi inspirado no StarDF-Anime.
-
-## Contribuindo
-
-Contribuições para melhorar ou aprimorar são sempre bem-vindas. Antes de contribuir, por favor leia nosso guia de desenvolvimento abrangente para informações detalhadas sobre nosso fluxo de trabalho, padrões de código e estrutura do projeto.
-
-📖 **[Guia de Desenvolvimento](docs/Development.md)** - Leitura essencial para contribuidores
-
-**Início Rápido para Contribuidores:**
-
-1. Faça um fork do projeto
-2. Leia o [Guia de Desenvolvimento](docs/Development.md) completamente
-3. Crie sua branch de funcionalidade a partir de `dev` (nunca de `main`)
-4. Siga nossos padrões de código (use `go fmt`, adicione comentários significativos)
-5. Certifique-se de que todos os testes passem e adicione testes para novas funcionalidades
-6. Faça commit das suas alterações usando formato de commit convencional
-7. Faça push para sua branch
-8. Abra um Pull Request para a branch `dev`
-
-**Importante:** Nunca faça commit diretamente na branch `main`. Todas as mudanças devem passar pela branch `dev` primeiro.
