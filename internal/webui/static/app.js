@@ -35,14 +35,14 @@ UI.search.addEventListener('keyup', (e) => {
 
 async function performSearch(query) {
     if (!query) {
-        UI.dashboard.style.display = 'block';
-        UI.searchContent.style.display = 'none';
+        UI.dashboard.classList.remove('hidden');
+        UI.searchContent.classList.add('hidden');
         return;
     }
 
-    UI.status.style.display = 'block';
-    UI.dashboard.style.display = 'none';
-    UI.searchContent.style.display = 'block';
+    UI.status.classList.remove('hidden');
+    UI.dashboard.classList.add('hidden');
+    UI.searchContent.classList.remove('hidden');
     UI.results.innerHTML = Array(8).fill('<div class="card" style="height: 300px; background: rgba(255,255,255,0.05); border-radius: 12px;"></div>').join('');
 
     try {
@@ -272,23 +272,23 @@ async function playEpisode(ep, item, source, btn) {
 }
 
 function hideAllViews() {
-    UI.dashboard.style.display = 'none';
-    UI.searchContent.style.display = 'none';
-    if(UI.watchlistView) UI.watchlistView.style.display = 'none';
-    if(UI.historyView) UI.historyView.style.display = 'none';
+    UI.dashboard.classList.add('hidden');
+    UI.searchContent.classList.add('hidden');
+    if(UI.watchlistView) UI.watchlistView.classList.add('hidden');
+    if(UI.historyView) UI.historyView.classList.add('hidden');
 }
 
 // Navigation
 document.getElementById('nav-dashboard').onclick = (e) => {
     hideAllViews();
-    UI.dashboard.style.display = 'block';
+    UI.dashboard.classList.remove('hidden');
     setActiveNav(e.currentTarget);
 };
 
 document.getElementById('nav-watchlist').onclick = (e) => {
     hideAllViews();
     if(UI.watchlistView) {
-        UI.watchlistView.style.display = 'block';
+        UI.watchlistView.classList.remove('hidden');
         renderWatchlist();
     }
     setActiveNav(e.currentTarget);
@@ -316,7 +316,7 @@ function renderWatchlist() {
 document.getElementById('nav-history').onclick = (e) => {
     hideAllViews();
     if(UI.historyView) {
-        UI.historyView.style.display = 'block';
+        UI.historyView.classList.remove('hidden');
         renderHistory();
     }
     setActiveNav(e.currentTarget);

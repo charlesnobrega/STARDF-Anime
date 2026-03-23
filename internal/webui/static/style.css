@@ -4,8 +4,8 @@
 */
 :root {
   --bg-deep: #010206;
-  --bg-sidebar: rgba(10, 15, 30, 0.15); /* High transparency (v9.2) */
-  --line: rgba(255, 255, 255, 0.05);
+  --bg-sidebar: rgba(10, 15, 30, 0.4); /* Glass transparency */
+  --line: rgba(255, 255, 255, 0.08);
   --text: #f4f7ff;
   --muted: #8a94b0;
   --pink: #d85cff;
@@ -13,6 +13,8 @@
   --radius-lg: 24px;
   --radius-md: 16px;
 }
+
+.hidden { display: none !important; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
