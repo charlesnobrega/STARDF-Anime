@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StarDF-Anime | Premium Dashboard</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Fundo Dinâmico -->
+    <div id="reflection-bg" class="ambient-reflection"></div>
+
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <h1>StarDF</h1>
+                <p style="font-size: 10px; color: var(--muted); letter-spacing: 2px;">ANIMEPRO v9.2</p>
+            </div>
+            
+            <nav class="nav">
+                <button id="nav-dashboard" class="active">
+                    <i data-feather="home"></i> Dashboard
+                </button>
+                <button id="nav-watchlist">
+                    <i data-feather="bookmark"></i> Minha Lista
+                </button>
+                <button id="nav-history">
+                    <i data-feather="clock"></i> Histórico
+                </button>
+            </nav>
+
+            <div class="nav-footer" style="margin-top: auto;">
+                <button id="nav-settings">
+                    <i data-feather="settings"></i> Configurações
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <header class="topbar">
+                <div class="search">
+                    <i data-feather="search" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--muted);"></i>
+                    <input type="text" id="searchInput" placeholder="Pesquisar animes, filmes ou séries...">
+                </div>
+                
+                <div class="user-profile" id="user-profile-btn" style="cursor: pointer;">
+                    <div id="user-avatar" style="width: 44px; height: 44px; border-radius: 50%; background: var(--line); border: 2px solid var(--cyan);"></div>
+                </div>
+            </header>
+
+            <div class="content-scroll">
+                <!-- Dashboard Default -->
+                <div id="dashboard-rails">
+                    <section class="section">
+                        <div class="section-head">
+                            <h2>Em Alta</h2>
+                            <div class="rail-controls">
+                                <button onclick="document.getElementById('trendingRail').scrollBy(-300, 0)">←</button>
+                                <button onclick="document.getElementById('trendingRail').scrollBy(300, 0)">→</button>
+                            </div>
+                        </div>
+                        <div id="trendingRail" class="rail"></div>
+                    </section>
+
+                    <section class="section" style="margin-top: 40px;">
+                        <div class="section-head">
+                            <h2>Recomendados</h2>
+                        </div>
+                        <div id="recommendedRail" class="rail"></div>
+                    </section>
+
+                    <section class="section" style="margin-top: 40px;">
+                        <div class="section-head">
+                            <h2>Adicionados Recentemente</h2>
+                        </div>
+                        <div id="recentRail" class="rail"></div>
+                    </section>
+                </div>
+
+                <!-- Busca Results -->
+                <div id="search-content" class="hidden">
+                    <div class="section-head">
+                        <h2 id="search-status">Resultados da Busca</h2>
+                    </div>
+                    <div id="results-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 30px;">
+                    </div>
+                </div>
+
+                <!-- Minha Lista -->
+                <div id="watchlist-view" class="hidden">
+                    <h2>Minha Lista</h2>
+                    <div id="watchlist-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 30px; margin-top: 25px;"></div>
+                </div>
+
+                <!-- Histórico -->
+                <div id="history-view" class="hidden">
+                    <h2>Histórico</h2>
+                    <div id="history-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 30px; margin-top: 25px;"></div>
+                </div>
+
+                <!-- Configurações -->
+                <div id="settings-view" class="hidden"></div>
+
+                <!-- Perfil -->
+                <div id="profile-view" class="hidden"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Detalhes -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div id="modal-poster" style="background-size: cover; background-position: center;"></div>
+            <div class="modal-info" style="padding: 40px; overflow-y: auto;">
+                <h2 id="modal-title" style="font-size: 2.5rem; margin-bottom: 10px;"></h2>
+                <div id="modal-meta" style="color: var(--muted); margin-bottom: 30px;"></div>
+                
+                <div class="actions" style="margin-bottom: 40px;">
+                    <div id="sources-buttons" style="display: flex; gap: 10px; margin-bottom: 20px;"></div>
+                    <div id="episodes-box" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px;"></div>
+                </div>
+
+                <!-- Chat Integrado -->
+                <div class="chat-system" style="border-top: 1px solid var(--line); padding-top: 30px;">
+                    <h3>Comentários</h3>
+                    <div id="chat-messages" style="height: 200px; overflow-y: auto; margin: 20px 0; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 15px;"></div>
+                    <div style="display: flex; gap: 10px;">
+                        <input id="chatInput" type="text" placeholder="Diga algo sobre este anime..." style="flex: 1; background: var(--line); border: none; border-radius: 8px; padding: 10px; color: #fff;">
+                        <button id="sendMessage" style="background: var(--cyan); border: none; border-radius: 8px; padding: 0 20px; font-weight: bold; cursor: pointer;">Enviar</button>
+                    </div>
+                </div>
+            </div>
+            <button onclick="closeDetailsModal()" style="position: absolute; top: 20px; right: 20px; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer;">&times;</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

@@ -12,6 +12,7 @@ result
 git.github_token
 *.exe
 *.html
+!internal/webui/static/index.html
 *.txt
 stardf-anime
 zip_contents/

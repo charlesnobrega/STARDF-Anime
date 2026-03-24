@@ -3,6 +3,7 @@ package anilist
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/charlesnobrega/STARDF-Anime/internal/util"
 	"github.com/charmbracelet/huh"
@@ -68,7 +69,22 @@ func (s *AniListSession) Login(cfg OAuthConfig) error {
 		return fmt.Errorf("código vazio, login cancelado")
 	}
 
-	token, err := ExchangeCode(cfg, code)
+	return s.LoginWithCode(cfg, code)
+}
+
+// LoginWithCode performs non-interactive OAuth login using a pre-authorized code.
+func (s *AniListSession) LoginWithCode(cfg OAuthConfig, code string) error {
+	if strings.TrimSpace(cfg.ClientID) == "" {
+		return fmt.Errorf("client ID vazio")
+	}
+	if strings.TrimSpace(cfg.RedirectURI) == "" {
+		return fmt.Errorf("redirect URI vazio")
+	}
+	if strings.TrimSpace(code) == "" {
+		return fmt.Errorf("código vazio, login cancelado")
+	}
+
+	token, err := ExchangeCode(cfg, strings.TrimSpace(code))
 	if err != nil {
 		return fmt.Errorf("falha ao trocar código por token: %w", err)
 	}
@@ -83,6 +99,7 @@ func (s *AniListSession) Login(cfg OAuthConfig) error {
 		s.CurrentUser = user
 		util.Infof("✅ Login no AniList realizado com sucesso como %s!", user.Name)
 	} else {
+		s.CurrentUser = nil
 		util.Infof("✅ Login no AniList realizado com sucesso!")
 	}
 	return nil
@@ -91,7 +108,11 @@ func (s *AniListSession) Login(cfg OAuthConfig) error {
 // Logout removes the saved token and clears the session
 func (s *AniListSession) Logout() error {
 	s.Client.SetToken("")
-	return s.TokenStore.Delete()
+	s.CurrentUser = nil
+	if err := s.TokenStore.Delete(); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }
 
 // IsLoggedIn returns true if the user is authenticated

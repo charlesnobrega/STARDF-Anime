@@ -6,15 +6,18 @@ import (
 	"net/http"
 	"net/url"
 	"os/exec"
-	"runtime"
 	"regexp"
+	"runtime"
+	"sort"
 	"strings"
+	"time"
 
+	"embed"
 	"github.com/charlesnobrega/STARDF-Anime/internal/anilist"
+	"github.com/charlesnobrega/STARDF-Anime/internal/models"
 	"github.com/charlesnobrega/STARDF-Anime/internal/player"
 	"github.com/charlesnobrega/STARDF-Anime/internal/scraper"
 	"github.com/charlesnobrega/STARDF-Anime/internal/util"
-	"embed"
 	"io/fs"
 )
 
@@ -35,6 +38,199 @@ type SourceDetail struct {
 	AnimeName string `json:"AnimeName,omitempty"`
 }
 
+type AniListHistoryItem struct {
+	AniListID     int            `json:"anilistId"`
+	Name          string         `json:"name"`
+	ImageURL      string         `json:"imageUrl"`
+	Status        string         `json:"status"`
+	Progress      int            `json:"progress"`
+	TotalEpisodes int            `json:"totalEpisodes"`
+	MediaType     string         `json:"mediaType"`
+	UpdatedAt     string         `json:"updatedAt"`
+	Sources       []SourceDetail `json:"sources"`
+}
+
+type aniListLoginRequest struct {
+	ClientID     string `json:"clientId"`
+	ClientSecret string `json:"clientSecret"`
+	RedirectURI  string `json:"redirectUri"`
+	Code         string `json:"code"`
+}
+
+var (
+	reLeadingTags   = regexp.MustCompile(`^\s*\[[^\]]+\]\s*`)
+	reSeasonOrPart  = regexp.MustCompile(`(?i)\s*[-:–—]?\s*(?:season|temporada|part|parte)\s*\d+\s*$`)
+	reNonAlnumMatch = regexp.MustCompile(`[^a-z0-9]+`)
+	reMultiSpace    = regexp.MustCompile(`\s+`)
+)
+
+func absInt(v int) int {
+	if v < 0 {
+		return -v
+	}
+	return v
+}
+
+func normalizeTitleForMatch(title string) string {
+	cleaned := strings.ToLower(strings.TrimSpace(title))
+	cleaned = reLeadingTags.ReplaceAllString(cleaned, "")
+	cleaned = reSeasonOrPart.ReplaceAllString(cleaned, "")
+	cleaned = strings.ReplaceAll(cleaned, "&", " and ")
+	cleaned = strings.ReplaceAll(cleaned, "-", " ")
+	cleaned = strings.ReplaceAll(cleaned, "_", " ")
+	cleaned = reNonAlnumMatch.ReplaceAllString(cleaned, " ")
+	cleaned = reMultiSpace.ReplaceAllString(cleaned, " ")
+	return strings.TrimSpace(cleaned)
+}
+
+func titleMatchScore(query, candidate string) int {
+	nq := normalizeTitleForMatch(query)
+	nc := normalizeTitleForMatch(candidate)
+	if nq == "" || nc == "" {
+		return 0
+	}
+	if nq == nc {
+		return 1200
+	}
+
+	score := 0
+	if strings.HasPrefix(nc, nq+" ") {
+		score += 280
+	}
+	if strings.Contains(" "+nc+" ", " "+nq+" ") {
+		score += 220
+	} else if strings.Contains(nc, nq) || strings.Contains(nq, nc) {
+		score += 120
+	}
+
+	queryTokens := strings.Fields(nq)
+	candTokens := strings.Fields(nc)
+	if len(queryTokens) == 0 || len(candTokens) == 0 {
+		return score
+	}
+
+	candidateSet := make(map[string]struct{}, len(candTokens))
+	for _, tok := range candTokens {
+		if len(tok) >= 3 {
+			candidateSet[tok] = struct{}{}
+		}
+	}
+
+	matches := 0
+	validQueryTokens := 0
+	for _, tok := range queryTokens {
+		if len(tok) < 3 {
+			continue
+		}
+		validQueryTokens++
+		if _, ok := candidateSet[tok]; ok {
+			matches++
+			score += 130
+		}
+	}
+
+	if validQueryTokens > 0 && matches == validQueryTokens {
+		extraTokens := len(candTokens) - validQueryTokens
+		if extraTokens < 0 {
+			extraTokens = 0
+		}
+		score += 220
+		score -= extraTokens * 50
+	}
+
+	score -= absInt(len(nc)-len(nq)) * 2
+	return score
+}
+
+func pickBestScraperMatch(query string, results []*models.Anime) (*models.Anime, int, string) {
+	if len(results) == 0 {
+		return nil, 0, "nenhum resultado de busca"
+	}
+
+	candidates := make([]*models.Anime, 0, len(results))
+	animeOnlyCandidates := make([]*models.Anime, 0, len(results))
+	for _, candidate := range results {
+		if candidate == nil {
+			continue
+		}
+		candidates = append(candidates, candidate)
+		if candidate.MediaType != models.MediaTypeMovie && candidate.MediaType != models.MediaTypeTV {
+			animeOnlyCandidates = append(animeOnlyCandidates, candidate)
+		}
+	}
+	if len(candidates) == 0 {
+		return nil, 0, "resultados sem fonte utilizavel"
+	}
+	if len(animeOnlyCandidates) > 0 {
+		candidates = animeOnlyCandidates
+	}
+
+	var best *models.Anime
+	bestScore := -1
+	secondBest := -1
+
+	for _, candidate := range candidates {
+		if candidate == nil || strings.TrimSpace(candidate.Name) == "" || strings.TrimSpace(candidate.URL) == "" || strings.TrimSpace(candidate.Source) == "" {
+			continue
+		}
+
+		score := titleMatchScore(query, candidate.Name)
+		if score > bestScore {
+			secondBest = bestScore
+			best = candidate
+			bestScore = score
+			continue
+		}
+		if score > secondBest {
+			secondBest = score
+		}
+	}
+
+	if best == nil {
+		return nil, 0, "resultados sem fonte utilizavel"
+	}
+
+	tokenCount := len(strings.Fields(normalizeTitleForMatch(query)))
+	minScore := 420
+	margin := 50
+	if tokenCount <= 1 {
+		minScore = 260
+		margin = 25
+	}
+	if bestScore < minScore {
+		return nil, bestScore, "score insuficiente para match confiavel"
+	}
+	if bestScore < 900 && secondBest >= 0 && bestScore-secondBest < margin {
+		return nil, bestScore, "resultado ambiguo (scores muito proximos)"
+	}
+
+	return best, bestScore, ""
+}
+
+func pickAniListTitle(english, romaji string, mediaID int) string {
+	if strings.TrimSpace(english) != "" {
+		return strings.TrimSpace(english)
+	}
+	if strings.TrimSpace(romaji) != "" {
+		return strings.TrimSpace(romaji)
+	}
+	return fmt.Sprintf("AniList #%d", mediaID)
+}
+
+func ensureAniListViewer(session *anilist.AniListSession) (*anilist.User, error) {
+	if !session.IsLoggedIn() {
+		return nil, anilist.ErrNotAuthenticated
+	}
+	if session.CurrentUser != nil {
+		return session.CurrentUser, nil
+	}
+	user, err := session.Client.GetViewer()
+	if err != nil {
+		return nil, err
+	}
+	session.CurrentUser = user
+	return user, nil
+}
 
 // StartWebUI starts the local web server and opens the browser
 func StartWebUI(port int) error {
@@ -52,12 +248,17 @@ func StartWebUI(port int) error {
 	mux.HandleFunc("/api/chat", handleChat)
 	mux.HandleFunc("/api/trending", handleGetTrending)
 	mux.HandleFunc("/api/play", handlePlay)
+	mux.HandleFunc("/api/anilist/status", handleAniListStatus)
+	mux.HandleFunc("/api/anilist/sync", handleAniListSync)
+	mux.HandleFunc("/api/anilist/logout", handleAniListLogout)
+	mux.HandleFunc("/api/anilist/auth-url", handleAniListAuthURL)
+	mux.HandleFunc("/api/anilist/login", handleAniListLogin)
 
 	addr := fmt.Sprintf("localhost:%d", port)
 	url := fmt.Sprintf("http://%s", addr)
 
 	util.Infof("Iniciando StarDF-Anime Web UI em %s", url)
-	
+
 	// Open browser in a separate goroutine
 	go func() {
 		// Wait a small bit for server to be up
@@ -66,6 +267,91 @@ func StartWebUI(port int) error {
 	}()
 
 	return http.ListenAndServe(addr, mux)
+}
+
+func handleAniListAuthURL(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	clientID := strings.TrimSpace(r.URL.Query().Get("client_id"))
+	redirectURI := strings.TrimSpace(r.URL.Query().Get("redirect_uri"))
+	if redirectURI == "" {
+		redirectURI = "https://anilist.co/api/v2/oauth/pin"
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if clientID == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "client_id is required",
+		})
+		return
+	}
+
+	authURL := anilist.GetAuthorizationURL(clientID, redirectURI)
+	json.NewEncoder(w).Encode(map[string]string{
+		"authUrl":     authURL,
+		"redirectUri": redirectURI,
+	})
+}
+
+func handleAniListLogin(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req aniListLoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	req.ClientID = strings.TrimSpace(req.ClientID)
+	req.ClientSecret = strings.TrimSpace(req.ClientSecret)
+	req.Code = strings.TrimSpace(req.Code)
+	req.RedirectURI = strings.TrimSpace(req.RedirectURI)
+	if req.RedirectURI == "" {
+		req.RedirectURI = "https://anilist.co/api/v2/oauth/pin"
+	}
+
+	if req.ClientID == "" || req.Code == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "clientId and code are required",
+		})
+		return
+	}
+
+	if err := anilist.GlobalSession.LoginWithCode(anilist.OAuthConfig{
+		ClientID:     req.ClientID,
+		ClientSecret: req.ClientSecret,
+		RedirectURI:  req.RedirectURI,
+	}, req.Code); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadGateway)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": fmt.Sprintf("Falha no login AniList: %v", err),
+		})
+		return
+	}
+
+	session := anilist.GlobalSession
+	if session.CurrentUser == nil && session.IsLoggedIn() {
+		if user, err := ensureAniListViewer(session); err == nil {
+			session.CurrentUser = user
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"ok":       true,
+		"loggedIn": session.IsLoggedIn(),
+		"user":     session.CurrentUser,
+	})
 }
 
 func handleSearch(w http.ResponseWriter, r *http.Request) {
@@ -78,7 +364,7 @@ func handleSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.GlobalMediaType = mediaType
-	
+
 	// 1. Get Canonical Results from AniList First
 	aniClient := anilist.NewClient()
 	aniResults, _ := aniClient.SearchAnimes(query, 1, 15) // Use SearchAnimes (plural)
@@ -100,7 +386,7 @@ func handleSearch(w http.ResponseWriter, r *http.Request) {
 		if name == "" {
 			name = ani.Title.Romaji
 		}
-		
+
 		grouped[name] = &UnifiedMedia{
 			Name:          name,
 			ImageURL:      ani.CoverImage.Large,
@@ -118,7 +404,7 @@ func handleSearch(w http.ResponseWriter, r *http.Request) {
 	reTag := regexp.MustCompile(`^\[.*?\]\s*`)
 	for _, res := range scraperResults {
 		cleanName := strings.ToLower(reTag.ReplaceAllString(res.Name, ""))
-		
+
 		matched := false
 		for aniName, media := range grouped {
 			aniInfo := aniMap[aniName]
@@ -130,7 +416,9 @@ func handleSearch(w http.ResponseWriter, r *http.Request) {
 
 			// 1. Precise check: any title contains or is contained in scrap name
 			for _, t := range titles {
-				if t == "" { continue }
+				if t == "" {
+					continue
+				}
 				if strings.Contains(cleanName, t) || strings.Contains(t, cleanName) {
 					// CHECK FOR DUPLICATE (Normalizing URLs)
 					exists := false
@@ -153,14 +441,18 @@ func handleSearch(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 			}
-			if matched { break }
+			if matched {
+				break
+			}
 
 			// 2. Fragment match: check for seasonal arcs (Shimetsu Kaiyuu, etc)
 			// If two words like "Jujutsu" and "Kaisen" match, we accept it for JJK card
 			tokens := strings.Fields(cleanName)
 			matchesCount := 0
 			for _, token := range tokens {
-				if len(token) < 4 { continue } // Ignore short words
+				if len(token) < 4 {
+					continue
+				} // Ignore short words
 				for _, t := range titles {
 					if strings.Contains(t, token) {
 						matchesCount++
@@ -224,7 +516,7 @@ func handleGetTrending(w http.ResponseWriter, r *http.Request) {
 		if res.Title.English != "" {
 			name = res.Title.English
 		}
-		
+
 		totalEps := 0
 		if res.Episodes != nil {
 			totalEps = *res.Episodes
@@ -241,6 +533,218 @@ func handleGetTrending(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(finalResults)
+}
+
+func handleAniListStatus(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	session := anilist.GlobalSession
+	if !session.IsLoggedIn() {
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"loggedIn": false,
+		})
+		return
+	}
+
+	user, err := ensureAniListViewer(session)
+	if err != nil {
+		util.Warnf("AniList status check failed: %v", err)
+		_ = session.Logout()
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"loggedIn": false,
+			"error":    "Sua sessao AniList expirou. Faca login novamente no app principal.",
+		})
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"loggedIn": true,
+		"user":     user,
+	})
+}
+
+func handleAniListLogout(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if err := anilist.GlobalSession.Logout(); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": fmt.Sprintf("Falha ao desconectar AniList: %v", err),
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]bool{
+		"ok": true,
+	})
+}
+
+func handleAniListSync(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	session := anilist.GlobalSession
+	if !session.IsLoggedIn() {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"loggedIn": false,
+			"error":    "AniList nao conectado",
+		})
+		return
+	}
+
+	user, err := ensureAniListViewer(session)
+	if err != nil {
+		util.Warnf("AniList sync viewer check failed: %v", err)
+		_ = session.Logout()
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"loggedIn": false,
+			"error":    "Sessao AniList expirada. Faca login novamente no app principal.",
+		})
+		return
+	}
+
+	list, err := session.Client.GetUserList(user.ID)
+	if err != nil {
+		errMsg := strings.ToLower(err.Error())
+		if strings.Contains(errMsg, "401") || strings.Contains(errMsg, "unauthorized") {
+			_ = session.Logout()
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"loggedIn": false,
+				"error":    "Token AniList invalido/expirado. Faca login novamente no app principal.",
+			})
+			return
+		}
+
+		util.Errorf("AniList sync error: %v", err)
+		w.WriteHeader(http.StatusBadGateway)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"loggedIn": true,
+			"error":    fmt.Sprintf("Falha ao sincronizar AniList: %v", err),
+		})
+		return
+	}
+
+	type anilistEntry struct {
+		aniListID     int
+		name          string
+		imageURL      string
+		status        string
+		progress      int
+		totalEpisodes int
+		updatedAt     int
+	}
+
+	latestByMedia := map[int]anilistEntry{}
+	for _, listGroup := range list.Data.MediaListCollection.Lists {
+		for _, entry := range listGroup.Entries {
+			if entry.MediaID == 0 {
+				continue
+			}
+
+			totalEps := 0
+			if entry.Media.Episodes != nil {
+				totalEps = *entry.Media.Episodes
+			}
+
+			current := anilistEntry{
+				aniListID:     entry.MediaID,
+				name:          pickAniListTitle(entry.Media.Title.English, entry.Media.Title.Romaji, entry.MediaID),
+				imageURL:      entry.Media.CoverImage.Large,
+				status:        strings.ToUpper(strings.TrimSpace(entry.Status)),
+				progress:      entry.Progress,
+				totalEpisodes: totalEps,
+				updatedAt:     entry.UpdatedAt,
+			}
+
+			prev, exists := latestByMedia[entry.MediaID]
+			if !exists || current.updatedAt >= prev.updatedAt {
+				latestByMedia[entry.MediaID] = current
+			}
+		}
+	}
+
+	entries := make([]anilistEntry, 0, len(latestByMedia))
+	for _, e := range latestByMedia {
+		entries = append(entries, e)
+	}
+
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].updatedAt > entries[j].updatedAt
+	})
+
+	counts := map[string]int{
+		"total":     0,
+		"CURRENT":   0,
+		"COMPLETED": 0,
+		"PLANNING":  0,
+		"DROPPED":   0,
+		"PAUSED":    0,
+	}
+
+	suggestions := make([]*UnifiedMedia, 0, 12)
+	history := make([]AniListHistoryItem, 0, 24)
+
+	for _, e := range entries {
+		counts["total"]++
+		if _, ok := counts[e.status]; ok {
+			counts[e.status]++
+		}
+
+		defaultSource := []SourceDetail{{Name: "AniList (Sync)", URL: e.name}}
+
+		if (e.status == "CURRENT" || e.status == "PLANNING" || e.status == "PAUSED") && len(suggestions) < 12 {
+			suggestions = append(suggestions, &UnifiedMedia{
+				Name:          e.name,
+				ImageURL:      e.imageURL,
+				TotalEpisodes: e.totalEpisodes,
+				MediaType:     "anime",
+				Sources:       defaultSource,
+			})
+		}
+
+		if len(history) < 24 {
+			updatedAtISO := ""
+			if e.updatedAt > 0 {
+				updatedAtISO = time.Unix(int64(e.updatedAt), 0).Format(time.RFC3339)
+			}
+			history = append(history, AniListHistoryItem{
+				AniListID:     e.aniListID,
+				Name:          e.name,
+				ImageURL:      e.imageURL,
+				Status:        e.status,
+				Progress:      e.progress,
+				TotalEpisodes: e.totalEpisodes,
+				MediaType:     "anime",
+				UpdatedAt:     updatedAtISO,
+				Sources:       defaultSource,
+			})
+		}
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"loggedIn":    true,
+		"user":        user,
+		"counts":      counts,
+		"suggestions": suggestions,
+		"history":     history,
+	})
 }
 
 func handleGetEpisodes(w http.ResponseWriter, r *http.Request) {
@@ -260,13 +764,30 @@ func handleGetEpisodes(w http.ResponseWriter, r *http.Request) {
 		results, err := scraperManager.SearchAnime(animeURL, nil)
 		if err != nil || len(results) == 0 {
 			util.Warn("No sources found for dashboard item", "anime", animeURL)
-			http.Error(w, "No sources found for this anime", http.StatusNotFound)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": "Nenhuma fonte encontrada para esta obra.",
+				"query": animeURL,
+			})
 			return
 		}
-		// Pick the first/best source (can be improved later)
-		animeURL = results[0].URL
-		sourceName = results[0].Source
-		util.Infof("Selected source for playback: %s", sourceName)
+
+		best, bestScore, reason := pickBestScraperMatch(animeURL, results)
+		if best == nil {
+			util.Warn("AniList resolver could not find a reliable match", "query", animeURL, "reason", reason, "score", bestScore)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{
+				"error": fmt.Sprintf("Nao foi possivel selecionar fonte confiavel para '%s' (%s).", animeURL, reason),
+				"query": animeURL,
+			})
+			return
+		}
+
+		animeURL = best.URL
+		sourceName = best.Source
+		util.Infof("Selected source for playback: %s (score=%d, title=%s)", sourceName, bestScore, best.Name)
 	}
 
 	s, err := scraperManager.FindScraperByName(sourceName)
