@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 package main
 
 import (
@@ -14,18 +17,18 @@ func main() {
 
 	// URL problemática vinda da busca (conforme log anterior)
 	testURL := "https://animefire.io/animes/ore-dake-level-up-na-ken-season-2-arise-from-the-shadow-dublado-todos-os-episodios"
-	
+
 	fmt.Printf("[PROVA] Testando URL inicial: %s\n", testURL)
-	
+
 	// Simulação manual da lógica de GetAnimeEpisodes (com fallback)
 	cleanURL := strings.TrimRight(testURL, "/")
 	hasSuffix := strings.HasSuffix(cleanURL, "-todos-os-episodios")
-	
+
 	fmt.Printf("   - Clean URL: %s\n", cleanURL)
 	fmt.Printf("   - Has Suffix '-todos-os-episodios'? %v\n", hasSuffix)
-	
+
 	if !hasSuffix {
-		fmt.Printf("   - [FALLBACK SERIA ACIONADO] Novo URL: %s\n", cleanURL + "-todos-os-episodios")
+		fmt.Printf("   - [FALLBACK SERIA ACIONADO] Novo URL: %s\n", cleanURL+"-todos-os-episodios")
 	} else {
 		fmt.Println("   - [FALLBACK BLOQUEADO] Suffix já presente.")
 	}

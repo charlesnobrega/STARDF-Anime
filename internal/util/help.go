@@ -109,6 +109,11 @@ func ShowBeautifulHelp() {
 	addOption(&helpContent, "--type", "Specify media type (anime, movie, tv). Default: anime.")
 	addOption(&helpContent, "--subs", "Specify subtitle language for movies/TV shows (FlixHQ only: english, spanish, portuguese, etc.).")
 	addOption(&helpContent, "--audio", "Specify preferred audio language for movies/TV (FlixHQ only: pt-BR,english,spanish).")
+	addOption(&helpContent, "--autoskip", "Enable or disable automatic intro/outro skipping. Default: true.")
+	addOption(&helpContent, "--anilist-login", "Connect your AniList account for sync and dashboard integration.")
+	addOption(&helpContent, "--anilist-logout", "Disconnect AniList account and remove saved token.")
+	addOption(&helpContent, "--web", "Start the embedded Premium Web UI.")
+	addOption(&helpContent, "--port", "Set Web UI server port when using --web. Default: 8080.")
 	helpContent.WriteString("\n")
 
 	// Features section
@@ -142,14 +147,17 @@ func ShowBeautifulHelp() {
 	addExample(&helpContent, "stardf-anime --version", "Show version information")
 	addExample(&helpContent, "stardf-anime -d \"one piece\" 1", "Download episode 1 of One Piece")
 	addExample(&helpContent, "stardf-anime -d -r \"naruto\" 1-5", "Download episodes 1-5 of Naruto")
-	addExample(&helpContent, "stardf-anime -d --source allanime \"bleach\" 10", "Download from AllAnime specifically")
+	addExample(&helpContent, "stardf-anime -d --source animefire \"bleach\" 10", "Download from AnimeFire specifically")
 	addExample(&helpContent, "stardf-anime -d --quality 720p \"demon slayer\" 1", "Download in 720p quality")
 	addExample(&helpContent, "stardf-anime -d --source animefire --quality best \"jujutsu kaisen\" 5", "Use AnimeFire with best quality")
-	addExample(&helpContent, "stardf-anime -d -r --source allanime --allanime-smart \"vinland saga\" 1-4", "AllAnime Smart Range for episodes 1-4")
 	addExample(&helpContent, "stardf-anime --type movie \"avengers\"", "Search for movies matching 'avengers'")
 	addExample(&helpContent, "stardf-anime --type tv \"breaking bad\"", "Search for TV shows matching 'breaking bad'")
 	addExample(&helpContent, "stardf-anime --type movie --subs spanish \"spider-man\"", "Search movies with Spanish subtitles")
 	addExample(&helpContent, "stardf-anime --type movie --audio \"pt-BR,english\" \"matrix\"", "Play movie with Portuguese audio preference")
+	addExample(&helpContent, "stardf-anime --anilist-login", "Connect AniList account")
+	addExample(&helpContent, "stardf-anime --anilist-logout", "Disconnect AniList account")
+	addExample(&helpContent, "stardf-anime --web", "Launch Premium Web UI on default port 8080")
+	addExample(&helpContent, "stardf-anime --web --port 8090", "Launch Premium Web UI on custom port")
 	helpContent.WriteString("\n")
 
 	// Footer

@@ -13,7 +13,7 @@ permissions:
 
 env:
   GO_VERSION: '1.23'
-  BINARY_NAME: goanime
+  BINARY_NAME: stardf-anime
 
 jobs:
   # =============================================================================
@@ -47,7 +47,7 @@ jobs:
         continue-on-error: true
 
       - name: Run tests
-        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./... || true
+        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
 
       - name: Check test coverage
         run: |
@@ -59,7 +59,7 @@ jobs:
       - name: Build verification
         run: |
           # Verify the project builds successfully before proceeding
-          go build -v ./cmd/goanime
+          go build -v ./cmd/stardf-anime
           echo "Build verification passed"
 
       - name: Upload coverage
@@ -165,7 +165,7 @@ jobs:
           
           OUTPUT_NAME="${{ env.BINARY_NAME }}-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }}"
           
-          go build -ldflags "${LDFLAGS}" -o "dist/${OUTPUT_NAME}" ./cmd/goanime
+          go build -ldflags "${LDFLAGS}" -o "dist/${OUTPUT_NAME}" ./cmd/stardf-anime
           
           echo "Built ${OUTPUT_NAME} with SQLite support"
 
@@ -188,7 +188,7 @@ jobs:
           $OUTPUT_NAME = "${{ env.BINARY_NAME }}-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }}"
           
           New-Item -ItemType Directory -Force -Path dist | Out-Null
-          go build -ldflags "$LDFLAGS" -o "dist/$OUTPUT_NAME" ./cmd/goanime
+          go build -ldflags "$LDFLAGS" -o "dist/$OUTPUT_NAME" ./cmd/stardf-anime
           
           Write-Host "Built $OUTPUT_NAME with SQLite support"
 
@@ -230,7 +230,7 @@ jobs:
       - name: Rename binary for installer
         shell: bash
         run: |
-          mv build/staging/goanime-windows-amd64.exe build/staging/goanime.exe
+          mv build/staging/stardf-anime-windows-amd64.exe build/staging/stardf-anime.exe
 
       - name: Download MPV for Windows
         shell: pwsh
@@ -240,7 +240,7 @@ jobs:
           
           # Get latest MPV release from GitHub (shinchiro builds - official recommended)
           Write-Host "Fetching latest MPV release..."
-          $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/shinchiro/mpv-winbuild-cmake/releases/latest" -Headers @{ "User-Agent" = "GoAnime-CI" }
+          $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/shinchiro/mpv-winbuild-cmake/releases/latest" -Headers @{ "User-Agent" = "StarDF-Anime-CI" }
           
           # Find the 64-bit release asset
           $asset = $releases.assets | Where-Object { $_.name -match "mpv-x86_64-.*\.7z$" -and $_.name -notmatch "dev" } | Select-Object -First 1
@@ -255,7 +255,7 @@ jobs:
           
           Write-Host "Downloading MPV from: $mpvUrl"
           Write-Host "Version: $($releases.tag_name)"
-          Invoke-WebRequest -Uri $mpvUrl -OutFile $mpvArchive -Headers @{ "Accept" = "application/octet-stream"; "User-Agent" = "GoAnime-CI" }
+          Invoke-WebRequest -Uri $mpvUrl -OutFile $mpvArchive -Headers @{ "Accept" = "application/octet-stream"; "User-Agent" = "StarDF-Anime-CI" }
           
           # Verify download
           if (-not (Test-Path $mpvArchive) -or (Get-Item $mpvArchive).Length -lt 1000000) {
@@ -321,7 +321,7 @@ jobs:
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build/install.iss
           
           # Check if installer was created
-          $installerPath = "dist/GoAnime-Installer-${{ steps.version.outputs.VERSION_NUMBER }}.exe"
+          $installerPath = "dist/StarDF-Anime-Installer-${{ steps.version.outputs.VERSION_NUMBER }}.exe"
           if (Test-Path $installerPath) {
             Write-Host "Installer created successfully: $installerPath"
             Get-Item $installerPath | Select-Object Name, Length
@@ -334,7 +334,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer
-          path: dist/GoAnime-Installer-*.exe
+          path: dist/StarDF-Anime-Installer-*.exe
           retention-days: 1
 
   # =============================================================================
@@ -473,16 +473,16 @@ jobs:
           echo "#### Linux / macOS" >> RELEASE_NOTES.md
           echo '```bash' >> RELEASE_NOTES.md
           echo "# Download the binary for your platform" >> RELEASE_NOTES.md
-          echo "curl -LO https://github.com/charlesnobrega/STARDF-Anime/releases/download/${VERSION}/goanime-linux-amd64.tar.gz" >> RELEASE_NOTES.md
+          echo "curl -LO https://github.com/charlesnobrega/STARDF-Anime/releases/download/${VERSION}/stardf-anime-linux-amd64.tar.gz" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "# Extract and install" >> RELEASE_NOTES.md
-          echo "tar -xzf goanime-linux-amd64.tar.gz" >> RELEASE_NOTES.md
-          echo "chmod +x goanime-linux-amd64" >> RELEASE_NOTES.md
-          echo "sudo mv goanime-linux-amd64 /usr/local/bin/goanime" >> RELEASE_NOTES.md
+          echo "tar -xzf stardf-anime-linux-amd64.tar.gz" >> RELEASE_NOTES.md
+          echo "chmod +x stardf-anime-linux-amd64" >> RELEASE_NOTES.md
+          echo "sudo mv stardf-anime-linux-amd64 /usr/local/bin/stardf-anime" >> RELEASE_NOTES.md
           echo '```' >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "#### Windows" >> RELEASE_NOTES.md
-          echo "**Recommended:** Download and run the \`GoAnime-Installer-${VERSION#v}.exe\` for automatic setup with MPV included." >> RELEASE_NOTES.md
+          echo "**Recommended:** Download and run the \`StarDF-Anime-Installer-${VERSION#v}.exe\` for automatic setup with MPV included." >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "Or download the portable \`.zip\` file for your architecture and extract it." >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
@@ -497,13 +497,13 @@ jobs:
           echo "" >> RELEASE_NOTES.md
           echo "| OS | Architecture | Binary |" >> RELEASE_NOTES.md
           echo "|---|---|---|" >> RELEASE_NOTES.md
-          echo "| Linux | x86_64 | \`goanime-linux-amd64\` |" >> RELEASE_NOTES.md
-          echo "| Linux | ARM64 | \`goanime-linux-arm64\` |" >> RELEASE_NOTES.md
-          echo "| macOS | x86_64 (Intel) | \`goanime-darwin-amd64\` |" >> RELEASE_NOTES.md
-          echo "| macOS | ARM64 (Apple Silicon) | \`goanime-darwin-arm64\` |" >> RELEASE_NOTES.md
-          echo "| Windows | Installer | \`GoAnime-Installer-\${VERSION#v}.exe\` (Recommended) |" >> RELEASE_NOTES.md
-          echo "| Windows | x86_64 | \`goanime-windows-amd64.exe\` |" >> RELEASE_NOTES.md
-          echo "| Arch Linux | x86_64 | \`yay -S goanime\` (AUR) |" >> RELEASE_NOTES.md
+          echo "| Linux | x86_64 | \`stardf-anime-linux-amd64\` |" >> RELEASE_NOTES.md
+          echo "| Linux | ARM64 | \`stardf-anime-linux-arm64\` |" >> RELEASE_NOTES.md
+          echo "| macOS | x86_64 (Intel) | \`stardf-anime-darwin-amd64\` |" >> RELEASE_NOTES.md
+          echo "| macOS | ARM64 (Apple Silicon) | \`stardf-anime-darwin-arm64\` |" >> RELEASE_NOTES.md
+          echo "| Windows | Installer | \`StarDF-Anime-Installer-\${VERSION#v}.exe\` (Recommended) |" >> RELEASE_NOTES.md
+          echo "| Windows | x86_64 | \`stardf-anime-windows-amd64.exe\` |" >> RELEASE_NOTES.md
+          echo "| Arch Linux | x86_64 | \`yay -S stardf-anime\` (AUR) |" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "All binaries are built with SQLite tracking support enabled." >> RELEASE_NOTES.md
           
@@ -512,21 +512,21 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: GoAnime ${{ steps.version.outputs.VERSION }}
+          name: StarDF-Anime ${{ steps.version.outputs.VERSION }}
           body_path: RELEASE_NOTES.md
           draft: false
           prerelease: ${{ steps.version.outputs.PRERELEASE }}
           files: |
-            release/goanime-linux-amd64
-            release/goanime-linux-arm64
-            release/goanime-darwin-amd64
-            release/goanime-darwin-arm64
-            release/goanime-linux-amd64.tar.gz
-            release/goanime-linux-arm64.tar.gz
-            release/goanime-darwin-amd64.tar.gz
-            release/goanime-darwin-arm64.tar.gz
-            release/goanime-windows-amd64.zip
-            release/GoAnime-Installer-*.exe
+            release/stardf-anime-linux-amd64
+            release/stardf-anime-linux-arm64
+            release/stardf-anime-darwin-amd64
+            release/stardf-anime-darwin-arm64
+            release/stardf-anime-linux-amd64.tar.gz
+            release/stardf-anime-linux-arm64.tar.gz
+            release/stardf-anime-darwin-amd64.tar.gz
+            release/stardf-anime-darwin-arm64.tar.gz
+            release/stardf-anime-windows-amd64.zip
+            release/StarDF-Anime-Installer-*.exe
             release/checksums-sha256.txt
             release/checksums-sha512.txt
           fail_on_unmatched_files: false
@@ -562,6 +562,9 @@ jobs:
           if [ -z "${{ secrets.AUR_SSH_PRIVATE_KEY }}" ]; then
             echo "AUR_SSH_PRIVATE_KEY not configured, skipping AUR publish"
             echo "has_secrets=false" >> $GITHUB_OUTPUT
+          elif [ ! -d "aur/stardf-anime" ]; then
+            echo "aur/stardf-anime directory not found, skipping AUR publish"
+            echo "has_secrets=false" >> $GITHUB_OUTPUT
           else
             echo "has_secrets=true" >> $GITHUB_OUTPUT
           fi
@@ -582,12 +585,12 @@ jobs:
       - name: Update PKGBUILD version
         if: steps.check-secrets.outputs.has_secrets == 'true'
         run: |
-          cd aur/goanime
+          cd aur/stardf-anime
           sed -i "s/pkgver=.*/pkgver=${{ steps.version.outputs.VERSION_NUMBER }}/" PKGBUILD
           sed -i "s/pkgrel=.*/pkgrel=1/" PKGBUILD
           
           # Update source URL in PKGBUILD
-          sed -i "s|goanime-[0-9.]*::|goanime-${{ steps.version.outputs.VERSION_NUMBER }}::|" PKGBUILD
+          sed -i "s|stardf-anime-[0-9.]*::|stardf-anime-${{ steps.version.outputs.VERSION_NUMBER }}::|" PKGBUILD
           
           cat PKGBUILD
 
@@ -595,14 +598,14 @@ jobs:
         if: steps.check-secrets.outputs.has_secrets == 'true'
         uses: docker://archlinux:latest
         with:
-          args: bash -c "pacman -Sy --noconfirm pacman-contrib base-devel && useradd -m builder && chown -R builder:builder /github/workspace && su builder -c 'cd /github/workspace/aur/goanime && makepkg --printsrcinfo > .SRCINFO && cat .SRCINFO'"
+          args: bash -c "pacman -Sy --noconfirm pacman-contrib base-devel && useradd -m builder && chown -R builder:builder /github/workspace && su builder -c 'cd /github/workspace/aur/stardf-anime && makepkg --printsrcinfo > .SRCINFO && cat .SRCINFO'"
 
       - name: Publish to AUR
         if: steps.check-secrets.outputs.has_secrets == 'true'
         uses: KSXGitHub/github-actions-deploy-aur@v3.0.1
         with:
-          pkgname: goanime
-          pkgbuild: ./aur/goanime/PKGBUILD
+          pkgname: stardf-anime
+          pkgbuild: ./aur/stardf-anime/PKGBUILD
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
@@ -614,6 +617,8 @@ jobs:
         run: |
           echo "## AUR Package Updated" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Package: goanime" >> $GITHUB_STEP_SUMMARY
+          echo "- Package: stardf-anime" >> $GITHUB_STEP_SUMMARY
           echo "- Version: ${{ steps.version.outputs.VERSION_NUMBER }}" >> $GITHUB_STEP_SUMMARY
-          echo "- AUR URL: https://aur.archlinux.org/packages/goanime" >> $GITHUB_STEP_SUMMARY
+          echo "- AUR URL: https://aur.archlinux.org/packages/stardf-anime" >> $GITHUB_STEP_SUMMARY
+
+

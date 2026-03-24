@@ -1,4 +1,4 @@
-name: GoAnime Coverage
+name: StarDF-Anime Coverage
 
 on:
   push:
@@ -61,3 +61,4 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           files: coverage.out
+

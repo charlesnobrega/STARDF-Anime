@@ -355,11 +355,22 @@ func handleAniListLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleSearch(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query().Get("q")
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	query := strings.TrimSpace(r.URL.Query().Get("q"))
+	if query == "" {
+		query = strings.TrimSpace(r.URL.Query().Get("query"))
+	}
+	if query == "" {
+		query = strings.TrimSpace(r.URL.Query().Get("name"))
+	}
 	mediaType := r.URL.Query().Get("type")
 
 	if query == "" {
-		http.Error(w, "Query parameter 'q' is required", http.StatusBadRequest)
+		http.Error(w, "Query parameter 'q' (or 'query') is required", http.StatusBadRequest)
 		return
 	}
 

@@ -7,8 +7,10 @@ import (
 	"github.com/charlesnobrega/STARDF-Anime/internal/tracking"
 )
 
-const (
-	Version = "1.6.3"
+var (
+	Version   = "1.6.3"
+	BuildTime = "unknown"
+	Commit    = "unknown"
 )
 
 func HasVersionArg() bool {

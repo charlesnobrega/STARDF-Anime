@@ -1,4 +1,4 @@
-name: GoAnime CI
+name: StarDF-Anime CI
 
 on:
   push:
@@ -84,23 +84,23 @@ jobs:
           - os: ubuntu-latest
             goos: linux
             goarch: amd64
-            binary_name: goanime-linux
-            asset_name: goanime-linux-amd64
+            binary_name: stardf-anime-linux
+            asset_name: stardf-anime-linux-amd64
           - os: windows-latest
             goos: windows
             goarch: amd64
-            binary_name: goanime.exe
-            asset_name: goanime-windows-amd64
+            binary_name: stardf-anime.exe
+            asset_name: stardf-anime-windows-amd64
           - os: macos-latest
             goos: darwin
             goarch: amd64
-            binary_name: goanime-darwin-amd64
-            asset_name: goanime-darwin-amd64
+            binary_name: stardf-anime-darwin-amd64
+            asset_name: stardf-anime-darwin-amd64
           - os: macos-latest
             goos: darwin
             goarch: arm64
-            binary_name: goanime-darwin-arm64
-            asset_name: goanime-darwin-arm64
+            binary_name: stardf-anime-darwin-arm64
+            asset_name: stardf-anime-darwin-arm64
     steps:
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -132,7 +132,7 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
         run: |
           mkdir -p dist
-          go build -o dist/${{ matrix.binary_name }} -ldflags="-s -w" -trimpath ./cmd/goanime
+          go build -o dist/${{ matrix.binary_name }} -ldflags="-s -w" -trimpath ./cmd/stardf-anime
 
       - name: Create archive (Unix)
         if: matrix.goos != 'windows'
@@ -214,7 +214,7 @@ jobs:
           
           Write-Host "GCC installed successfully for CGO builds"
 
-      - name: Build GoAnime binary with SQLite
+      - name: Build StarDF-Anime binary with SQLite
         shell: pwsh
         env:
           CGO_ENABLED: 1
@@ -229,9 +229,9 @@ jobs:
           New-Item -ItemType Directory -Force -Path "build/staging/bin"
           
           # Build the Go application with CGO enabled for SQLite support
-          go build -o build/staging/goanime.exe -ldflags="-s -w" -trimpath -tags="windows" ./cmd/goanime
+          go build -o build/staging/stardf-anime.exe -ldflags="-s -w" -trimpath -tags="windows" ./cmd/stardf-anime
           
-          Write-Host "GoAnime binary built successfully with SQLite support"
+          Write-Host "StarDF-Anime binary built successfully with SQLite support"
           Get-ChildItem build/staging/
 
       - name: Download mpv for Windows
@@ -243,7 +243,7 @@ jobs:
           Write-Host "Fetching latest mpv release from zhongfly/mpv-winbuild..."
           
           # Get the latest release info from GitHub API
-          $releaseInfo = Invoke-RestMethod -Uri "https://api.github.com/repos/zhongfly/mpv-winbuild/releases/latest" -Headers @{ "User-Agent" = "GoAnime-CI" }
+          $releaseInfo = Invoke-RestMethod -Uri "https://api.github.com/repos/zhongfly/mpv-winbuild/releases/latest" -Headers @{ "User-Agent" = "StarDF-Anime-CI" }
           
           Write-Host "Latest release: $($releaseInfo.tag_name)"
           
@@ -267,7 +267,7 @@ jobs:
           Write-Host "URL: $mpvUrl"
           
           # Download mpv archive from GitHub releases with proper headers
-          Invoke-WebRequest -Uri $mpvUrl -OutFile $mpvArchive -Headers @{ "Accept" = "application/octet-stream"; "User-Agent" = "GoAnime-CI" }
+          Invoke-WebRequest -Uri $mpvUrl -OutFile $mpvArchive -Headers @{ "Accept" = "application/octet-stream"; "User-Agent" = "StarDF-Anime-CI" }
           
           # Verify download
           if (-not (Test-Path $mpvArchive) -or (Get-Item $mpvArchive).Length -lt 1000000) {
@@ -371,8 +371,10 @@ jobs:
       - name: Upload Windows Installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: goanime-windows-installer
+          name: stardf-anime-windows-installer
           path: |
-            dist/GoAnime-Installer-*.exe
-            dist/GoAnime-Installer-*.sha256
+            dist/StarDF-Anime-Installer-*.exe
+            dist/StarDF-Anime-Installer-*.sha256
           retention-days: 30
+
+

@@ -31,7 +31,7 @@ Entre na nossa comunidade oficial para suporte, atualizações e feedbacks:
 
 ## Recursos
 
-- **NOVO:** Interface Web Premium (Standalone)
+- **NOVO:** Interface Web Premium (no mesmo binário da CLI, via `-web`)
 - **NOVO:** Suporte a Filmes e Séries via FlixHQ
 - **NOVO:** Integração OMDb para metadados de filmes/séries
 - **NOVO:** Rastreamento SQLite Universal (100% Go, sem CGO)
@@ -167,7 +167,7 @@ sudo zypper install mpv
 
 > **Altamente Recomendado:** Use o instalador para a melhor experiência no Windows.
 
-Opção 1: Executável Windows (Standalone)
+Opção 1: Executável Windows (binário único: CLI + Web UI)
 
 - Baixe o `stardf-anime-windows.zip` mais recente na seção de [releases](https://github.com/charlesnobrega/STARDF-Anime/releases).
 - Extraia e execute `stardf-anime.exe`.

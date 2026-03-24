@@ -1,10 +1,13 @@
+//go:build ignore
+// +build ignore
+
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"time"
-	"crypto/tls"
 )
 
 type TestResult struct {
@@ -27,7 +30,7 @@ func testConnection(url string) TestResult {
 	start := time.Now()
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-	
+
 	resp, err := client.Do(req)
 	latency := time.Since(start)
 

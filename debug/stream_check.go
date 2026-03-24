@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 package main
 
 import (
@@ -13,9 +16,9 @@ func main() {
 
 	// URL de um episódio válido do diagnóstico anterior
 	epURL := "https://animefire.io/animes/yuusha-kei-ni-shosu-choubatsu-yuusha-9004-tai-keimu-kiroku-todos-os-episodios/1"
-	
+
 	fmt.Printf("[TESTE] Extraindo stream de: %s\n", epURL)
-	
+
 	stream, metadata, err := af.GetStreamURL(epURL)
 	if err != nil {
 		fmt.Printf("❌ ERRO: %v\n", err)

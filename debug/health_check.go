@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 package main
 
 import (
@@ -48,7 +51,7 @@ func main() {
 
 	// 1. APIs Externas
 	checkEndpoint("AniList API", "https://graphql.anilist.co")
-	
+
 	// 2. Serviços Locais
 	checkPort("Spider Node.js Bridge", "localhost", 3000)
 	checkPort("StarDF-Anime WebUI", "localhost", 8080)

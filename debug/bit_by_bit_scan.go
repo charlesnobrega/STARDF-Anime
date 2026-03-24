@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 package main
 
 import (
@@ -9,7 +12,7 @@ func main() {
 	fmt.Println("🔍 --- SCAN BIT-A-BIT: SISTEMA STARDF-ANIME ---")
 
 	sm := scraper.NewScraperManager()
-	
+
 	// BIT 1: DASHBOARD SEARCH MATCH (JJK S3)
 	fmt.Println("\n[BIT 1: DASHBOARD MATCH]")
 	query := "Jujutsu Kaisen Season 3"

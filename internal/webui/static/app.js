@@ -106,26 +106,36 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Search Logic
-UI.search.addEventListener('keyup', (e) => {
-    if (e.key === 'Enter') performSearch(UI.search.value);
-});
+if (UI.search) {
+    UI.search.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') performSearch(UI.search.value);
+    });
+}
 
 async function performSearch(query) {
-    if (!query) {
+    const normalizedQuery = String(query || '').trim();
+    if (!normalizedQuery) {
         UI.dashboard.classList.remove('hidden');
         UI.searchContent.classList.add('hidden');
         return;
     }
 
     UI.status.classList.remove('hidden');
+    UI.status.style.display = '';
     UI.dashboard.classList.add('hidden');
     UI.searchContent.classList.remove('hidden');
     UI.results.innerHTML = Array(8).fill('<div class="card" style="height: 300px; background: rgba(255,255,255,0.05); border-radius: 12px;"></div>').join('');
 
     try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=${state.category}`);
-        const data = await res.json();
-        renderSelection(UI.results, data || []);
+        const res = await fetch(`/api/search?q=${encodeURIComponent(normalizedQuery)}&type=${state.category}`);
+        const contentType = res.headers.get('content-type') || '';
+        const payload = contentType.includes('application/json') ? await res.json() : await res.text();
+        if (!res.ok) {
+            const errMsg = typeof payload === 'string' ? payload : (payload.error || 'Falha ao buscar conteudo.');
+            throw new Error(errMsg);
+        }
+        const data = Array.isArray(payload) ? payload : [];
+        renderSelection(UI.results, data);
     } catch (err) {
         UI.results.innerHTML = `<div style="grid-column: 1/-1; padding: 50px; text-align: center; color: var(--pink);">Erro: ${err.message}</div>`;
     } finally {
@@ -140,10 +150,11 @@ function createCard(item, featured = false) {
     const numSources = item.Sources ? item.Sources.length : 0;
     const sourceLabel = numSources > 1 ? `${numSources} Servidores` : (item.Sources && item.Sources[0] ? item.Sources[0].Name : 'AniList');
     const img = item.ImageURL || 'https://placehold.co/400x600/101525/fff?text=No+Poster';
+    const safeImg = String(img).replace(/'/g, '%27');
     
     return `
-        <article class="card ${isFeatured}" data-reflection="url('${img}')">
-            <div class="poster" style="background: url('${img}');">
+        <article class="card ${isFeatured}" data-reflection="url('${safeImg}')">
+            <div class="poster" style="background: url('${safeImg}');">
                 <span class="badge">${sourceLabel}</span>
             </div>
             <div class="card-body">
@@ -159,23 +170,29 @@ function createCard(item, featured = false) {
 }
 
 function renderSelection(container, items, featured = false) {
-    container.innerHTML = (items && items.length) ? items.map(i => createCard(i, featured)).join("") : '<div style="padding: 20px;">Nenhum resultado encontrado.</div>';
+    if (!container) return;
+    const normalizedItems = Array.isArray(items) ? items : [];
+    container.innerHTML = normalizedItems.length ? normalizedItems.map(i => createCard(i, featured)).join("") : '<div style="padding: 20px;">Nenhum resultado encontrado.</div>';
     
     const cards = container.querySelectorAll('.card');
     cards.forEach((card, idx) => {
-        const item = items[idx];
+        const item = normalizedItems[idx];
         
         card.onmouseenter = () => {
             const img = card.dataset.reflection;
-            UI.reflection.style.backgroundImage = img;
-            UI.reflection.style.opacity = "1"; /* Vivid Engine: Full Opacity */
+            if (UI.reflection) {
+                UI.reflection.style.backgroundImage = img;
+                UI.reflection.style.opacity = "1"; /* Vivid Engine: Full Opacity */
+            }
         };
         
         card.onmouseleave = () => {
-            if (!isModalOpen()) UI.reflection.style.opacity = "0";
+            if (UI.reflection && !isModalOpen()) UI.reflection.style.opacity = "0";
         };
 
-        card.onclick = () => showDetails(item);
+        card.onclick = () => {
+            if (item) showDetails(item);
+        };
     });
 }
 
@@ -219,13 +236,19 @@ async function showDetails(item) {
     UI.modalMeta.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
             <span>${item.MediaType || 'Série'} | ⭐ 4.8</span>
-            <button id="modal-watchlist-btn" onclick="toggleWatchlist('${item.Name.replace(/'/g, "\\'")}', '${item.ImageURL}', '${item.MediaType}', ${item.TotalEpisodes})" 
+            <button id="modal-watchlist-btn"
                 style="background: rgba(255,255,255,0.05); border: 1px solid var(--line); color: white; padding: 8px 16px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.85rem; transition: 0.3s;">
                 <i data-feather="plus"></i> Minha Lista
             </button>
         </div>
     `;
     updateWatchlistBtn(item.Name);
+    const watchlistBtn = document.getElementById('modal-watchlist-btn');
+    if (watchlistBtn) {
+        watchlistBtn.onclick = () => {
+            toggleWatchlist(item.Name, item.ImageURL, item.MediaType, item.TotalEpisodes);
+        };
+    }
     UI.modalImg.style.backgroundImage = `url('${item.ImageURL}')`;
     UI.modalEps.innerHTML = 'Aguardando Servidor...';
     UI.sourcesBox.innerHTML = '';
@@ -238,10 +261,17 @@ async function showDetails(item) {
         if (sources.length === 1 && sources[0].Name.includes("AniList")) {
             UI.modalEps.innerHTML = 'Buscando servidores disponíveis...';
             const res = await fetch(`/api/search?q=${encodeURIComponent(item.Name)}`);
-            const results = await res.json();
+            const results = await res.json().catch(() => []);
+            if (!res.ok) {
+                throw new Error('Falha ao buscar fontes para item sincronizado.');
+            }
             const matched = pickBestSearchResult(item.Name, results);
-            if (matched && matched.Sources) {
-                sources = matched.Sources;
+            const fallback = Array.isArray(results)
+                ? results.find((entry) => Array.isArray(entry.Sources) && entry.Sources.length > 0)
+                : null;
+            const picked = matched || fallback;
+            if (picked && Array.isArray(picked.Sources)) {
+                sources = picked.Sources;
             }
         }
 
@@ -251,7 +281,8 @@ async function showDetails(item) {
         }
 
         // Renderizar botões de servidores
-        sources.forEach((src, idx) => {
+        const sourceEntries = [];
+        sources.forEach((src) => {
             const btn = document.createElement('button');
             // USE ANIMENAME IF AVAILABLE TO DIFFERENTIATE DUB/LEG
             const label = src.AnimeName ? `${src.Name} - ${src.AnimeName.split(' ').slice(-1)}` : src.Name;
@@ -259,10 +290,23 @@ async function showDetails(item) {
             btn.title = src.AnimeName || src.Name;
             btn.className = "server-btn";
             btn.style.cssText = "padding: 8px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--line); color: white; border-radius: 8px; cursor: pointer; font-weight: 500; transition: 0.3s; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;";
-            btn.onclick = () => loadEpisodes(src, item, btn);
+            btn.onclick = () => { void loadEpisodes(src, item, btn); };
             UI.sourcesBox.appendChild(btn);
-            if (idx === 0) btn.click(); // Auto-selecionar primeiro
+            sourceEntries.push({ source: src, button: btn });
         });
+
+        // Auto-seleciona o primeiro servidor que retornar episódios.
+        let loaded = false;
+        for (const entry of sourceEntries) {
+            const ok = await loadEpisodes(entry.source, item, entry.button, { silent: true });
+            if (ok) {
+                loaded = true;
+                break;
+            }
+        }
+        if (!loaded) {
+            UI.modalEps.innerHTML = 'Nenhum episódio disponível nos servidores encontrados.';
+        }
 
         // Load Chat
         const resChat = await fetch('/api/chat');
@@ -278,7 +322,13 @@ async function showDetails(item) {
     } catch (err) { UI.modalEps.innerHTML = `Erro: ${err.message}`; }
 }
 
-async function loadEpisodes(source, item, btn) {
+async function loadEpisodes(source, item, btn, options = {}) {
+    const { silent = false } = options;
+    if (!source || !source.URL || !source.Name) {
+        if (!silent) UI.modalEps.innerHTML = 'Fonte inválida para carregar episódios.';
+        return false;
+    }
+
     // Estilizar botão selecionado
     const all = UI.sourcesBox.querySelectorAll('button');
     all.forEach(b => { b.style.background = "rgba(255,255,255,0.05)"; b.style.color = "white"; b.style.borderColor = "var(--line)"; });
@@ -286,7 +336,7 @@ async function loadEpisodes(source, item, btn) {
     btn.style.color = "black";
     btn.style.borderColor = "var(--cyan)";
 
-    UI.modalEps.innerHTML = 'Carregando episódios...';
+    if (!silent) UI.modalEps.innerHTML = 'Carregando episódios...';
     try {
         const res = await fetch(`/api/episodes?url=${encodeURIComponent(source.URL)}&source=${encodeURIComponent(source.Name)}`);
         const payload = await res.json().catch(() => ({}));
@@ -295,7 +345,11 @@ async function loadEpisodes(source, item, btn) {
             throw new Error(message);
         }
         const eps = Array.isArray(payload) ? payload : [];
-        UI.modalEps.innerHTML = eps.length ? '' : 'Sem episódios neste servidor.';
+        if (!eps.length) {
+            if (!silent) UI.modalEps.innerHTML = 'Sem episódios neste servidor.';
+            return false;
+        }
+        UI.modalEps.innerHTML = '';
         
         eps.forEach(ep => {
             const epBtn = document.createElement('div');
@@ -304,7 +358,11 @@ async function loadEpisodes(source, item, btn) {
             epBtn.onclick = (e) => playEpisode(ep, item, source, e.currentTarget);
             UI.modalEps.appendChild(epBtn);
         });
-    } catch (e) { UI.modalEps.innerHTML = `Erro ao carregar episódios: ${e.message || 'falha desconhecida'}.`; }
+        return true;
+    } catch (e) {
+        if (!silent) UI.modalEps.innerHTML = `Erro ao carregar episódios: ${e.message || 'falha desconhecida'}.`;
+        return false;
+    }
 }
 
 async function playEpisode(ep, item, source, btn) {
@@ -339,7 +397,7 @@ async function playEpisode(ep, item, source, btn) {
         
         const playRes = await fetch(`/api/play?url=${encodeURIComponent(data.url)}&referer=${encodeURIComponent(referer)}&title=${encodeURIComponent(title)}`);
         if (!playRes.ok) {
-            const playData = await playRes.json();
+            const playData = await playRes.json().catch(() => ({}));
             throw new Error(playData.error || "Erro desconhecido ao iniciar o player.");
         }
         
@@ -363,20 +421,28 @@ function hideAllViews() {
 }
 
 // Navigation
-document.getElementById('nav-dashboard').onclick = (e) => {
-    hideAllViews();
-    UI.dashboard.classList.remove('hidden');
-    setActiveNav(e.currentTarget);
-};
+const navDashboardBtn = document.getElementById('nav-dashboard');
+const navWatchlistBtn = document.getElementById('nav-watchlist');
+const navHistoryBtn = document.getElementById('nav-history');
 
-document.getElementById('nav-watchlist').onclick = (e) => {
-    hideAllViews();
-    if(UI.watchlistView) {
-        UI.watchlistView.classList.remove('hidden');
-        renderWatchlist();
-    }
-    setActiveNav(e.currentTarget);
-};
+if (navDashboardBtn) {
+    navDashboardBtn.onclick = (e) => {
+        hideAllViews();
+        UI.dashboard.classList.remove('hidden');
+        setActiveNav(e.currentTarget);
+    };
+}
+
+if (navWatchlistBtn) {
+    navWatchlistBtn.onclick = (e) => {
+        hideAllViews();
+        if(UI.watchlistView) {
+            UI.watchlistView.classList.remove('hidden');
+            renderWatchlist();
+        }
+        setActiveNav(e.currentTarget);
+    };
+}
 
 function renderWatchlist() {
     const list = JSON.parse(localStorage.getItem('anime_watchlist') || '[]');
@@ -397,14 +463,16 @@ function renderWatchlist() {
     renderSelection(grid, list);
 }
 
-document.getElementById('nav-history').onclick = (e) => {
-    hideAllViews();
-    if(UI.historyView) {
-        UI.historyView.classList.remove('hidden');
-        renderHistory();
-    }
-    setActiveNav(e.currentTarget);
-};
+if (navHistoryBtn) {
+    navHistoryBtn.onclick = (e) => {
+        hideAllViews();
+        if(UI.historyView) {
+            UI.historyView.classList.remove('hidden');
+            renderHistory();
+        }
+        setActiveNav(e.currentTarget);
+    };
+}
 
 if (UI.navSettingsBtn) {
     UI.navSettingsBtn.onclick = (e) => {
@@ -524,7 +592,9 @@ function renderSettings() {
 
     const backBtn = document.getElementById('settings-back-dashboard');
     if (backBtn) {
-        backBtn.onclick = () => document.getElementById('nav-dashboard').click();
+        backBtn.onclick = () => {
+            if (navDashboardBtn) navDashboardBtn.click();
+        };
     }
 }
 
@@ -581,7 +651,9 @@ async function renderProfile() {
 
     const backBtn = document.getElementById('profile-back-dashboard');
     if (backBtn) {
-        backBtn.onclick = () => document.getElementById('nav-dashboard').click();
+        backBtn.onclick = () => {
+            if (navDashboardBtn) navDashboardBtn.click();
+        };
     }
 
     const statusEl = document.getElementById('profile-anilist-status');
@@ -845,26 +917,32 @@ function setActiveNav(btn) {
 }
 
 
-UI.sendBtn.onclick = async () => {
-    const text = UI.chatInput.value.trim();
-    if (!text) return;
-    
-    UI.chatInput.value = '';
-    const newMsg = { user: "Hiroshi K.", text };
-    
-    // Optimistic update
-    const div = document.createElement('div');
-    div.style.cssText = "margin-bottom: 15px; padding: 12px 18px; background: rgba(255,255,255,0.05); border-radius: 15px; border-left: 4px solid var(--cyan); opacity: 0.7;";
-    div.innerHTML = `<strong style="color: var(--pink); display: block; font-size: 0.8rem; margin-bottom: 5px;">${newMsg.user}</strong><span>${newMsg.text}</span>`;
-    UI.chatMessages.appendChild(div);
-    UI.chatMessages.scrollTop = UI.chatMessages.scrollHeight;
+if (UI.sendBtn && UI.chatInput && UI.chatMessages) {
+    UI.sendBtn.onclick = async () => {
+        const text = UI.chatInput.value.trim();
+        if (!text) return;
+        
+        UI.chatInput.value = '';
+        const newMsg = { user: "Hiroshi K.", text };
+        
+        // Optimistic update
+        const div = document.createElement('div');
+        div.style.cssText = "margin-bottom: 15px; padding: 12px 18px; background: rgba(255,255,255,0.05); border-radius: 15px; border-left: 4px solid var(--cyan); opacity: 0.7;";
+        div.innerHTML = `<strong style="color: var(--pink); display: block; font-size: 0.8rem; margin-bottom: 5px;">${newMsg.user}</strong><span>${newMsg.text}</span>`;
+        UI.chatMessages.appendChild(div);
+        UI.chatMessages.scrollTop = UI.chatMessages.scrollHeight;
 
-    await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newMsg)
-    });
-};
+        try {
+            await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newMsg)
+            });
+        } catch (err) {
+            console.error('Chat send failed', err);
+        }
+    };
+}
 
 // Global bootstrap
 window.addEventListener('load', () => {

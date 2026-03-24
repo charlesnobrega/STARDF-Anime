@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 package main
 
 import (
@@ -9,7 +12,7 @@ func main() {
 	fmt.Println("🔍 --- SCAN BIT-A-BIT V2: STARDF-ANIME (2026 RECOVERY) ---")
 
 	sm := scraper.NewScraperManager()
-	
+
 	// BIT 1: DASHBOARD MAPPING
 	query := "Steel Ball Run"
 	fmt.Printf("\n[BIT 1: DASHBOARD] Searching unified sources for: %s\n", query)

@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 package main
 
 import (
@@ -7,9 +10,9 @@ import (
 )
 
 func main() {
-    util.IsDebug = true
+	util.IsDebug = true
 	manager := scraper.NewScraperManager()
-	
+
 	targets := []string{
 		"STEEL BALL RUN",
 		"JUJUTSU KAISEN Season 3",

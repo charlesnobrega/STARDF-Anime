@@ -39,7 +39,7 @@ Join our official community for support, updates, and feedback:
 - Download single episodes
 - Discord RPC about the anime
 - Batch download multiple episodes
-- **NEW:** Premium Web User Interface (Standalone)
+- **NEW:** Premium Web User Interface (same binary as CLI, via `-web`)
 - **NEW:** Movies and TV Shows support via FlixHQ source
 - **NEW:** OMDb integration for movie/TV metadata (ratings, genres, runtime)
 - **NEW:** Universal SQLite tracking (100% Go, works on all platforms without CGO)
@@ -166,7 +166,7 @@ sudo zypper install mpv
 
 ## Windows
 
-Option 1: Windows Executable (Standalone)
+Option 1: Windows Executable (single binary: CLI + Web UI)
 
 - Download the latest `stardf-anime-windows.zip` from the [releases](https://github.com/charlesnobrega/STARDF-Anime/releases) section.
 - Extract and run `stardf-anime.exe`.

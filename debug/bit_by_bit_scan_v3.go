@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 package main
 
 import (
@@ -16,7 +19,7 @@ func main() {
 	results, _ := af.SearchAnime("Solo Leveling")
 	for i, r := range results {
 		fmt.Printf("   %d. [%s] URL: %s\n", i+1, r.Name, r.URL)
-		
+
 		// Teste 2: Listagem de episódios para cada resultado
 		fmt.Printf("      -> Listando episódios para %s...\n", r.Name)
 		eps, err := af.GetAnimeEpisodes(r.URL)
