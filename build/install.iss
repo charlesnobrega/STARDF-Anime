@@ -21,7 +21,7 @@ AllowNoIcons=yes
 ; Output directory is relative to the script location
 OutputDir=..\dist
 OutputBaseFilename=StarDF-Anime-Installer-{#MyAppVersion}
-; SetupIconFile=..\assets\icon.ico  ; Uncomment if icon.ico is available
+SetupIconFile=..\mobile\flutter\windows\runner\resources\app_icon.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2
 SolidCompression=yes
@@ -33,12 +33,16 @@ ArchitecturesInstallIn64BitMode=x64compatible
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "desktopconsoleicon"; Description: "Create desktop shortcut (Console)"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "desktopwebicon"; Description: "Create desktop shortcut (Web UI)"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 Name: "addtopath"; Description: "Add StarDF-Anime and MPV to PATH"; GroupDescription: "System Integration:"; Flags: checkedonce
 
 [Files]
 ; Main application binary (staged in build/staging directory)
 Source: "staging\stardf-anime.exe"; DestDir: "{app}"; Flags: ignoreversion
+
+; Application icon used by installer and shortcuts
+Source: "..\mobile\flutter\windows\runner\resources\app_icon.ico"; DestDir: "{app}\assets"; Flags: ignoreversion
 
 ; MPV binary and required DLLs for video playback
 Source: "staging\bin\mpv.exe"; DestDir: "{app}\bin"; Flags: ignoreversion
@@ -46,11 +50,13 @@ Source: "staging\bin\*.dll"; DestDir: "{app}\bin"; Flags: ignoreversion skipifso
 
 [Icons]
 ; Start Menu shortcuts
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\{#MyAppName} (Console)"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\assets\app_icon.ico"
+Name: "{group}\{#MyAppName} (Web UI)"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-web"; IconFilename: "{app}\assets\app_icon.ico"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 
-; Desktop shortcut (optional)
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+; Desktop shortcuts (optional)
+Name: "{autodesktop}\{#MyAppName} (Console)"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\assets\app_icon.ico"; Tasks: desktopconsoleicon
+Name: "{autodesktop}\{#MyAppName} (Web UI)"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-web"; IconFilename: "{app}\assets\app_icon.ico"; Tasks: desktopwebicon
 
 [Run]
 ; Add to user PATH using setx for immediate effect (works better in Windows Sandbox)

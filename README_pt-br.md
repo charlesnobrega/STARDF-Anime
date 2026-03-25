@@ -175,7 +175,8 @@ Opção 1: Executável Windows (binário único: CLI + Web UI)
 
 Opção 2: Instalador Inno Setup
 
-- Um instalador completo está disponível para facilitar a integração com o PATH e criar atalhos automaticamente.
+- Um instalador completo está disponível para facilitar a integração com o PATH e criar atalhos com ícone automaticamente.
+- Ele cria atalhos no Menu Iniciar para `StarDF-Anime (Console)` e `StarDF-Anime (Web UI)`.
 
 </details>
 

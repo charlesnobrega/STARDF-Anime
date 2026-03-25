@@ -174,7 +174,8 @@ Option 1: Windows Executable (single binary: CLI + Web UI)
 
 Option 2: Using the installer
 
-- An Inno Setup based installer is available for easier integration (shortcut and PATH setup).
+- An Inno Setup based installer is available for easier integration (PATH + icon + shortcuts).
+- It creates Start Menu shortcuts for `StarDF-Anime (Console)` and `StarDF-Anime (Web UI)`.
 
 ## macOS
 
