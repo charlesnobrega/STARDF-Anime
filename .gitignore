@@ -18,3 +18,11 @@ stardf-anime
 zip_contents/
 stardf-anime.exe
 all_files.txt
+
+# Build/release artifacts (keep scripts under build/)
+dist/
+build/stardf-anime*
+build/*.zip
+build/*.sha256
+build/*.tar.gz
+*.lnk
